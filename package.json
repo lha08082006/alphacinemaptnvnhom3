@@ -1,0 +1,19 @@
+{
+  "name": "beta-cinemas-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo Beta Cinemas - giao dịch treo, đối soát và hoàn tiền tự động (frontend + api + gateway-mock)",
+  "scripts": {
+    "setup": "npm install && npm --prefix api install && npm --prefix gateway-mock install",
+    "dev": "concurrently -k -n api,gateway -c blue,magenta \"npm:dev:api\" \"npm:dev:gateway\"",
+    "dev:api": "npm --prefix api run dev",
+    "dev:gateway": "npm --prefix gateway-mock run dev",
+    "test": "npm --prefix api test && npm --prefix gateway-mock test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

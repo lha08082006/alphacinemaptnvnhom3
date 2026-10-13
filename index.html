@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Beta Cinemas DEMO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/movie-grid.css">
+    <link rel="stylesheet" href="css/trailer.css">
+    <link rel="stylesheet" href="css/showtimes-modal.css">
+</head>
+
+<body>
+
+    <div id="hero-section" class="banner-slider">
+        <div class="banner-slides">
+            <img src="https://files.betacorp.vn/media/images/2026/09/30/phimhayt10-1702x621-1-135337-300926-58.png"
+                alt="Banner Tháng Phim Siêu Quái" class="banner-slide active" referrerpolicy="no-referrer">
+            <img src="https://files.betacorp.vn/media/images/2026/09/14/uudaitv-1702x621-144325-140926-19.png"
+                alt="Banner Combo" class="banner-slide" referrerpolicy="no-referrer">
+        </div>
+        <button class="banner-nav prev" onclick="moveSlide(-1)">&#10094;</button>
+        <button class="banner-nav next" onclick="moveSlide(1)">&#10095;</button>
+        <div class="banner-dots">
+            <span class="dot active" onclick="currentSlide(0)"></span>
+            <span class="dot" onclick="currentSlide(1)"></span>
+        </div>
+    </div>
+
+    <div style="max-width: 1600px; margin: 0 auto; padding: 0 20px;">
+        <!-- Cột chính: Danh sách phim -->
+        <div class="grid-tabs-container">
+            <div class="grid-tabs">
+                <div class="grid-tab" data-tab="comingSoon">PHIM SẮP CHIẾU</div>
+                <div class="grid-tab active" data-tab="nowShowing">PHIM ĐANG CHIẾU</div>
+                <div class="grid-tab" data-tab="special">SUẤT CHIẾU ĐẶC BIỆT</div>
+            </div>
+        </div>
+
+        <div class="mg-grid" id="movie-list">
+            <!-- Phim sẽ render vào đây -->
+        </div>
+    </div>
+
+    <!-- Khối tĩnh: Tin mới và ưu đãi -->
+
+    <div class="container-fluid" style="margin-top: 60px; margin-bottom: 60px;">
+        <h2 class="text-center montserrat" style="color: var(--text-navy); font-size: 32px; text-transform: uppercase;">
+            TIN MỚI VÀ ƯU ĐÃI</h2>
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 30px;">
+            <div
+                style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column;">
+                <div style="height: 200px; overflow: hidden;">
+                    <img src="images/t3.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Thứ 3 vui vẻ">
+                </div>
+                <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+                    <h3 style="margin:0 0 10px 0; font-size: 18px; color: var(--text-navy);">Thứ 3 vui vẻ - Đồng giá từ
+                        40k</h3>
+                    <p style="margin:0 0 15px 0; font-size: 14px; color: #666; line-height: 1.6;">Áp dụng cho mọi suất
+                        chiếu 2D vào ngày thứ 3 hàng tuần tại hệ thống Beta Cinemas.</p>
+                    <a href="promotion-detail.html"
+                        style="margin-top: auto; display: inline-block; text-align: center; background: var(--blue); color: white; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none;">XEM
+                        CHI TIẾT</a>
+                </div>
+            </div>
+            <div
+                style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column;">
+                <div style="height: 200px; overflow: hidden;">
+                    <img src="images/hssv.png" style="width: 100%; height: 100%; object-fit: cover;"
+                        alt="Học sinh - Sinh viên">
+                </div>
+                <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+                    <h3 style="margin:0 0 10px 0; font-size: 18px; color: var(--text-navy);">Học sinh - Sinh viên - Đồng
+                        giá từ 40k</h3>
+                    <p style="margin:0 0 15px 0; font-size: 14px; color: #666; line-height: 1.6;">Xuất trình thẻ Học
+                        sinh / Sinh viên hoặc CCCD dưới 22 tuổi để nhận ưu đãi đặc quyền.</p>
+                    <a href="promotion-detail-hssv.html"
+                        style="margin-top: auto; display: inline-block; text-align: center; background: var(--blue); color: white; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none;">XEM
+                        CHI TIẾT</a>
+                </div>
+            </div>
+            <div
+                style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column;">
+                <div style="height: 200px; overflow: hidden;">
+                    <img src="images/combo.png" style="width: 100%; height: 100%; object-fit: cover;"
+                        alt="Combo Tiết Kiệm">
+                </div>
+                <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
+                    <h3 style="margin:0 0 10px 0; font-size: 18px; color: var(--text-navy);">Giảm Ngay 20k Khi Đặt
+                        Online</h3>
+                    <p style="margin:0 0 15px 0; font-size: 14px; color: #666; line-height: 1.6;">Khách hàng đặt mua
+                        combo bắp nước trên website/ứng dụng sẽ được giảm trực tiếp 20.000 VNĐ.</p>
+                    <a href="promotion-detail-combo.html"
+                        style="margin-top: auto; display: inline-block; text-align: center; background: var(--blue); color: white; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none;">XEM
+                        CHI TIẾT</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/notify.js"></script>
+    <script src="js/hero.js"></script>
+    <script src="js/trailer.js"></script>
+    <script src="js/movie-grid.js"></script>
+    <script src="js/showtimes-modal.js"></script>
+</body>
+
+</html>

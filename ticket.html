@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>Vé điện tử - Beta Cinemas DEMO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .ticket-wrapper { max-width: 500px; margin: 50px auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
+        .ticket-header { background: var(--beta-blue); color: white; padding: 20px; text-align: center; }
+        .ticket-body { padding: 30px; border-bottom: 2px dashed #ccc; position: relative; }
+        .ticket-body::before, .ticket-body::after { content: ''; position: absolute; width: 30px; height: 30px; background: #f4f6f9; border-radius: 50%; bottom: -15px; }
+        .ticket-body::before { left: -15px; }
+        .ticket-body::after { right: -15px; }
+        .qr-box { display: flex; justify-content: center; margin: 20px 0; }
+        .btn-print { margin-top: 20px; width: 100%; font-weight: bold; }
+        @media print {
+            body { background: white; }
+            .header, .footer, .demo-panel, .btn-print { display: none !important; }
+            .ticket-wrapper { box-shadow: none; border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body style="background: #f4f6f9;">
+    <!-- Layout chèn Header tự động -->
+    <div class="container-fluid" id="ticket-container">
+        <!-- Render js -->
+    </div>
+
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/demo-panel.js"></script>
+    <script src="js/notify.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+            if(!orderId) { location.href = 'index.html'; return; }
+            
+            const order = DB.get('beta_orders', orderId);
+            const container = document.getElementById('ticket-container');
+            
+            if(!order || order.status !== 'PAID') {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 100px;">
+                        <h2 style="color:var(--danger);">Đơn hàng chưa có vé!</h2>
+                        <p>Vui lòng kiểm tra lại trạng thái đơn hàng của bạn.</p>
+                        <a href="order.html?id=${orderId}" class="btn btn-primary">XEM CHI TIẾT ĐƠN</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const movie = DB.get('movies', order.movieId);
+            const cinema = DB.get('cinemas', order.cinemaId);
+            const stTime = new Date(DB.get('showtimes', order.showtimeId).startTime);
+            const comboData = DB.all('combos');
+            
+            let comboText = order.combos.map(c => `${c.qty}x ${comboData.find(x=>x.id===c.id)?.name}`).join(', ') || 'Không có';
+
+            container.innerHTML = `
+                <div class="ticket-wrapper">
+                    <div class="ticket-header">
+                        <h2 style="margin:0;">VÉ ĐIỆN TỬ</h2>
+                        <p style="margin:5px 0 0 0; opacity:0.8;">BETA CINEMAS DEMO</p>
+                    </div>
+                    <div class="ticket-body">
+                        <h3 style="color: var(--beta-blue); text-align: center; margin-bottom: 20px; font-size: 22px;">${movie.title}</h3>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color:#777;">Rạp:</span>
+                            <strong>${cinema.name}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color:#777;">Thời gian:</span>
+                            <strong>${stTime.toLocaleTimeString('vi-VN')} - ${stTime.toLocaleDateString('vi-VN')}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color:#777;">Ghế ngồi:</span>
+                            <strong style="color:var(--beta-orange); font-size:18px;">${order.seats.join(', ')}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color:#777;">Bắp nước:</span>
+                            <strong>${comboText}</strong>
+                        </div>
+                    </div>
+                    <div style="padding: 20px 30px; text-align: center; background: #fff;">
+                        <p style="margin:0; font-size:12px; color:#999;">Trình mã QR này cho nhân viên soát vé</p>
+                        <div class="qr-box" id="qrcode"></div>
+                        <strong style="font-size: 18px; letter-spacing: 2px;">${order.ticketId}</strong>
+                        
+                        <button class="btn btn-outline btn-print" onclick="window.print()">🖨️ IN VÉ</button>
+                    </div>
+                </div>
+            `;
+            
+            // Generate QR
+            new QRCode(document.getElementById("qrcode"), {
+                text: order.ticketId,
+                width: 150,
+                height: 150,
+                colorDark : "#005198",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        });
+    </script>
+</body>
+</html>
+

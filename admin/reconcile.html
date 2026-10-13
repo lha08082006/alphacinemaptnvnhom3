@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đối soát Giao dịch - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="margin: 0;">BẢNG KIỂM TRA LỆCH GIAO DỊCH (RECONCILIATION)</h3>
+            <p style="color: #666; font-size: 13px; margin-top: 5px;" id="recon-info">Chu kỳ chạy: 15 phút/lần. Động cơ tự động tìm và vá lỗi.</p>
+        </div>
+        <button class="btn btn-primary" onclick="forceRun()">CHẠY ĐỐI SOÁT NGAY</button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Danh sách Đơn hàng có rủi ro (Cần Đối Soát)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Đơn Beta</th>
+                        <th>Mã Cổng (Gateway Txn)</th>
+                        <th>Tiền Beta</th>
+                        <th>Tiền Cổng</th>
+                        <th>Trạng Thái Beta</th>
+                        <th>Trạng Thái Cổng</th>
+                        <th>Kết Luận</th>
+                    </tr>
+                </thead>
+                <tbody id="recon-table">
+                    <!-- JS render -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header">Lịch sử chạy Đối soát Tự động (Jobs)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian chạy</th>
+                        <th>Số ca Quét</th>
+                        <th>Số ca Lệch (Phát hiện rủi ro)</th>
+                        <th>Số ca Khớp</th>
+                    </tr>
+                </thead>
+                <tbody id="job-table">
+                    <!-- JS render -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/clock.js"></script>
+    <script src="../js/db.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script src="../js/reconcile.js"></script>
+    <script src="../js/gateway-core.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const settings = JSON.parse(localStorage.getItem('demoSettings') || '{}');
+            document.getElementById('recon-info').innerText = `Chu kỳ: ${settings.reconcileIntervalMin || 15} phút ảo/lần. (Chỉ chạy ở chế độ TO-BE)`;
+            
+            function renderTables() {
+                // Render Logs
+                const runs = DB.all('recon_runs') || [];
+                runs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                const jobTable = document.getElementById('job-table');
+                jobTable.innerHTML = runs.slice(0, 10).map(r => `
+                    <tr>
+                        <td>${new Date(r.timestamp).toLocaleString('vi-VN')}</td>
+                        <td>${r.matched + r.mismatched}</td>
+                        <td style="color:var(--danger); font-weight:bold;">${r.mismatched}</td>
+                        <td>${r.matched}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" style="text-align:center;">Chưa có dữ liệu chạy.</td></tr>';
+
+                // Render Chi tiết Lệch
+                const orders = DB.all('beta_orders') || [];
+                const targetOrders = orders.filter(o => o.txnId).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                const reconTable = document.getElementById('recon-table');
+                reconTable.innerHTML = '';
+                
+                targetOrders.forEach(o => {
+                    const gw = window.gatewayCore.getTxnStatus(o.txnId);
+                    if (!gw) return;
+                    
+                    let isMismatch = false;
+                    let resultText = '<span class="badge gray">Đã xử lý / Khớp</span>';
+                    
+                    // Logic đối chiếu
+                    if (gw.status === 'SUCCESS' && gw.debited && o.status !== 'PAID') {
+                        isMismatch = true;
+                        resultText = '<span class="badge error">LỆCH! (Cổng đã trừ tiền)</span>';
+                    }
+                    
+                    let betaSt = o.status;
+                    let gwSt = gw.status;
+                    
+                    const rowStyle = isMismatch ? 'background: #ffebee;' : '';
+                    
+                    reconTable.insertAdjacentHTML('beforeend', `
+                        <tr style="${rowStyle}">
+                            <td>${o.orderId}</td>
+                            <td style="font-family: monospace;">${o.txnId}</td>
+                            <td>${o.amount.toLocaleString()} đ</td>
+                            <td>${gw.amount.toLocaleString()} đ</td>
+                            <td><strong>${betaSt}</strong></td>
+                            <td><strong>${gwSt}</strong></td>
+                            <td>${resultText}</td>
+                        </tr>
+                    `);
+                });
+            }
+            
+            renderTables();
+            window.addEventListener('storage', renderTables);
+            setInterval(renderTables, 3000);
+            
+            window.forceRun = function() {
+                if (window.reconcileEngine) {
+                    window.reconcileEngine.runReconciliation(VirtualClock.now());
+                    window.reconcileEngine.processRefundQueue(VirtualClock.now());
+                    alert('Đã ép chạy đối soát thủ công xong!');
+                    renderTables();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

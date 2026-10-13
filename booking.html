@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt vé - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/booking.css">
+</head>
+<body>
+    <!-- Header will be injected by layout.js -->
+
+    <div class="container breadcrumb">
+        <a href="index.html">Trang chủ</a> &gt; 
+        <a href="#">Đặt vé</a> &gt; 
+        <span id="bk-movie-name-bc">Avengers: Hồi Kết - Phiên Bản Đặc Biệt A</span>
+    </div>
+
+    <div class="container booking-layout">
+        <!-- LEFT COLUMN: Seat Map -->
+        <div class="booking-main">
+            <div class="bk-warning" id="bk-warning">
+                Theo quy định của cục điện ảnh, phim này không dành cho khán giả dưới 13 tuổi.
+            </div>
+
+            <div class="bk-legends-top">
+                <div class="bk-legend"><div class="seat-icon seat-empty"></div> Ghế trống</div>
+                <div class="bk-legend"><div class="seat-icon seat-selecting"></div> Ghế đang chọn</div>
+                <div class="bk-legend"><div class="seat-icon seat-holding"></div> Ghế đang giữ</div>
+                <div class="bk-legend"><div class="seat-icon seat-sold"></div> Ghế đã bán</div>
+                <div class="bk-legend"><div class="seat-icon seat-reserved"></div> Ghế đặt trước</div>
+            </div>
+
+            <div class="bk-screen-wrapper">
+                <div class="bk-screen-curve"></div>
+                <div class="bk-screen-text">MÀN HÌNH CHIẾU</div>
+            </div>
+
+            <div class="bk-seat-map" id="bk-seat-map">
+                <!-- JS will render seats here -->
+            </div>
+
+            <div class="bk-bottom-bar">
+                <div class="bk-legends-bottom">
+                    <div class="bk-legend"><div class="seat-icon seat-normal-legend"></div> Ghế thường</div>
+                    <div class="bk-legend"><div class="seat-icon seat-vip-legend"></div> Ghế VIP</div>
+                    <div class="bk-legend"><div class="seat-icon seat-double-legend" style="width: 40px;"></div> Ghế đôi</div>
+                </div>
+                <div class="bk-total-price">
+                    <div class="bk-label">Tổng tiền</div>
+                    <div class="bk-val" id="bk-total-val">0 vnđ</div>
+                </div>
+                <div class="bk-countdown">
+                    <div class="bk-label">Thời gian còn lại</div>
+                    <div class="bk-val" id="bk-countdown-val">10:00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Order Summary -->
+        <div class="booking-sidebar">
+            <div class="bk-summary-top">
+                <div class="bk-poster-box">
+                    <div class="mg-age" id="bk-age-badge" style="position:absolute; top:0; left:0;">T13</div>
+                    <img id="bk-poster" src="https://placehold.co/150x220" alt="Poster">
+                </div>
+                <div class="bk-movie-info-top">
+                    <h2 id="bk-movie-title">Avengers: Hồi Kết - Phiên Bản Đặc Biệt A</h2>
+                    <div class="bk-format">2D Phụ đề</div>
+                </div>
+            </div>
+
+            <div class="bk-info-grid">
+                <div class="bk-info-label">🏷️ Thể loại</div>
+                <div class="bk-info-val" id="bk-genres">Khoa học, viễn tưởng</div>
+
+                <div class="bk-info-label">⏱️ Thời lượng</div>
+                <div class="bk-info-val" id="bk-duration">183 phút</div>
+            </div>
+            
+            <hr class="bk-divider">
+
+            <div class="bk-info-grid">
+                <div class="bk-info-label">🏛️ Rạp chiếu</div>
+                <div class="bk-info-val" id="bk-cinema">Beta Thanh Xuân</div>
+
+                <div class="bk-info-label">📅 Ngày chiếu</div>
+                <div class="bk-info-val" id="bk-date">05/10/2026</div>
+
+                <div class="bk-info-label">🕒 Giờ chiếu</div>
+                <div class="bk-info-val" id="bk-time">15:45</div>
+
+                <div class="bk-info-label">💺 Ghế ngồi</div>
+                <div class="bk-info-val" id="bk-seats-selected" style="color:var(--orange); font-weight:bold;"></div>
+            </div>
+
+            <button class="bk-submit-btn" id="bk-submit-btn">TIẾP TỤC</button>
+        </div>
+    </div>
+
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/booking.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+    "name": "beta-api",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Website Beta - backend (cổng 4000)",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "node --watch src/server.js",
+        "test": "jest --runInBand",
+        "migrate": "knex migrate:latest --knexfile knexfile.js",
+        "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js",
+        "seed": "knex seed:run --knexfile knexfile.js",
+        "db:migrate": "knex migrate:latest",
+        "db:rollback": "knex migrate:rollback",
+        "db:seed": "knex seed:run",
+        "db:reset": "npm run db:rollback --all && npm run db:migrate && npm run db:seed",
+        "db:check": "node src/scripts/dbCheck.js"
+    },
+    "dependencies": {
+        "bcryptjs": "^3.0.3",
+        "better-sqlite3": "^11.7.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "helmet": "^8.0.0",
+        "knex": "^3.1.0",
+        "zod": "^3.24.1"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0",
+        "supertest": "^7.0.0"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "setupFiles": [
+            "<rootDir>/tests/setupEnv.js"
+        ]
+    },
+    "engines": {
+        "node": ">=22"
+    }
+}

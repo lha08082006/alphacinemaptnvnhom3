@@ -1,0 +1,251 @@
+/* css/showtimes-modal.css */
+
+.st-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.st-modal.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.st-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.st-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+    margin: 20px;
+}
+.st-modal.show .st-wrapper {
+    transform: scale(1);
+}
+
+.st-container {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.st-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+#st-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main, #333);
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.st-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.st-close-btn:hover {
+    color: #333;
+}
+
+.st-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.st-cinema-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main, #333);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.st-date-selector {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+    gap: 30px;
+}
+
+.st-date-item {
+    padding-bottom: 15px;
+    cursor: pointer;
+    color: #333;
+    position: relative;
+    display: flex;
+    align-items: baseline;
+}
+.st-date-item .st-date-num {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+}
+.st-date-item .st-day-str {
+    font-size: 14px;
+    font-weight: 700;
+    margin-left: 5px;
+}
+
+.st-date-item.active {
+    color: var(--blue, #1B5FAE);
+}
+.st-date-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--blue, #1B5FAE);
+}
+
+.st-format {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main, #333);
+    margin-bottom: 15px;
+}
+
+.st-times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.st-time-btn {
+    background: #e9ecef;
+    border-radius: 4px;
+    padding: 10px 20px;
+    text-align: center;
+    cursor: pointer;
+    min-width: 90px;
+    transition: all 0.2s;
+}
+.st-time-btn:hover {
+    background: var(--blue, #1B5FAE);
+}
+
+.st-time-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main, #333);
+    display: block;
+    transition: color 0.2s;
+}
+.st-seats {
+    font-size: 11px;
+    color: #666;
+    display: block;
+    margin-top: 5px;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.st-time-btn:hover .st-time-val,
+.st-time-btn:hover .st-seats {
+    color: white;
+}
+
+/* Confirm Modal Styles */
+.st-confirm-wrapper {
+    max-width: 700px;
+}
+.st-confirm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #eee;
+}
+.st-confirm-header h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #333;
+    margin: 0;
+    text-transform: uppercase;
+}
+.st-confirm-body {
+    padding: 30px;
+    text-align: center;
+}
+.st-confirm-movie {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--blue, #1B5FAE);
+    margin: 0 0 30px 0;
+}
+.st-confirm-table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+}
+.st-table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 15px 0;
+}
+.st-table-head {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #333;
+    border-bottom: none;
+}
+.st-table-data {
+    background: #f8f9fa;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #333;
+}
+.st-confirm-footer {
+    display: flex;
+    justify-content: center;
+}
+.st-confirm-btn {
+    background: #42a5f5;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 12px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.st-confirm-btn:hover {
+    background: #1e88e5;
+    color: white;
+}

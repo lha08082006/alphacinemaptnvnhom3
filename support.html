@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>Hỗ trợ khách hàng - Beta Cinemas DEMO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .support-container { max-width: 800px; margin: 40px auto; display: flex; gap: 30px; }
+        .support-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1; }
+        .chat-box { flex: 1; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .chat-header { background: var(--beta-blue); color: white; padding: 15px; font-weight: bold; border-radius: 8px 8px 0 0; }
+        .chat-body { padding: 15px; flex: 1; min-height: 250px; font-size: 14px; overflow-y: auto; }
+        .chat-msg { margin-bottom: 15px; padding: 10px; border-radius: 8px; max-width: 85%; }
+        .chat-msg.bot { background: #e3f2fd; align-self: flex-start; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+        
+        .alert-box { padding: 15px; border-radius: 4px; margin-top: 20px; font-weight: bold; display: none; line-height: 1.5; }
+        .alert-info { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+        .alert-success { background: #e8f5e9; color: #388e3c; border: 1px solid #c8e6c9; }
+        .alert-warning { background: #fff3e0; color: #f57c00; border: 1px solid #ffe0b2; }
+    </style>
+</head>
+<body>
+    <!-- Header chèn tự động qua layout.js -->
+    
+    <div class="container-fluid">
+        <h2 style="color: var(--beta-blue); text-align: center; margin-top: 30px;">TRUNG TÂM HỖ TRỢ KHÁCH HÀNG</h2>
+        
+        <div class="support-container">
+            <div class="support-box">
+                <h3 style="margin-top: 0; color: var(--beta-orange);">TÔI BỊ TRỪ TIỀN NHƯNG KHÔNG CÓ VÉ</h3>
+                <p style="font-size: 14px; color: #666; margin-bottom: 25px;">Vui lòng nhập thông tin để chúng tôi hỗ trợ tra soát giao dịch của bạn.</p>
+                
+                <div class="form-group">
+                    <label>Mã Đơn hàng (Hoặc Mã giao dịch)</label>
+                    <input type="text" id="txt-order" class="form-control" placeholder="Ví dụ: BCXXXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Email hoặc Số điện thoại đặt vé</label>
+                    <input type="text" id="txt-contact" class="form-control" placeholder="Nhập email hoặc SĐT">
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" onclick="submitSupport()">GỬI YÊU CẦU TRA SOÁT</button>
+                
+                <div id="result-alert" class="alert-box"></div>
+            </div>
+            
+            <div class="chat-box">
+                <div class="chat-header">🎧 Chat Hỗ Trợ Tự Động</div>
+                <div class="chat-body" style="display: flex; flex-direction: column;">
+                    <div class="chat-msg bot">
+                        <strong>Beta Bot:</strong> Xin chào, tôi có thể giúp gì cho bạn?<br><br>
+                        Nếu bạn thanh toán bị lỗi, hãy điền form bên trái nhé!
+                    </div>
+                </div>
+                <div style="padding: 10px; border-top: 1px solid #ddd; background: white; border-radius: 0 0 8px 8px;">
+                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." disabled style="background: #eee;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/demo-panel.js"></script>
+    <script src="js/notify.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tự động điền user email
+            const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if(user) document.getElementById('txt-contact').value = user.email;
+            
+            window.submitSupport = function() {
+                const orderId = document.getElementById('txt-order').value.trim();
+                const contact = document.getElementById('txt-contact').value.trim();
+                const alertBox = document.getElementById('result-alert');
+                
+                if(!orderId || !contact) {
+                    alertBox.className = 'alert-box alert-warning';
+                    alertBox.innerHTML = '⚠️ Vui lòng nhập đầy đủ Mã đơn hàng và Liên hệ.';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                
+                const settings = JSON.parse(localStorage.getItem('demoSettings') || '{}');
+                const mode = settings.mode || 'AS-IS';
+                
+                if (mode === 'AS-IS') {
+                    // BR-12, REQ-07: AS-IS quy trình thủ công hoàn toàn
+                    DB.insert('support_tickets', {
+                        id: DB.generateId.ticket(),
+                        orderId: orderId,
+                        contact: contact,
+                        source: 'USER_ASIS',
+                        reason: 'Khách khiếu nại bị trừ tiền nhưng không có vé',
+                        status: 'OPEN',
+                        createdAt: VirtualClock.now().toISOString(),
+                        resolution: null
+                    });
+                    
+                    alertBox.className = 'alert-box alert-info';
+                    alertBox.innerHTML = 'Cảm ơn bạn. Yêu cầu đã được gửi đến bộ phận CSKH.<br><br>⏳ <b>Cam kết xử lý: 1 đến 3 ngày làm việc.</b> Vui lòng chờ chúng tôi liên hệ lại.';
+                    alertBox.style.display = 'block';
+                } 
+                else {
+                    // BR-12, REQ-08: TO-BE tự động tra soát
+                    const order = DB.get('beta_orders', orderId);
+                    
+                    if(!order) {
+                        // Không tìm thấy thì vẫn phải báo CSKH
+                        DB.insert('support_tickets', {
+                            id: DB.generateId.ticket(), orderId, contact, source: 'USER_TOBE',
+                            reason: 'Không tìm thấy đơn hàng trong DB khi khách khiếu nại',
+                            status: 'OPEN', createdAt: VirtualClock.now().toISOString()
+                        });
+                        alertBox.className = 'alert-box alert-info';
+                        alertBox.innerHTML = 'Hệ thống không tự động tìm thấy đơn hàng. CSKH sẽ liên hệ lại với bạn sớm nhất.';
+                        alertBox.style.display = 'block';
+                        return;
+                    }
+                    
+                    // SELF-SERVE (Tra tự động và báo khách)
+                    if (order.status === 'PENDING_VERIFY') {
+                        alertBox.className = 'alert-box alert-warning';
+                        alertBox.innerHTML = '🔍 <b>Đơn hàng đang được hệ thống xác minh tự động!</b><br>Bạn không cần phải tạo Ticket khiếu nại. Vui lòng kiểm tra lại trạng thái sau vài phút.';
+                        alertBox.style.display = 'block';
+                    }
+                    else if (order.status === 'REFUND_PENDING' || (order.refundId && order.status !== 'REFUNDED')) {
+                        alertBox.className = 'alert-box alert-info';
+                        alertBox.innerHTML = '💸 <b>Lệnh hoàn tiền tự động đã được kích hoạt!</b><br>Tiền đang trên đường về tài khoản của bạn (3-7 ngày tùy ngân hàng). Không cần thao tác thêm.';
+                        alertBox.style.display = 'block';
+                    }
+                    else if (order.status === 'REFUNDED') {
+                        alertBox.className = 'alert-box alert-success';
+                        alertBox.innerHTML = '✅ <b>Hoàn tiền thành công!</b><br>Tiền đã được hoàn về tài khoản của bạn.';
+                        alertBox.style.display = 'block';
+                    }
+                    else if (order.status === 'PAID') {
+                        alertBox.className = 'alert-box alert-success';
+                        alertBox.innerHTML = '✅ <b>Giao dịch đã thành công!</b><br>Vé của bạn đã được xuất, vui lòng kiểm tra Lịch sử giao dịch.';
+                        alertBox.style.display = 'block';
+                    }
+                    else {
+                        // Kẹt ca khó (FAILED nhưng khách cãi là trừ tiền) -> Tạo ticket
+                        DB.insert('support_tickets', {
+                            id: DB.generateId.ticket(), orderId, contact, source: 'USER_TOBE',
+                            reason: 'Khách khiếu nại nhưng hệ thống báo FAILED/CANCELLED',
+                            status: 'OPEN', createdAt: VirtualClock.now().toISOString()
+                        });
+                        alertBox.className = 'alert-box alert-info';
+                        alertBox.innerHTML = 'Đã tiếp nhận yêu cầu. Nhân viên CSKH sẽ kiểm tra thủ công và liên hệ lại.';
+                        alertBox.style.display = 'block';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

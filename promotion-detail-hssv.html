@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khuyến Mãi - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .promo-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+            align-items: flex-start;
+        }
+
+        .promo-main {
+            flex: 2;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .promo-sidebar {
+            flex: 1;
+        }
+
+        .promo-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .promo-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .promo-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .promo-content h4 {
+            color: #d32f2f;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .promo-content p {
+            margin-bottom: 10px;
+        }
+
+        .promo-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .promo-content ul li {
+            position: relative;
+            padding-left: 15px;
+            margin-bottom: 8px;
+        }
+
+        .promo-content ul li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #333;
+        }
+
+        .sidebar-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .hot-movies-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .hot-movie-card {
+            text-decoration: none;
+            color: #333;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hm-poster {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .hot-movie-card:hover .hm-poster {
+            transform: translateY(-5px);
+        }
+
+        .hm-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--blue);
+            line-height: 1.4;
+        }
+
+        .hm-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container promo-layout">
+        <!-- Main Content -->
+        <div class="promo-main">
+            <h1 class="promo-title">GIÁ VÉ ƯU ĐÃI CHO HỌC SINH, SINH VIÊN</h1>
+            <img src="images/hssv.png" alt="Học sinh - Sinh viên" class="promo-image">
+
+            <div class="promo-content">
+                <p>Rạp sinh viên – giá vé cũng rất sinh viên</p>
+                <p><i>Ưu đãi với khách hàng có thẻ học sinh sinh viên.</i></p>
+
+                <p>🎊 40K cho phim 2D, 60k cho phim 3D: Bắc Giang, Biên Hòa, Nha Trang, Thanh Hóa, Thái Nguyên, Long
+                    Khánh, Thái Nguyên.</p>
+                <p>🎊 40K cho phim 2D, 70k cho phim 3D: Đan Phượng.</p>
+                <p>🎊 45k (thứ 2-5) & 55k (thứ 6-7-CN) cho phim 2D, 65k (thứ 2-5-) & 75k (thứ 6-7-CN) cho phim 3D: Lào
+                    Cai, Quang Trung.</p>
+                <p>🎊 45k cho phim 2D, 65k cho phim 3D: Thanh Xuân, Mỹ Đình, Empire Bình Dương (Thủ Dầu Một), Tân Uyên.
+                </p>
+                <p>🎊 50k cho phim 2D, 70k cho phim 3D: Giải Phóng, Xuân Thủy, Tây Sơn, Ung Văn Khiêm.</p>
+                <p>🎊 60k (từ thứ 2-5) & 100k (thứ 6-7-CN) cho phim 2D, 80k (từ thứ 2-5) & 120k (thứ 6-7-CN) cho phim
+                    3D: TRMall Phú Quốc.</p>
+                <p>🎊 50k (từ thứ 2-5) & 55k (thứ 6-7-CN) cho phim 2D, 70k (từ thứ 2-5) & 75k (thứ 6-7-CN) cho phim 3D:
+                    Trần Quang Khải.</p>
+
+                <h4 style="color:#333; font-weight:bold; margin-top:30px;">Điều kiện áp dụng:</h4>
+                <ul style="list-style-type: disc; padding-left: 20px;">
+                    <li>Xuất trình thẻ HSSV (nếu có) hoặc CMND/CCCD, bằng lái xe dưới 22 tuổi.</li>
+                    <li>Mặc đồng phục của trường</li>
+                    <li>Chiều cao dưới 1m3</li>
+                </ul>
+
+                <h4 style="color:#333; font-weight:bold; margin-top:20px;">Lưu ý:</h4>
+                <ul style="list-style-type: disc; padding-left: 20px;">
+                    <li>Chỉ áp dụng cho khách hàng thành viên của Beta Cinemas.</li>
+                    <li>Thẻ học sinh, sinh viên phải còn thời hạn áp dụng.</li>
+                    <li>Số lượng vé được áp dụng tương đương với số lượng thẻ học sinh, sinh viên.</li>
+                    <li>Không áp dụng đồng thời với các chương trình khuyến mãi khác.</li>
+                    <li>Chỉ áp dụng cho mua vé tại quầy.</li>
+                    <li>Không áp dụng cho mua vé Online.</li>
+                    <li>Không áp dụng nếu trùng vào ngày lễ, Tết.</li>
+                    <li>Không áp dụng cho các suất chiếu đặc biệt hoặc phim ra mắt sớm.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="promo-sidebar">
+            <h2 class="sidebar-title">PHIM ĐANG HOT</h2>
+            <div class="hot-movies-grid">
+
+                <a href="#" class="hot-movie-card">
+                    <div class="hm-poster">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <img src="https://files.betacorp.vn/media%2fimages%2f2026%2f09%2f23%2f470x700%2D115017%2D230926%2D72.png"
+                            style="width:100%; border-radius:8px;" alt="Poster">
+                    </div>
+                    <div class="hm-title">Quỷ Ăn Tạng 4: Hồ Tinh</div>
+                </a>
+
+                <a href="#" class="hot-movie-card">
+                    <div class="hm-poster">
+                        <div class="hm-badge" style="background:#fb8c00;">T16</div>
+                        <img src="https://files.betacorp.vn/media%2fimages%2f2026%2f08%2f31%2flh%2Dposter%2Dpay%2Doff%2D01%2Dgreen%2Dw70xh100%2D102352%2D310826%2D82.jpg"
+                            style="width:100%; border-radius:8px;" alt="Poster">
+                    </div>
+                    <div class="hm-title">Án Mạng Karaoke</div>
+                </a>
+
+                <a href="#" class="hot-movie-card">
+                    <div class="hm-poster">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <img src="https://files.betacorp.vn/media%2fimages%2f2026%2f09%2f17%2fme%2Dmin%2Dteaser%2Dposter%2Ddkkc%2D23102026%2D132757%2D170926%2D76.jpg"
+                            style="width:100%; border-radius:8px;" alt="Poster">
+                    </div>
+                    <div class="hm-title">Mẹ Mìn</div>
+                </a>
+
+                <a href="#" class="hot-movie-card">
+                    <div class="hm-poster">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <img src="https://files.betacorp.vn/media%2fimages%2f2026%2f10%2f01%2f400x633%2D120534%2D011026%2D90.jpg"
+                            style="width:100%; border-radius:8px;" alt="Poster">
+                    </div>
+                    <div class="hm-title">Chị Chị Em Em 3</div>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+</body>
+
+</html>

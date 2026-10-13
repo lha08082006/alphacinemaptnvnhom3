@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Rạp - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .cinema-layout {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 50px;
+            align-items: flex-start;
+        }
+
+        .cinema-main {
+            flex: 6.5;
+            background: white;
+        }
+
+        .cinema-sidebar {
+            flex: 3.5;
+        }
+
+        .cinema-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .cinema-banner {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .cinema-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+            text-align: justify;
+        }
+
+        .cinema-content p {
+            margin-bottom: 15px;
+        }
+
+        .cinema-contact-title {
+            margin-top: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .cinema-contact-info p {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .map-container {
+            margin-top: 20px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            display: block;
+        }
+
+        .sidebar-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .hot-movies-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .hot-movie-card {
+            text-decoration: none;
+            color: #333;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hm-poster {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+            position: relative;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+
+        .hot-movie-card:hover .hm-poster {
+            transform: translateY(-5px);
+        }
+
+        .hm-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--blue, #1B5FAE);
+            line-height: 1.4;
+        }
+
+        .hm-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 2;
+        }
+
+        @media (max-width: 992px) {
+            .cinema-layout {
+                flex-direction: column;
+            }
+            .cinema-main, .cinema-sidebar {
+                width: 100%;
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cinema-layout">
+        <!-- Main Content -->
+        <div class="cinema-main">
+            <h1 class="cinema-title">Beta Thanh Xuân, TP Hà Nội</h1>
+            <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&q=80&w=1200" alt="Beta Thanh Xuân" class="cinema-banner">
+            
+            <div class="cinema-content">
+                <p>Rạp Beta Cinemas Thanh Xuân tọa lạc tại Tầng hầm B1, tòa nhà Golden West, Số 2, Lê Văn Thiêm, Phường Thanh Xuân, Hà Nội.</p>
+                <p>Rạp có vị trí thuận lợi, rất gần những trường đại học, cao đẳng và cấp 3 lớn tại Hà Nội (Trường Đại học Khoa học Tự nhiên, Trường Đại học Khoa học Xã hội và Nhân văn, trường Hà Nội – Amsterdam…)</p>
+                <p>Beta Cinemas Thanh Xuân sở hữu tổng cộng 6 phòng chiếu tương đương 838 ghế ngồi. Rạp được trang bị hệ thống màn chiếu, máy chiếu, phòng chiếu hiện đại với 100% nhập khẩu từ nước ngoài. Trong mỗi phòng chiếu đều được lắp đặt hệ thống âm thanh Dolby 7.1 và hệ thống cách âm chuẩn quốc tế. Vì vậy mà mỗi thước phim được chiếu tại rạp đều là những thước phim rõ nét nhất, với âm thanh và hiệu ứng sống động nhất.</p>
+                <p>Mức giá xem phim tại rạp hết sức ưu đãi, chỉ từ 45.000 VNĐ. Mỗi tuần, rạp còn có những chương trình khuyến mại, ưu đãi đặc biệt dành cho các tín đồ điện ảnh.</p>
+                <p>Với địa điểm thuận lợi, cơ sở vật chất hiện đại, tiên tiến, mức giá ưu đãi, Beta Cinemas Thanh Xuân chắc chắn sẽ là địa điểm xem-ăn-chơi không thể bỏ qua của giới trẻ Hà Thành.</p>
+            </div>
+
+            <h3 class="cinema-contact-title">Thông tin liên hệ Rạp Beta Cinemas Thanh Xuân</h3>
+            <div class="cinema-contact-info">
+                <p><i>Địa chỉ: Tầng hầm B1, tòa nhà Golden West, Số 2 Lê Văn Thiêm, Phường Thanh Xuân, TP Hà Nội (cách đường Lê Văn Lương 80m, đối diện số 56 Lê Văn Thiêm).</i></p>
+                <p><i>Hotline: <a href="tel:0824812878" style="color:var(--blue); text-decoration:underline;">0824 812 878</a></i></p>
+                <p>Mua phiếu quà tặng, mua vé số lượng lớn, đặt phòng chiếu tổ chức hội nghị, trưng bày quảng cáo liên hệ với hotline để được hưởng ưu đãi tốt nhất bạn nhé!</p>
+            </div>
+
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7498326255522!2d105.79962757616451!3d21.002662880640184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135adcaeeb3b5cf%3A0xe480873c00de7333!2sBeta%20Cinemas%20Thanh%20Xu%C3%A2n!5e0!3m2!1svi!2s!4v1791182369452!5m2!1svi!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="cinema-sidebar">
+            <h2 class="sidebar-title">PHIM ĐANG HOT</h2>
+            <div class="hot-movies-grid">
+                
+                <a href="movie.html?id=m1" class="hot-movie-card">
+                    <div style="position:relative;">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <!-- BẠN HÃY THAY LINK ẢNH VÀO THUỘC TÍNH SRC BÊN DƯỚI -->
+                        <img class="hm-poster" src="https://placehold.co/400x600?text=Thay+Anh+1" alt="Quỷ Ăn Tạng 4">
+                    </div>
+                    <div class="hm-title">Quỷ Ăn Tạng 4: Hồ Tinh</div>
+                </a>
+
+                <a href="movie.html?id=m2" class="hot-movie-card">
+                    <div style="position:relative;">
+                        <div class="hm-badge" style="background:#fb8c00;">T16</div>
+                        <!-- BẠN HÃY THAY LINK ẢNH VÀO THUỘC TÍNH SRC BÊN DƯỚI -->
+                        <img class="hm-poster" src="https://placehold.co/400x600?text=Thay+Anh+2" alt="Án Mạng Karaoke">
+                    </div>
+                    <div class="hm-title">Án Mạng Karaoke</div>
+                </a>
+
+                <a href="movie.html?id=m3" class="hot-movie-card">
+                    <div style="position:relative;">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <!-- BẠN HÃY THAY LINK ẢNH VÀO THUỘC TÍNH SRC BÊN DƯỚI -->
+                        <img class="hm-poster" src="https://placehold.co/400x600?text=Thay+Anh+3" alt="Mẹ Mìn">
+                    </div>
+                    <div class="hm-title">Mẹ Mìn</div>
+                </a>
+
+                <a href="movie.html?id=m4" class="hot-movie-card">
+                    <div style="position:relative;">
+                        <div class="hm-badge" style="background:#e53935;">T18</div>
+                        <!-- BẠN HÃY THAY LINK ẢNH VÀO THUỘC TÍNH SRC BÊN DƯỚI -->
+                        <img class="hm-poster" src="https://placehold.co/400x600?text=Thay+Anh+4" alt="Chị Chị Em Em 3">
+                    </div>
+                    <div class="hm-title">Chị Chị Em Em 3</div>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+</body>
+</html>

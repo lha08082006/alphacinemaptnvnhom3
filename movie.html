@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>Chi tiết phim - Beta Cinemas DEMO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/trailer.css">
+</head>
+<body>
+    <div class="container-fluid" style="margin-top: 30px; min-height: 500px;" id="movie-detail-container">
+        <!-- JS sẽ gắn nội dung detail phim vào đây -->
+    </div>
+
+    <!-- Modal xem Trailer -->
+    <div class="modal-overlay" id="trailer-modal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <span class="modal-title" id="trailer-title">Trailer</span>
+                <button class="modal-close" onclick="document.getElementById('trailer-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body" style="height: 450px; background: #222; display: flex; justify-content: center; align-items: center; color: white;">
+                <div id="trailer-player"></div>
+            </div>
+            <div class="modal-footer" id="trailer-footer">
+                <!-- Info & Button -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/notify.js"></script>
+    <script src="js/trailer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const movieId = params.get('id');
+            const movie = DemoData.movies.find(m => m.id === movieId);
+            const container = document.getElementById('movie-detail-container');
+            if(!movie) {
+                container.innerHTML = '<h3 class="text-center">Không tìm thấy phim.</h3>';
+                return;
+            }
+            container.innerHTML = `
+                <div style="display:flex; gap:30px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:300px;">
+                        <img src="${movie.imageUrl}" style="width:100%; border-radius:12px;" alt="${movie.title}">
+                    </div>
+                    <div style="flex:2; min-width:300px;">
+                        <h1 style="color:var(--text-navy);">${movie.title}</h1>
+                        <p><strong>Thể loại:</strong> ${movie.genres.join(', ')}</p>
+                        <p><strong>Thời lượng:</strong> ${movie.duration} phút</p>
+                        <p><strong>Độ tuổi:</strong> ${movie.ageRating}</p>
+                        <p>${movie.synopsis}</p>
+                        <button class="btn btn-primary mt-20" onclick="location.href='schedule.html?id=${movie.id}'">MUA VÉ NGAY</button>
+                        <button class="btn btn-secondary mt-20" onclick="openTrailer('${movie.id}')">XEM TRAILER</button>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

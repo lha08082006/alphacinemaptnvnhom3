@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Hoàn tiền - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .check-list { display: flex; gap: 5px; font-size: 14px; }
+        .check-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: white; font-weight: bold; font-size: 10px; }
+        .check-ok { background: #4CAF50; }
+        .check-ng { background: #F44336; }
+    </style>
+</head>
+<body>
+    <h3 style="margin-top: 0;">DANH SÁCH HOÀN TIỀN (REFUNDS) & CẦN XEM XÉT</h3>
+    
+    <div class="card" style="border-left: 4px solid var(--danger); margin-bottom: 30px;">
+        <div class="card-header" style="color: var(--danger);">CA LỆCH THIẾU ĐIỀU KIỆN - CẦN CSKH DUYỆT (SUPPORT TICKETS)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Lý do</th>
+                        <th>Kiểm tra chéo (a,b,c,d,e)</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="ticket-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--beta-blue);">
+        <div class="card-header">LỆNH HOÀN TIỀN (AUTO & MANUAL)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Hoàn (RefundId)</th>
+                        <th>Mã Đơn</th>
+                        <th>Số Tiền</th>
+                        <th>Loại</th>
+                        <th>Kiểm tra chéo</th>
+                        <th>Trạng thái / SLA</th>
+                        <th>Thời gian tạo</th>
+                    </tr>
+                </thead>
+                <tbody id="refund-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/clock.js"></script>
+    <script src="../js/db.js"></script>
+    <script src="js/admin-layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function render() {
+                const tickets = DB.all('support_tickets') || [];
+                const refunds = DB.all('beta_refunds') || [];
+                
+                // 1. Render Tickets
+                const tBody = document.getElementById('ticket-table');
+                tBody.innerHTML = '';
+                const openTickets = tickets.filter(t => t.status === 'OPEN' && t.source === 'SYSTEM');
+                if(openTickets.length === 0) {
+                    tBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Không có ca nào cần xem xét.</td></tr>';
+                } else {
+                    openTickets.forEach(t => {
+                        const c = t.checks;
+                        const checkHtml = `
+                            <div class="check-list" title="a:Cổng OK, b:Beta Kẹt, c:Khớp tiền, d:Chưa hoàn, e:Đủ độ trễ">
+                                <span class="check-item ${c.a?'check-ok':'check-ng'}">a</span>
+                                <span class="check-item ${c.b?'check-ok':'check-ng'}">b</span>
+                                <span class="check-item ${c.c?'check-ok':'check-ng'}">c</span>
+                                <span class="check-item ${c.d?'check-ok':'check-ng'}">d</span>
+                                <span class="check-item ${c.e?'check-ok':'check-ng'}">e</span>
+                            </div>
+                        `;
+                        tBody.insertAdjacentHTML('beforeend', `
+                            <tr>
+                                <td><strong>${t.orderId}</strong></td>
+                                <td>${t.reason}</td>
+                                <td>${checkHtml}</td>
+                                <td><span class="badge warning">OPEN</span></td>
+                                <td>
+                                    <button class="btn btn-primary" style="padding:4px 8px; font-size:12px;" onclick="approveTicket('${t.id}', '${t.orderId}')">Duyệt Hoàn</button>
+                                    <button class="btn btn-outline" style="padding:4px 8px; font-size:12px;" onclick="rejectTicket('${t.id}')">Từ chối</button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                }
+                
+                // 2. Render Refunds
+                const rBody = document.getElementById('refund-table');
+                rBody.innerHTML = '';
+                refunds.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                if(refunds.length === 0) {
+                    rBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Chưa có lệnh hoàn tiền nào.</td></tr>';
+                } else {
+                    refunds.forEach(r => {
+                        const c = r.checks || {};
+                        const checkHtml = r.type === 'AUTO' ? `
+                            <div class="check-list">
+                                <span class="check-item check-ok">a</span>
+                                <span class="check-item check-ok">b</span>
+                                <span class="check-item check-ok">c</span>
+                                <span class="check-item check-ok">d</span>
+                                <span class="check-item check-ok">e</span>
+                            </div>
+                        ` : '<span style="font-size:12px; color:#666;">Bỏ qua (Manual)</span>';
+                        
+                        let stBadge = '';
+                        if(r.status==='CHECKING') stBadge = '<span class="badge warning">Đang giữ lệnh</span>';
+                        if(r.status==='SENT') stBadge = '<span class="badge info">Đã gửi Cổng</span>';
+                        if(r.status==='BANK_PROCESSING') stBadge = '<span class="badge info">Ngân hàng xử lý</span>';
+                        if(r.status==='COMPLETED') stBadge = '<span class="badge success">Đã về tài khoản</span>';
+                        
+                        if(r.slaBreached) {
+                            stBadge += ' <span class="badge error">Quá hạn 24h</span>';
+                        }
+                        
+                        rBody.insertAdjacentHTML('beforeend', `
+                            <tr>
+                                <td><strong>${r.refundId}</strong></td>
+                                <td>${r.orderId}</td>
+                                <td style="color:var(--danger); font-weight:bold;">${r.amount.toLocaleString()} đ</td>
+                                <td><span class="badge ${r.type==='AUTO'?'gray':'info'}">${r.type}</span></td>
+                                <td>${checkHtml}</td>
+                                <td>${stBadge}</td>
+                                <td>${new Date(r.createdAt).toLocaleString('vi-VN')}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            }
+            
+            window.approveTicket = function(ticketId, orderId) {
+                const order = DB.get('beta_orders', orderId);
+                const refundId = DB.generateId.refund();
+                
+                DB.insert('beta_refunds', {
+                    refundId, orderId, txnId: order.txnId, amount: order.amount,
+                    type: 'MANUAL', status: 'CHECKING', createdAt: VirtualClock.now().toISOString(),
+                    slaBreached: false, checks: {}
+                });
+                
+                DB.update('beta_orders', orderId, { status: 'REFUND_PENDING', refundId: refundId });
+                DB.update('support_tickets', ticketId, { status: 'CLOSED' });
+                alert('Đã duyệt tạo lệnh hoàn!');
+                render();
+            }
+            
+            window.rejectTicket = function(ticketId) {
+                DB.update('support_tickets', ticketId, { status: 'CLOSED', resolution: 'Từ chối hoàn tiền' });
+                render();
+            }
+            
+            render();
+            setInterval(render, 3000);
+        });
+    </script>
+</body>
+</html>

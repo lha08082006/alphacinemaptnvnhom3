@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>Chi tiết đơn hàng - Beta Cinemas DEMO</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .timeline-container { border-left: 2px solid var(--beta-blue); padding-left: 20px; margin: 20px 0 20px 10px; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: white; border: 2px solid var(--beta-blue); border-radius: 50%; }
+        .timeline-time { font-size: 12px; color: #888; margin-bottom: 5px; }
+        .timeline-content { font-size: 14px; font-weight: bold; color: #333; }
+        .timeline-desc { font-size: 13px; color: #666; margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="margin-top: 30px; min-height: 500px;">
+        <h2 style="color: var(--beta-blue); border-left: 4px solid var(--beta-orange); padding-left: 10px; margin-bottom: 20px;">CHI TIẾT ĐƠN HÀNG</h2>
+        
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header">THEO DÕI TRẠNG THÁI (TIMELINE)</div>
+                    <div class="card-body">
+                        <div class="timeline-container" id="timeline">
+                            <!-- JS render -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">THÔNG TIN VÉ</div>
+                    <div class="card-body" id="order-info" style="line-height: 1.8;">
+                        <!-- JS render -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/clock.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/demo-panel.js"></script>
+    <script src="js/notify.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('id');
+            if(!orderId) { location.href = 'my-orders.html'; return; }
+            
+            const order = DB.get('beta_orders', orderId);
+            if(!order) return;
+            
+            const movie = DB.get('movies', order.movieId);
+            const cinema = DB.get('cinemas', order.cinemaId);
+            const stTime = DB.get('showtimes', order.showtimeId).startTime;
+
+            let badgeHtml = '';
+            let st = order.status;
+            if(st==='PAID') badgeHtml = `<span style="background:#4CAF50; color:white; padding:4px 8px; border-radius:4px;">Thành công</span>`;
+            else if(st==='FAILED') badgeHtml = `<span style="background:#F44336; color:white; padding:4px 8px; border-radius:4px;">Thất bại</span>`;
+            else if(st==='PENDING_VERIFY') badgeHtml = `<span style="background:#FF9800; color:white; padding:4px 8px; border-radius:4px;">Đang xử lý</span>`;
+            else if(st==='CANCELLED') badgeHtml = `<span style="background:#999; color:white; padding:4px 8px; border-radius:4px;">Đã hủy</span>`;
+            
+            if(order.refund && order.refund.status === 'REFUNDED') badgeHtml = `<span style="background:#E91E63; color:white; padding:4px 8px; border-radius:4px;">Đã hoàn tiền</span>`;
+
+            document.getElementById('order-info').innerHTML = `
+                <p>Mã đơn: <strong>${order.orderId}</strong></p>
+                <p>Trạng thái: ${badgeHtml}</p>
+                <hr style="margin: 10px 0;">
+                <p>Phim: <strong>${movie.title}</strong></p>
+                <p>Rạp: <strong>${cinema.name}</strong></p>
+                <p>Suất chiếu: <strong>${new Date(stTime).toLocaleString('vi-VN')}</strong></p>
+                <p>Ghế: <strong>${order.seats.join(', ')}</strong></p>
+                <p>Tổng tiền: <strong style="color:var(--beta-orange); font-size:18px;">${order.amount.toLocaleString('vi-VN')} đ</strong></p>
+                ${order.status === 'PAID' ? `<br><a href="ticket.html?orderId=${order.orderId}" class="btn btn-primary" style="width:100%;">XEM VÉ ĐIỆN TỬ</a>` : ''}
+            `;
+
+            // Vẽ Timeline
+            const tl = document.getElementById('timeline');
+            function addNode(timeStr, content, desc) {
+                if(!timeStr) return;
+                const html = `
+                    <div class="timeline-item">
+                        <div class="timeline-time">${new Date(timeStr).toLocaleString('vi-VN')}</div>
+                        <div class="timeline-content">${content}</div>
+                        <div class="timeline-desc">${desc}</div>
+                    </div>
+                `;
+                tl.insertAdjacentHTML('beforeend', html);
+            }
+
+            addNode(order.createdAt, 'Tạo đơn hàng', 'Khách hàng chọn ghế và bắp nước.');
+            if(order.txnId) {
+                // Lấy giờ tạo giao dịch bên cổng
+                const txn = DB.get('gateway_txns', order.txnId);
+                addNode(txn ? txn.createdAt : order.createdAt, 'Chuyển cổng thanh toán', 'Khách hàng bắt đầu thanh toán trên Cổng.');
+            }
+
+            if(order.callbackAt) {
+                if(order.status === 'PAID') addNode(order.callbackAt, 'Thanh toán thành công', 'Hệ thống đã nhận Webhook. Vé đã được phát hành.');
+                else if(order.status === 'FAILED') addNode(order.callbackAt, 'Thanh toán thất bại', 'Giao dịch bị từ chối hoặc hết hạn.');
+                else if(order.status === 'CANCELLED') addNode(order.callbackAt, 'Giao dịch bị hủy', 'Người dùng hủy trên cổng thanh toán.');
+            }
+            
+            if(order.status === 'PENDING_VERIFY' && !order.callbackAt) {
+                // Timeout do mất callback
+                addNode(order.holdExpiresAt, 'Đang xác minh giao dịch (TO-BE)', 'Chưa nhận được kết quả từ cổng. Hệ thống đang đối soát với ngân hàng.');
+            }
+
+            // Timeline hoàn tiền
+            if(order.refund && order.refund.status === 'REFUNDED') {
+                addNode(order.refund.createdAt, 'Đã gửi lệnh hoàn tiền', 'CSKH đã xác nhận lệch và gửi yêu cầu hoàn về cổng thanh toán.');
+                addNode(order.refund.createdAt, 'Chờ ngân hàng xử lý', 'Thời gian tiền về thẻ từ 3-7 ngày làm việc tùy ngân hàng.');
+            }
+        });
+    </script>
+</body>
+</html>
+

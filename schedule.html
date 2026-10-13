@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch chiếu theo rạp - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/trailer.css">
+    <link rel="stylesheet" href="css/showtimes-modal.css">
+    <style>
+        /* CSS cho trang Lịch chiếu mới */
+        .sch-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Date Selector */
+        .sch-date-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+        .sch-date-item {
+            display: flex;
+            align-items: baseline;
+            padding-bottom: 15px;
+            cursor: pointer;
+            position: relative;
+            color: #333;
+        }
+        .sch-date-num {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .sch-date-str {
+            font-size: 14px;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        .sch-date-item.active {
+            color: var(--blue, #1B5FAE);
+        }
+        .sch-date-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--blue, #1B5FAE);
+        }
+
+        /* Legend */
+        .sch-legend {
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .sch-legend-box {
+            width: 16px;
+            height: 16px;
+            background: #b6cbf1;
+            border-radius: 2px;
+        }
+
+        /* Movie Row */
+        .sch-movie-row {
+            display: flex;
+            gap: 30px;
+            padding: 30px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .sch-poster-wrap {
+            width: 250px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .sch-poster-img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .sch-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .sch-badge.t18 { background: #d32f2f; }
+        .sch-badge.t16 { background: #f57c00; }
+        .sch-badge.t13 { background: #fbc02d; }
+        .sch-badge.p { background: #388e3c; }
+
+        .sch-info {
+            flex-grow: 1;
+        }
+        .sch-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--blue, #1B5FAE);
+            margin: 0 0 10px 0;
+        }
+        .sch-meta {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .sch-format {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        /* Times Grid */
+        .sch-times-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 15px;
+        }
+        .sch-time-btn {
+            background: #e9ecef;
+            border-radius: 6px;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .sch-time-btn.late {
+            background: #b6cbf1;
+        }
+        .sch-time-btn:hover {
+            background: var(--blue, #1B5FAE);
+            color: white;
+        }
+        .sch-time-btn:hover .sch-time-sub {
+            color: rgba(255,255,255,0.8);
+        }
+        .sch-time-val {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .sch-time-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            margin-top: 2px;
+            transition: color 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sch-times-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sch-movie-row { flex-direction: column; }
+            .sch-poster-wrap { width: 100%; max-width: 250px; margin: 0 auto; }
+            .sch-times-grid { grid-template-columns: repeat(4, 1fr); }
+            .sch-date-bar { gap: 15px; overflow-x: auto; justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sch-container">
+        <!-- Thanh chọn ngày -->
+        <div class="sch-date-bar" id="sch-date-bar">
+            <!-- JS Render -->
+        </div>
+
+        <!-- Chú giải -->
+        <div class="sch-legend">
+            <div class="sch-legend-box"></div> Suất chiếu muộn từ 22h00
+        </div>
+
+        <div id="sch-movie-list">
+            <!-- JS Render Phim -->
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="js/data.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/showtimes-modal.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const dateBar = document.getElementById('sch-date-bar');
+            const movieList = document.getElementById('sch-movie-list');
+            
+            // 1. Tạo ngày thực tế (7 ngày tới)
+            const daysArr = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            const today = new Date();
+            let selectedDateStr = '';
+            
+            const dates = [];
+            for(let i=0; i<7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                
+                const dd = d.getDate().toString().padStart(2, '0');
+                const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+                const dayStr = daysArr[d.getDay()];
+                const fullStr = d.getFullYear() + '-' + mm + '-' + dd;
+                
+                dates.push({
+                    dayNum: dd,
+                    monthStr: '/' + mm + ' - ' + dayStr,
+                    fullStr: fullStr,
+                    isLate: false
+                });
+            }
+            
+            function renderDateBar() {
+                let html = '';
+                dates.forEach((d, i) => {
+                    const isActive = (i === 0 && !selectedDateStr) ? 'active' : (selectedDateStr === d.fullStr ? 'active' : '');
+                    html += '<div class="sch-date-item ' + isActive + '" onclick="selectDate(\'' + d.fullStr + '\')">';
+                    html += '<span class="sch-date-num">' + d.dayNum + '</span>';
+                    html += '<span class="sch-date-str">' + d.monthStr + '</span>';
+                    html += '</div>';
+                });
+                dateBar.innerHTML = html;
+                if (!selectedDateStr) selectedDateStr = dates[0].fullStr;
+            }
+            
+            window.selectDate = function(str) {
+                selectedDateStr = str;
+                renderDateBar();
+                renderMovies();
+            };
+            
+            // 2. Render phim và giờ chiếu giống y hệt ảnh mẫu
+            function renderMovies() {
+                movieList.innerHTML = '';
+                
+                let allMovies = typeof DemoData !== 'undefined' ? DemoData.movies.filter(m => m.status === 'nowShowing') : [];
+                
+                // Chọn phim ngẫu nhiên dựa trên ngày
+                let seed = parseInt(selectedDateStr.split('-')[2]); 
+                let movieCount = (seed % 3) + 2; // Từ 2 đến 4 phim
+                
+                let movies = [];
+                // Nếu là ngày đầu tiên (Today), luôn hiển thị giống hệt bản mẫu (4 phim)
+                if (selectedDateStr === dates[0].fullStr) {
+                    movies = allMovies.slice(0, 4);
+                } else {
+                    let startIdx = seed % allMovies.length;
+                    for (let i = 0; i < movieCount; i++) {
+                        movies.push(allMovies[(startIdx + i) % allMovies.length]);
+                    }
+                }
+                
+                if (movies.length === 0) {
+                    movieList.innerHTML = '<p style="text-align:center; font-size:18px;">Không có lịch chiếu nào cho ngày này.</p>';
+                    return;
+                }
+
+                // Cố định mẫu giờ chiếu như trong ảnh cho phim đầu tiên để test, các phim sau random
+                const fixedTimes = [
+                    { time: '11:00', seats: 124 }, { time: '11:40', seats: 57 }, { time: '12:15', seats: 154 }, { time: '13:20', seats: 95 },
+                    { time: '14:10', seats: 47 }, { time: '15:00', seats: 139 }, { time: '15:45', seats: 113 }, { time: '16:35', seats: 65 },
+                    { time: '17:30', seats: 108 }, { time: '18:15', seats: 52 }, { time: '19:00', seats: 24 }, { time: '20:00', seats: 41 },
+                    { time: '20:45', seats: 36 }, { time: '21:30', seats: 26 }, { time: '22:30', seats: 92 }, { time: '23:15', seats: 112 },
+                    { time: '23:50', seats: 78 }
+                ];
+                
+                movies.forEach((m, index) => {
+                    const times = (index === 0 && selectedDateStr === dates[0].fullStr) ? fixedTimes : generateRandomTimes();
+                    
+                    const timesHtml = times.map(t => {
+                        const h = parseInt(t.time.split(':')[0]);
+                        const isLate = h >= 22;
+                        const dateSubStr = selectedDateStr.split('-').slice(1).reverse().join('/'); // "05/10"
+                        
+                        let innerHtml = '<span class="sch-time-val">' + t.time + '</span>';
+                        if (isLate) {
+                            innerHtml += '<span class="sch-time-sub">' + dateSubStr + '</span>';
+                        }
+                        innerHtml += '<span class="sch-time-sub">' + t.seats + ' ghế trống</span>';
+                        
+                        const lateClass = isLate ? 'late' : '';
+                        return '<button class="sch-time-btn ' + lateClass + '" onclick="openConfirmModalFromSch(\'' + m.id + '\', \'' + t.time + '\')">' + innerHtml + '</button>';
+                    }).join('');
+
+                    const badgeHtml = '<div class="sch-badge ' + m.ageRating.toLowerCase() + '">' + m.ageRating + '</div>';
+                    
+                    const html = '<div class="sch-movie-row">' +
+                                '<div class="sch-poster-wrap">' +
+                                    badgeHtml +
+                                    '<img class="sch-poster-img" src="' + m.imageUrl + '" referrerpolicy="no-referrer" alt="' + m.title + '">' +
+                                '</div>' +
+                                '<div class="sch-info">' +
+                                    '<h2 class="sch-title">' + m.title + '</h2>' +
+                                    '<div class="sch-meta">🏷️ ' + m.genres.join(', ') + ' &nbsp;&nbsp; ⏱️ ' + m.duration + ' phút</div>' +
+                                    '<div class="sch-format">2D PHỤ ĐỀ</div>' +
+                                    '<div class="sch-times-grid">' +
+                                        timesHtml +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                    movieList.insertAdjacentHTML('beforeend', html);
+                });
+            }
+
+            function generateRandomTimes() {
+                const res = [];
+                const hours = [10, 12, 14, 16, 18, 20, 22];
+                hours.forEach(h => {
+                    res.push({ time: h + ':00', seats: Math.floor(Math.random() * 100) + 10 });
+                    if(Math.random() > 0.5) res.push({ time: h + ':30', seats: Math.floor(Math.random() * 100) + 10 });
+                });
+                return res;
+            }
+
+            renderDateBar();
+            renderMovies();
+
+            window.openConfirmModalFromSch = function(movieId, timeStr) {
+                const m = DemoData.movies.find(x => x.id === movieId);
+                if (!m) return;
+                
+                let confirmModal = document.getElementById('sch-confirm-modal');
+                if (!confirmModal) {
+                    const html = '<div id="sch-confirm-modal" class="st-modal" role="dialog" style="z-index: 1060; display:flex;">' +
+                                '<div class="st-overlay" onclick="document.getElementById(\'sch-confirm-modal\').classList.remove(\'show\')"></div>' +
+                                '<div class="st-wrapper st-confirm-wrapper">' +
+                                    '<div class="st-confirm-header">' +
+                                        '<h3>BẠN ĐANG ĐẶT VÉ XEM PHIM</h3>' +
+                                        '<button class="st-close-btn" onclick="document.getElementById(\'sch-confirm-modal\').classList.remove(\'show\')">&times;</button>' +
+                                    '</div>' +
+                                    '<div class="st-confirm-body">' +
+                                        '<h2 id="sch-conf-movie" class="st-confirm-movie">Tên Phim</h2>' +
+                                        '<div class="st-confirm-table">' +
+                                            '<div class="st-table-row st-table-head">' +
+                                                '<div>Rạp chiếu</div>' +
+                                                '<div>Ngày chiếu</div>' +
+                                                '<div>Giờ chiếu</div>' +
+                                            '</div>' +
+                                            '<div class="st-table-row st-table-data">' +
+                                                '<div id="sch-conf-cinema">Beta</div>' +
+                                                '<div id="sch-conf-date">01/01/2026</div>' +
+                                                '<div id="sch-conf-time">10:00</div>' +
+                                            '</div>' +
+                                        '</div>' +
+                                        '<div class="st-confirm-footer">' +
+                                            '<a href="booking.html" class="st-confirm-btn">ĐỒNG Ý</a>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                    document.body.insertAdjacentHTML('beforeend', html);
+                    confirmModal = document.getElementById('sch-confirm-modal');
+                }
+
+                const cinemaName = (localStorage.getItem('selectedCinema') || 'Beta Cinemas Thanh Xuân').replace('Beta Cinemas ', 'Beta ');
+                const parts = selectedDateStr.split('-');
+                const y = parts[0];
+                const mm = parts[1];
+                const dd = parts[2];
+                
+                document.getElementById('sch-conf-movie').innerText = m.title;
+                document.getElementById('sch-conf-cinema').innerText = cinemaName;
+                document.getElementById('sch-conf-date').innerText = dd + '/' + mm + '/' + y;
+                document.getElementById('sch-conf-time').innerText = timeStr;
+                
+                confirmModal.classList.add('show');
+            };
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+/* css/movie-grid.css */
+.grid-tabs-container {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.grid-tabs {
+    display: inline-flex;
+    gap: 40px;
+}
+.grid-tab {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-navy);
+    text-transform: uppercase;
+    cursor: pointer;
+    padding-bottom: 15px;
+    position: relative;
+    transition: color 0.2s;
+}
+.grid-tab.active {
+    color: var(--blue);
+}
+.grid-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--blue);
+}
+@media (max-width: 768px) {
+    .grid-tab { font-size: 14px; padding-bottom: 10px; gap: 15px; }
+    .grid-tabs { gap: 15px; }
+}
+
+.mg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+@media (max-width: 992px) { .mg-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+@media (max-width: 576px) { .mg-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; } }
+
+.mg-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+}
+.mg-poster-wrapper {
+    position: relative;
+    aspect-ratio: 2/3;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.mg-poster-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 15px;
+    position: relative;
+}
+.mg-poster-bg::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    opacity: 0.2;
+    pointer-events: none;
+}
+.mg-poster-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    color: white;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+    font-size: 26px;
+    line-height: 1.1;
+    z-index: 2;
+}
+
+/* Badges */
+.mg-age {
+    position: absolute;
+    top: 0; left: 15px;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    z-index: 5;
+    font-family: 'Montserrat', sans-serif;
+}
+.age-t18 { background: rgba(233, 30, 99, 0.9); }
+.age-t16 { background: rgba(245, 127, 23, 0.9); }
+.age-t13 { background: rgba(41, 182, 246, 0.9); }
+.age-p { background: rgba(102, 187, 106, 0.9); }
+.age-k { background: rgba(255, 152, 0, 0.9); }
+
+.mg-hot {
+    position: absolute;
+    top: 15px; right: -30px;
+    background: var(--orange);
+    color: white;
+    font-weight: 900;
+    font-size: 13px;
+    padding: 5px 35px;
+    transform: rotate(45deg);
+    z-index: 5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.mg-sneak {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    background: rgba(242, 106, 30, 0.95);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    z-index: 5;
+}
+
+/* Overlay for Trailer */
+.mg-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 10;
+}
+@media (hover: hover) {
+    .mg-poster-wrapper:hover .mg-overlay { opacity: 1; }
+}
+
+.mg-btn-trailer {
+    background: rgba(0,0,0,0.6);
+    border: 2px solid white;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.mg-btn-trailer:hover { background: var(--pink); border-color: var(--pink); }
+
+/* Text & Info */
+.mg-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--blue);
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 42px;
+    line-height: 1.3;
+    white-space: normal;
+}
+.mg-meta { 
+    font-size: 13px; 
+    color: #555; 
+    margin-bottom: 5px; 
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Buy Button */
+.mg-buy-btn {
+    margin-top: 15px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s;
+    width: 100%;
+    text-decoration: none;
+}
+.mg-buy-btn:hover { background: #154a87; }
+.mg-buy-btn svg { width: 24px; height: 24px; fill: var(--pink-soft); }
+
+.mg-card {
+    height: 100%;
+}
+.mg-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.mg-buy-btn {
+    margin-top: auto;
+}
