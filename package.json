@@ -8,7 +8,8 @@
     "dev": "concurrently -k -n api,gateway -c blue,magenta \"npm:dev:api\" \"npm:dev:gateway\"",
     "dev:api": "npm --prefix api run dev",
     "dev:gateway": "npm --prefix gateway-mock run dev",
-    "test": "npm --prefix api test && npm --prefix gateway-mock test"
+    "test": "npm --prefix api test && npm --prefix gateway-mock test",
+    "demo": "node beta-payment-demo/server.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

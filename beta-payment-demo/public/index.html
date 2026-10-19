@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chọn ghế - Beta Cinemas DEMO</title><link rel="stylesheet" href="/style.css"></head><body>
+<header><b>BETA CINEMAS <small>(DEMO)</small></b><nav><a href="/">Đặt vé</a><a href="/admin" target="_blank">Quản trị / Đối soát</a></nav></header>
+<main>
+  <div class="card"><h1 id="title">...</h1><div class="muted" id="info"></div></div>
+  <div class="card">
+    <div class="screen">MÀN HÌNH CHIẾU</div>
+    <div class="seatmap" id="map"></div>
+    <div class="legend">
+      <span><i style="background:#cfd8dc"></i>Ghế trống</span><span><i style="background:#1B5FAE"></i>Đang chọn</span>
+      <span><i style="background:#ffd54f"></i>Đang giữ</span><span><i style="background:#e57373"></i>Đã bán</span>
+    </div>
+  </div>
+  <div class="card bar">
+    <div><div class="muted">Ghế: <b id="picked">chưa chọn</b></div><div class="big" id="total">0đ</div></div>
+    <div>
+      <label class="muted">Thời gian giữ ghế (giây):
+        <input type="number" id="hold" min="10" max="3600" style="width:80px;padding:6px"></label>
+      <button class="btn ghost sm" onclick="saveHold()">Lưu</button>
+    </div>
+    <button class="btn" id="pay" onclick="pay()">THANH TOÁN</button>
+  </div>
+  <div id="err"></div>
+</main>
+<script src="/common.js"></script>
+<script>
+let state=null, sel=new Set();
+async function load(first){
+  state=await api('/api/state');
+  if(first){document.getElementById('title').textContent=state.movie.title;
+    document.getElementById('info').textContent=`${state.movie.cinema} - ${state.movie.room} - Suất ${state.movie.showtime} - ${money(state.movie.price)}/ghế`;
+    document.getElementById('hold').value=state.config.holdSeconds;}
+  render();
+}
+function render(){
+  const map=document.getElementById('map'); map.innerHTML='';
+  for(const r of state.rows){
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<span class="lbl">${r}</span>`;
+    for(let c=1;c<=state.cols;c++){
+      const id=r+c, s=state.seats[id]; const b=document.createElement('button'); b.className='seat'; b.textContent=id;
+      if(s.state==='SOLD'){b.classList.add('sold');b.disabled=true;}
+      else if(s.state==='HELD'){b.classList.add('held');b.disabled=true;sel.delete(id);}
+      else{ if(sel.has(id)) b.classList.add('sel'); b.onclick=()=>{sel.has(id)?sel.delete(id):sel.add(id);render();}; }
+      row.appendChild(b);
+    }
+    map.appendChild(row);
+  }
+  const list=[...sel].sort();
+  document.getElementById('picked').textContent=list.join(', ')||'chưa chọn';
+  document.getElementById('total').textContent=money(list.length*state.movie.price);
+}
+async function pay(){
+  const err=document.getElementById('err'); err.innerHTML='';
+  try{ const o=await api('/api/orders',{body:{seats:[...sel]}}); location.href='/pay/'+o.code; }
+  catch(e){ err.innerHTML=`<div class="msg err">${e.message}</div>`; load(); }
+}
+async function saveHold(){
+  const err=document.getElementById('err');
+  try{ await api('/api/config',{body:{holdSeconds:document.getElementById('hold').value}}); err.innerHTML='<div class="msg ok">Đã lưu thời gian giữ ghế</div>'; }
+  catch(e){ err.innerHTML=`<div class="msg err">${e.message}</div>`; }
+}
+load(true); setInterval(()=>load(false),3000);
+</script></body></html>

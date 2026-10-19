@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thanh toán QR - Beta Cinemas DEMO</title><link rel="stylesheet" href="/style.css"></head><body>
+<header><b>BETA CINEMAS <small>(DEMO)</small></b><nav><a href="/">Đặt vé</a><a href="/admin" target="_blank">Quản trị / Đối soát</a></nav></header>
+<main style="max-width:520px">
+  <div class="card center">
+    <h2>THANH TOÁN QR</h2>
+    <div class="qr" id="qr"></div>
+    <p>Số tiền: <b id="amount" style="font-size:20px"></b></p>
+    <p>Nội dung chuyển khoản: <b id="content"></b></p>
+    <p class="muted" id="seats"></p>
+    <div class="muted">Thời gian giữ ghế còn lại</div>
+    <div class="timer" id="timer">--:--</div>
+    <div id="status"></div>
+    <p><a class="btn ghost" id="gw" target="_blank">Mở app ngân hàng giả lập (cổng thanh toán)</a></p>
+    <p class="muted">Mở cổng ở tab mới, chọn kịch bản, rồi quay lại đây xem kết quả.</p>
+  </div>
+</main>
+<script src="/common.js"></script>
+<script>
+const code=codeFromPath(); let order=null, offset=0, done=false;
+document.getElementById('gw').href='/gateway/'+code;
+async function poll(){
+  try{ order=await api('/api/orders/'+code); }catch(e){ document.getElementById('status').innerHTML=`<div class="msg err">${e.message}</div>`; return; }
+  offset=new Date(order.serverNow).getTime()-Date.now();
+  if(!document.getElementById('qr').innerHTML){
+    document.getElementById('qr').innerHTML=fakeQR(order.code+order.amount);
+    document.getElementById('amount').textContent=money(order.amount);
+    document.getElementById('content').textContent=order.code;
+    document.getElementById('seats').textContent='Ghế: '+order.seats.join(', ')+' - '+order.movie.title;
+  }
+  const st=document.getElementById('status');
+  if(order.status==='PAID'){ done=true; location.href='/ticket/'+code; }
+  else if(order.status==='EXPIRED'){ st.innerHTML='<div class="msg err">Đơn hàng đã HẾT HẠN, ghế đã được nhả. Nếu bạn đã chuyển tiền, vui lòng liên hệ CSKH.</div>'; }
+  else if(order.status==='NEEDS_REVIEW'){ st.innerHTML=`<div class="msg warn">Đơn đang cần nhân viên xem xét: ${order.note||''}</div>`; }
+  else if(order.status==='REFUNDED'){ st.innerHTML=`<div class="msg info">Đơn đã được hoàn tiền. ${order.note||''}</div>`; }
+  else st.innerHTML='<div class="msg info">Đang chờ thanh toán...</div>';
+}
+function tick(){
+  if(!order) return;
+  const ms=new Date(order.expiresAt).getTime()-(Date.now()+offset);
+  const t=document.getElementById('timer');
+  if(order.status==='PENDING'){ t.textContent=mmss(ms); t.style.color=ms<30000?'#c62828':'#222'; } else { t.textContent='00:00'; t.style.color='#999'; }
+}
+poll(); setInterval(poll,2000); setInterval(tick,500);
+</script></body></html>

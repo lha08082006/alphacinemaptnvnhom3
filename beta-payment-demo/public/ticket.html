@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vé điện tử - Beta Cinemas DEMO</title><link rel="stylesheet" href="/style.css"></head><body>
+<header><b>BETA CINEMAS <small>(DEMO)</small></b><nav><a href="/">Đặt vé</a><a href="/admin" target="_blank">Quản trị / Đối soát</a></nav></header>
+<main><div id="out"></div></main>
+<script src="/common.js"></script>
+<script>
+(async()=>{
+  const out=document.getElementById('out');
+  try{ const o=await api('/api/orders/'+codeFromPath());
+    if(o.status!=='PAID'){ out.innerHTML=`<div class="card center"><div class="msg warn">Đơn ${o.code} chưa có vé (trạng thái: ${o.status}).</div><a class="btn" href="/pay/${o.code}">Về trang thanh toán</a></div>`; return; }
+    out.innerHTML=`<div class="ticket"><div class="top"><h2 style="color:#fff;margin:0">VÉ ĐIỆN TỬ</h2><div>BETA CINEMAS DEMO</div></div>
+      <div class="body"><h3 class="center">${o.movie.title}</h3>
+        <div class="kv"><span>Rạp</span><b>${o.movie.cinema} - ${o.movie.room}</b></div>
+        <div class="kv"><span>Suất chiếu</span><b>${o.movie.showtime}</b></div>
+        <div class="kv"><span>Ghế</span><b style="color:#F26A1E;font-size:18px">${o.seats.join(', ')}</b></div>
+        <div class="kv"><span>Mã đơn</span><b>${o.code}</b></div>
+        <div class="kv"><span>Tổng tiền</span><b>${money(o.amount)}</b></div></div>
+      <div class="center" style="padding:20px"><div class="muted">Trình mã này cho nhân viên soát vé</div>${fakeQR(o.ticket,170)}<div><b style="letter-spacing:2px;font-size:18px">${o.ticket}</b></div></div></div>`;
+  }catch(e){ out.innerHTML=`<div class="msg err">${e.message}</div>`; }
+})();
+</script></body></html>

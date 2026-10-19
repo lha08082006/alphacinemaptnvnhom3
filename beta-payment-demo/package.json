@@ -1,0 +1,10 @@
+{
+  "name": "beta-payment-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo luồng thanh toán QR Beta Cinemas: thành công, giao dịch treo, đối soát & hoàn tiền (cổng giả lập chạy chung project)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.21.2" }
+}

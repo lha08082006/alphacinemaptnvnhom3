@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cổng thanh toán giả lập</title><link rel="stylesheet" href="/style.css"></head><body>
+<header style="background:#00796b"><b>NGÂN HÀNG / CỔNG THANH TOÁN (GIẢ LẬP)</b></header>
+<main style="max-width:520px">
+  <div class="card">
+    <h2 style="color:#00796b">Xác nhận chuyển khoản</h2>
+    <p>Đơn: <b id="code"></b> &nbsp; Số tiền: <b id="amount"></b></p>
+    <p class="muted">Cổng không biết đơn bên website còn hạn hay không: khách quét QR là bị trừ tiền. Chọn kịch bản:</p>
+    <div class="scen" id="scen">
+      <button class="good" onclick="go('success')"><b>Thanh toán thành công</b><br><span class="muted">Cổng ghi SUCCESS và gửi webhook về website.</span></button>
+      <button class="bad" onclick="go('lost')"><b>Thanh toán nhưng MẤT CALLBACK (giao dịch treo)</b><br><span class="muted">Khách bị trừ tiền nhưng website không nhận được webhook.</span></button>
+      <button class="mid" onclick="go('late')"><b>Thanh toán nhưng callback ĐẾN MUỘN (sau 20 giây)</b><br><span class="muted">Webhook gửi trễ, có thể sau khi đơn đã hết hạn.</span></button>
+      <button class="mid" onclick="go('wrong')"><b>Thanh toán SAI SỐ TIỀN</b><br><span class="muted">Cổng ghi số tiền thấp hơn 10.000đ rồi gửi webhook.</span></button>
+    </div>
+    <div id="result"></div>
+  </div>
+</main>
+<script src="/common.js"></script>
+<script>
+const code=codeFromPath();
+(async()=>{
+  try{ const g=await api('/api/gateway/'+code);
+    document.getElementById('code').textContent=g.code; document.getElementById('amount').textContent=money(g.amount);
+    if(g.paid) lock('Đơn này đã có giao dịch.');
+  }catch(e){ document.getElementById('result').innerHTML=`<div class="msg err">${e.message}</div>`; lock(); }
+})();
+function lock(m){ document.querySelectorAll('#scen button').forEach(b=>b.disabled=true); if(m) document.getElementById('result').innerHTML=`<div class="msg info">${m}</div>`; }
+async function go(scenario){
+  lock();
+  try{ const r=await api('/api/gateway/pay',{body:{orderCode:code,scenario}});
+    document.getElementById('result').innerHTML=`<div class="msg ok">Đã ghi giao dịch ${r.txn.txnId} (${money(r.txn.amount)}). Webhook: ${r.txn.webhook}.<br>Quay lại tab thanh toán / trang /admin để xem kết quả.</div>`;
+  }catch(e){ document.getElementById('result').innerHTML=`<div class="msg err">${e.message}</div>`; }
+}
+</script></body></html>
