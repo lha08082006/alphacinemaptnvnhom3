@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +14,13 @@
             padding: 0;
             color: #333;
         }
-        
+
         .qr-outer-container {
             max-width: 1200px;
             margin: 30px auto 60px;
             padding: 0 20px;
         }
-        
+
         .qr-page-title {
             font-family: 'Montserrat', sans-serif;
             font-weight: 800;
@@ -30,18 +31,18 @@
             letter-spacing: 0.3px;
             text-align: left;
         }
-        
+
         .qr-center-area {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        
+
         .qr-card {
             background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             padding: 30px 25px 25px;
             display: flex;
             flex-direction: column;
@@ -50,7 +51,7 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         .qr-frame {
             margin: 0 auto 15px;
             max-width: 290px;
@@ -59,14 +60,14 @@
             display: flex;
             justify-content: center;
         }
-        
+
         .qr-frame img {
             width: 100%;
             height: auto;
             display: block;
             margin: 0 auto;
         }
-        
+
         .qr-info-list {
             font-size: 13.5px;
             line-height: 1.85;
@@ -75,23 +76,23 @@
             text-align: center;
             width: 100%;
         }
-        
+
         .qr-info-list strong {
             color: #111;
         }
-        
+
         .timer-section-outer {
             margin: 25px 0 20px;
             text-align: center;
         }
-        
+
         .timer-label {
             font-size: 14px;
             font-weight: 600;
             color: #444;
             margin-bottom: 6px;
         }
-        
+
         .timer-value {
             font-size: 34px;
             font-weight: 800;
@@ -99,7 +100,7 @@
             font-family: 'Montserrat', monospace;
             letter-spacing: 1px;
         }
-        
+
         .btn-cancel-trans {
             background: #e9ecef;
             color: #495057;
@@ -112,12 +113,12 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
+
         .btn-cancel-trans:hover {
             background: #dee2e6;
             color: #212529;
         }
-        
+
         /* Floating Presenter Panel (Ẩn mặc định, có nút bánh răng mở) */
         .presenter-toggle-btn {
             position: fixed;
@@ -131,13 +132,13 @@
             height: 44px;
             font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         .presenter-widget {
             position: fixed;
             bottom: 75px;
@@ -146,14 +147,14 @@
             border: 2px dashed #03599d;
             border-radius: 8px;
             padding: 15px;
-            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
             width: 320px;
             z-index: 10000;
             font-size: 12px;
             text-align: left;
             display: none;
         }
-        
+
         .presenter-widget h4 {
             margin: 0 0 10px 0;
             color: #03599d;
@@ -162,7 +163,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .scenario-item {
             display: block;
             margin-bottom: 6px;
@@ -171,15 +172,15 @@
             border-radius: 4px;
             border: 1px solid #eee;
         }
-        
+
         .scenario-item:hover {
             background: #f0f7ff;
         }
-        
+
         .scenario-item input {
             margin-right: 6px;
         }
-        
+
         .btn-simulate {
             background: #03599d;
             color: white;
@@ -192,11 +193,11 @@
             margin-top: 8px;
             font-size: 13px;
         }
-        
+
         .btn-simulate:hover {
             background: #024174;
         }
-        
+
         /* Loader Overlay */
         .loader-overlay {
             position: fixed;
@@ -204,14 +205,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.92);
+            background: rgba(255, 255, 255, 0.92);
             z-index: 20000;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        
+
         .spinner {
             width: 50px;
             height: 50px;
@@ -220,26 +221,30 @@
             border-radius: 50%;
             animation: spin 1s infinite linear;
         }
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="qr-outer-container">
         <!-- Tiêu đề trang (Ảnh 5) -->
         <h1 class="qr-page-title">THANH TOÁN QR</h1>
-        
+
         <div class="qr-center-area">
             <!-- Thẻ QR Trắng ở giữa (Ảnh 5) -->
             <div class="qr-card">
                 <div class="qr-frame">
-                    <img id="qr-image" 
-                         src="images/vietqr-full.png" 
-                         alt="VietQR Beta Cinemas">
+                    <img id="qr-image"
+                        src="https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/1792407139120_286857119557507108_4786695532215406514_d60e8e0f0299f03c5e8e7d1bf5bc84fd.jpg"
+                        alt="VietQR Beta Cinemas">
                 </div>
-                
+
                 <!-- Thông tin chuyển khoản (Ảnh 5) -->
                 <div class="qr-info-list">
                     <div>Số tiền: <strong id="lbl-amount">50.000 VND</strong></div>
@@ -248,13 +253,13 @@
                     <div style="color: #666; font-size: 13px;">Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</div>
                 </div>
             </div>
-            
+
             <!-- Đếm ngược 10 phút & Nút Hủy bên ngoài thẻ (Ảnh 5) -->
             <div class="timer-section-outer">
                 <div class="timer-label">Thời gian còn lại</div>
                 <div class="timer-value hold-timer" id="gw-timer">10:00</div>
             </div>
-            
+
             <button class="btn-cancel-trans" onclick="cancelTransaction()">HỦY GIAO DỊCH</button>
         </div>
     </div>
@@ -291,7 +296,8 @@
     <!-- Loader -->
     <div class="loader-overlay" id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 20px; font-weight: bold; color: #03599d;" id="loader-text">Đang xử lý kết quả thanh toán...</p>
+        <p style="margin-top: 20px; font-weight: bold; color: #03599d;" id="loader-text">Đang xử lý kết quả thanh
+            toán...</p>
     </div>
 
     <!-- Scripts -->
@@ -302,7 +308,7 @@
     <script src="js/notify.js"></script>
     <script src="js/timer.js"></script>
     <script src="js/beta-core.js"></script>
-    
+
     <script>
         window.currentTxn = null;
 
@@ -310,15 +316,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             let txnId = urlParams.get('txn');
             let orderId = urlParams.get('orderId') || localStorage.getItem('currentOrder') || '8967511872660710';
-            
+
             // Tìm hoặc tạo txn phù hợp
             let txn = (typeof DB !== 'undefined' && txnId) ? DB.get('gateway_txns', txnId) : null;
-            
+
             if (!txn) {
                 // Mock transaction mặc định khớp Ảnh 5 nếu mở trực tiếp
                 let order = (typeof DB !== 'undefined') ? DB.get('beta_orders', orderId) : null;
                 const amount = (order && order.amount) ? order.amount : 50000;
-                
+
                 txnId = txnId || 'GW' + Math.random().toString(36).substring(2, 10).toUpperCase();
                 txn = {
                     txnId: txnId,
@@ -334,31 +340,31 @@
                     DB.insert('gateway_txns', txn);
                 }
             }
-            
+
             window.currentTxn = txn;
-            
+
             // Cập nhật thông tin lên UI
             const formattedAmount = Number(txn.amount || 50000).toLocaleString('vi-VN') + ' VND';
             document.getElementById('lbl-amount').innerText = formattedAmount;
-            
+
             const contentOrder = txn.orderId || '8967511872660710';
             document.getElementById('lbl-content').innerText = 'Thanh toan hoa don ' + contentOrder;
-            
+
             // ========================================================
             // CHỖ THAY ĐỔI ẢNH QR THANH TOÁN:
             // Bạn có thể đổi đường dẫn sang ảnh của bạn (vd: 'images/my-qr.png' hoặc link ảnh online)
             // ========================================================
             const qrImg = document.getElementById('qr-image');
-            const customQrImage = 'images/vietqr-full.png'; // <-- Đổi đường dẫn ảnh QR tại đây
-            
+            const customQrImage = 'https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/1792407139120_286857119557507108_4786695532215406514_d60e8e0f0299f03c5e8e7d1bf5bc84fd.jpg';
+
             if (customQrImage) {
                 qrImg.src = customQrImage;
             } else {
                 // Tự động tạo ảnh VietQR live theo số tiền
                 const cleanAddInfo = encodeURIComponent('Thanh toan hoa don ' + contentOrder);
                 qrImg.src = `https://img.vietqr.io/image/bidv-96520156FB03MURXE1Y-compact2.png?amount=${txn.amount}&addInfo=${cleanAddInfo}&accountName=BETA%20CINEMAS`;
-                qrImg.onerror = function() {
-                    this.src = 'images/vietqr-full.png';
+                qrImg.onerror = function () {
+                    this.src = 'https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/1792407139120_286857119557507108_4786695532215406514_d60e8e0f0299f03c5e8e7d1bf5bc84fd.jpg';
                 };
             }
         });
@@ -380,19 +386,19 @@
 
         function submitGateway() {
             if (!currentTxn) return;
-            
+
             const btn = document.getElementById('btn-submit');
             if (btn) btn.disabled = true;
-            
+
             const loader = document.getElementById('loader');
             loader.style.display = 'flex';
-            
+
             const scenario = document.querySelector('input[name="scenario"]:checked').value;
             let finalStatus = 'PENDING';
             let isDebited = false;
             let webhookMode = 'OK';
-            
-            switch(scenario) {
+
+            switch (scenario) {
                 case 'S1':
                     finalStatus = 'SUCCESS';
                     isDebited = true;
@@ -419,26 +425,26 @@
                     webhookMode = 'DELAYED';
                     break;
             }
-            
+
             setTimeout(() => {
                 currentTxn.status = finalStatus;
                 currentTxn.debited = isDebited;
-                
+
                 if (webhookMode === 'DELAYED') {
                     currentTxn.callback = {
                         mode: 'DELAYED',
-                        delayedUntil: ((typeof VirtualClock !== 'undefined') ? VirtualClock.now().getTime() : Date.now()) + 5 * 60000 
+                        delayedUntil: ((typeof VirtualClock !== 'undefined') ? VirtualClock.now().getTime() : Date.now()) + 5 * 60000
                     };
                 } else if (webhookMode === 'LOST') {
                     currentTxn.callback = { mode: 'LOST' };
                 } else {
                     currentTxn.callback = { mode: 'DONE' };
                 }
-                
+
                 if (typeof DB !== 'undefined') {
                     DB.update('gateway_txns', currentTxn.txnId, currentTxn);
                 }
-                
+
                 if (webhookMode === 'OK' && window.betaCore) {
                     window.betaCore.receiveCallback({
                         txnId: currentTxn.txnId,
@@ -447,9 +453,9 @@
                         status: finalStatus
                     });
                 }
-                
+
                 document.getElementById('loader-text').innerText = 'Đang đưa bạn trở về Beta Cinemas...';
-                
+
                 setTimeout(() => {
                     location.href = `result.html?orderId=${currentTxn.orderId}`;
                 }, 1000);
@@ -457,4 +463,5 @@
         }
     </script>
 </body>
+
 </html>
