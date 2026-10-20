@@ -23,17 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const html = `
                 <div class="movie-card">
-                    <div class="movie-poster-box" onclick="location.href='movie.html?id=${m.id}'" style="cursor:pointer; background: ${bgStr}; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+                    <div class="movie-poster-box" onclick="window.spaNavigate ? window.spaNavigate('movie', 'id=${m.id}') : location.href='#movie?id=${m.id}'" style="cursor:pointer; background: ${bgStr}; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
                         ${hotBadge}
                         <div class="age-badge ${ageClass}">${m.ageRating}</div>
                         <div class="hero-poster-title" style="color: ${pStyle.accent || 'white'}; font-size: 20px; z-index: 2;">${titleHtml}</div>
                         <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.1); pointer-events:none;"></div>
                     </div>
                     <div class="movie-info">
-                        <h3 class="movie-title"><a href="movie.html?id=${m.id}">${m.title}</a></h3>
+                        <h3 class="movie-title"><a href="#movie?id=${m.id}" onclick="if(window.spaNavigate){event.preventDefault(); window.spaNavigate('movie', 'id=${m.id}');}">${m.title}</a></h3>
                         <div class="movie-meta"><strong>Thể loại:</strong> ${m.genres.join(', ')}</div>
                         <div class="movie-meta"><strong>Thời lượng:</strong> ${m.duration} phút</div>
-                        <button class="btn-buy-ticket" onclick="location.href='schedule.html?movieId=${m.id}'">
+                        <button class="btn-buy-ticket" onclick="window.spaNavigate ? window.spaNavigate('schedule', 'movieId=${m.id}') : location.href='#schedule?movieId=${m.id}'">
                             🎟 MUA VÉ
                         </button>
                     </div>

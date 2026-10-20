@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-body" style="padding: 30px 20px;">
                         <h3 style="color: #d32f2f; margin-bottom: 15px;">HẾT THỜI GIAN</h3>
                         <p style="margin-bottom: 25px; color: #555;">Đã hết thời gian giữ ghế. Giao dịch đã bị huỷ để nhường ghế cho khách hàng khác.</p>
-                        <button class="btn btn-primary" style="width: 100%; background: #03599d; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;" onclick="location.href='seats.html'">CHỌN LẠI GHẾ</button>
+                        <button class="btn btn-primary" style="width: 100%; background: #03599d; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;" onclick="if(window.spaNavigate){window.spaNavigate('booking');document.querySelector('.modal-overlay')?.remove();}else{location.href='#booking';}">CHỌN LẠI GHẾ</button>
                     </div>
                 </div>
             </div>

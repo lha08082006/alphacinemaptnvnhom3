@@ -2,7 +2,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const orderId = localStorage.getItem('currentOrder');
     if (!orderId) { 
-        location.href = 'index.html'; 
+        if (window.spaNavigate) window.spaNavigate('home');
+        else location.href = '#home'; 
         return; 
     }
     
@@ -184,7 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 createdAt: new Date().toISOString()
             });
             DB.update('beta_orders', order.orderId, { txnId: txnId, status: 'AWAITING_PAYMENT' });
-            location.href = `gateway.html?txn=${txnId}`;
+            if (window.spaNavigate) window.spaNavigate('gateway', `txn=${txnId}`);
+            else location.href = `#gateway?txn=${txnId}`;
         }
     };
 });

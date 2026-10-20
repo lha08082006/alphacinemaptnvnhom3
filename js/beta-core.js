@@ -70,7 +70,8 @@ window.betaCore = {
         `;
         
         setTimeout(() => {
-            location.href = `gateway.html?txn=${txnId}`;
+            if (window.spaNavigate) window.spaNavigate('gateway', `txn=${txnId}`);
+            else location.href = `#gateway?txn=${txnId}`;
         }, 1500);
     },
 

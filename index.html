@@ -3766,7 +3766,7 @@ body {
                 e.preventDefault();
                 const target = href.replace('#', '');
                 const parts = target.split('?');
-                window.spaNavigate(parts[0], parts[1] || '');
+                if (parts[0] && SPA_VIEWS.includes(parts[0])) window.spaNavigate(parts[0], parts[1] || '');
             }
         });
 

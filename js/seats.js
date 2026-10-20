@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         localStorage.setItem('currentOrder', orderId);
-        location.href = 'checkout.html';
+        if (window.spaNavigate) window.spaNavigate('checkout');
+        else location.href = '#checkout';
     }
 });

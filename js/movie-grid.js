@@ -63,10 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             const tabId = tab.dataset.tab;
-            location.hash = tabId;
             renderMovies(tabId);
         });
     });
+
+    window.renderMovieGrid = renderMovies;
 
     // Kích hoạt tab ban đầu
     const initialTab = document.querySelector(`.grid-tab[data-tab="${activeTab}"]`);

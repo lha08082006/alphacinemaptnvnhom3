@@ -58,7 +58,7 @@
                         </div>
                         
                         <div class="st-confirm-footer">
-                            <a href="booking.html" class="st-confirm-btn">ĐỒNG Ý</a>
+                            <button type="button" id="st-btn-agree" class="st-confirm-btn" style="border:none; cursor:pointer;">ĐỒNG Ý</button>
                         </div>
                     </div>
                 </div>
@@ -75,6 +75,26 @@
         // Events cho Modal Xác nhận
         document.getElementById('st-confirm-close-btn').addEventListener('click', closeConfirmModal);
         document.getElementById('st-confirm-overlay').addEventListener('click', closeConfirmModal);
+        const agreeBtn = document.getElementById('st-btn-agree');
+        if (agreeBtn) {
+            agreeBtn.addEventListener('click', () => {
+                const cinemaName = document.getElementById('st-confirm-cinema').innerText;
+                const dateStr = document.getElementById('st-confirm-date').innerText;
+                const timeStr = document.getElementById('st-confirm-time').innerText;
+                if (currentMovie) {
+                    localStorage.setItem('selectedBookingMovieId', currentMovie.id);
+                }
+                localStorage.setItem('selectedBookingCinema', cinemaName);
+                localStorage.setItem('selectedBookingDate', dateStr);
+                localStorage.setItem('selectedBookingTime', timeStr);
+                closeConfirmModal();
+                if (window.spaNavigate) {
+                    window.spaNavigate('booking');
+                } else {
+                    window.location.hash = '#booking';
+                }
+            });
+        }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {

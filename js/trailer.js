@@ -130,43 +130,73 @@
         });
     }
 
-    function renderYoutube(movie) {
+    // Build embed URL compatible with Beta Cinemas trailer-embed.js
+    function buildTrailerEmbedUrl(urlTrailer) {
+        if (!urlTrailer) return '';
+        if (/facebook\.com|fb\.watch/i.test(urlTrailer)) {
+            return 'https://www.facebook.com/plugins/video.php?href=' + encodeURIComponent(urlTrailer) + '&show_text=false';
+        }
+        if (/^https?:\/\//i.test(urlTrailer)) {
+            const url = urlTrailer.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/");
+            return url + (url.includes('?') ? '&' : '?') + 'rel=0&showinfo=0&autoplay=1';
+        }
+        return 'https://www.youtube.com/embed/' + urlTrailer + '?rel=0&showinfo=0&autoplay=1';
+    }
+    window.buildTrailerEmbedUrl = buildTrailerEmbedUrl;
+
+    function renderYoutube(movieOrId, customTitle) {
         const container = document.getElementById('trailer-video-container');
-        const ytId = movie.trailer.youtubeId || 'dQw4w9WgXcQ'; // Fallback
-        
+        let ytId = '';
+        let fullEmbedUrl = '';
+
+        if (typeof movieOrId === 'object' && movieOrId.trailer) {
+            ytId = movieOrId.trailer.youtubeId || 'dQw4w9WgXcQ';
+            fullEmbedUrl = buildTrailerEmbedUrl(ytId);
+        } else if (typeof movieOrId === 'string') {
+            ytId = movieOrId;
+            fullEmbedUrl = buildTrailerEmbedUrl(ytId);
+        }
+
         container.innerHTML = `
-            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen onerror="handleYtError('${ytId}')"></iframe>
+            <iframe width="100%" height="100%" src="${fullEmbedUrl}" title="Trailer player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen onerror="handleYtError('${ytId}')"></iframe>
             <div id="yt-error" class="trailer-yt-error" style="display:none;">
                 <p>Không thể tải video. Vui lòng kiểm tra kết nối mạng.</p>
-                <a href="https://youtube.com/watch?v=${ytId}" target="_blank" class="tl-buy-btn" style="background:var(--blue); margin-top:10px;">Mở trên YouTube</a>
+                <a href="${fullEmbedUrl.replace('embed/', 'watch?v=').replace('?rel=0&showinfo=0&autoplay=1', '')}" target="_blank" class="tl-buy-btn" style="background:var(--blue); margin-top:10px;">Mở trên YouTube</a>
             </div>
         `;
 
         window.handleYtError = function() {
-            document.querySelector('.trailer-player-content iframe').style.display = 'none';
-            document.getElementById('yt-error').style.display = 'flex';
+            const iframe = document.querySelector('.trailer-player-content iframe');
+            if (iframe) iframe.style.display = 'none';
+            const err = document.getElementById('yt-error');
+            if (err) err.style.display = 'flex';
         };
     }
 
-    window.openTrailer = function(movieId) {
+    window.openTrailer = function(movieIdOrUrl, optionalTitle) {
         returnFocusEl = document.activeElement;
         buildModalDOM();
 
-        const movie = DemoData.movies.find(m => m.id === movieId);
-        if (!movie) return;
+        let movie = null;
+        if (typeof DemoData !== 'undefined' && DemoData.movies) {
+            movie = DemoData.movies.find(m => m.id === movieIdOrUrl);
+        }
 
-        // Cập nhật text info
-        document.getElementById('tl-title').innerText = 'TRAILER - ' + movie.title;
-        
-        // Render player
+        const title = movie ? movie.title : (optionalTitle || 'TRAILER PHIM');
+        document.getElementById('tl-title').innerText = 'TRAILER - ' + title;
+
         clearInterval(simulatedInterval);
         const container = document.getElementById('trailer-video-container');
-        container.innerHTML = ''; // Clear cũ
+        container.innerHTML = '';
 
-        if (movie.trailer && movie.trailer.type === 'youtube') {
-            renderYoutube(movie);
-        } else {
-            renderPlaceholder(movie);
+        if (movie) {
+            if (movie.trailer && movie.trailer.type === 'youtube') {
+                renderYoutube(movie);
+            } else {
+                renderPlaceholder(movie);
+            }
+        } else if (movieIdOrUrl) {
+            renderYoutube(movieIdOrUrl, title);
         }
 
         // Hiện modal
