@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hỗ trợ khách hàng - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .support-container {
+            max-width: 900px;
+            margin: 40px auto 60px;
+            display: flex;
+            gap: 30px;
+            padding: 0 15px;
+        }
+        .support-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            flex: 1.2;
+            border: 1px solid #e9ecef;
+        }
+        .chat-box {
+            flex: 1;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: var(--beta-blue, #03599d);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            font-size: 15px;
+        }
+        .chat-body {
+            padding: 15px;
+            flex: 1;
+            min-height: 280px;
+            font-size: 14px;
+            overflow-y: auto;
+        }
+        .chat-msg {
+            margin-bottom: 15px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            max-width: 90%;
+            line-height: 1.5;
+        }
+        .chat-msg.bot {
+            background: #e3f2fd;
+            align-self: flex-start;
+            border-left: 3px solid #03599d;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: #03599d;
+        }
+        
+        .alert-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        .alert-info { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .alert-warning { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+        .alert-danger { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #03599d;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #024477;
+        }
+
+        .lookup-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13.5px;
+        }
+        .lookup-detail-row:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h2 style="color: var(--beta-blue, #03599d); text-align: center; margin-top: 35px; font-size: 24px;">
+            TRUNG TÂM HỖ TRỢ TRA SOÁT ĐƠN HÀNG
+        </h2>
+        <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 14px;">
+            Hệ thống hỗ trợ tra cứu tình trạng giao dịch, đối soát ngân hàng và tiến độ hoàn tiền tự động.
+        </p>
+        
+        <div class="support-container">
+            <div class="support-box">
+                <h3 style="margin-top: 0; color: #f26b38; font-size: 18px; margin-bottom: 8px;">
+                    TRA CỨU TRẠNG THÁI GIAO DỊCH
+                </h3>
+                <p style="font-size: 13.5px; color: #666; margin-bottom: 22px;">
+                    Vui lòng nhập Mã đơn hàng (hoặc Mã giao dịch) và thông tin liên hệ chính xác để tra cứu.
+                </p>
+                
+                <div class="form-group">
+                    <label>Mã Đơn hàng (hoặc Mã giao dịch)</label>
+                    <input type="text" id="txt-order" class="form-control" placeholder="Ví dụ: BC896751187266 hoặc GW...">
+                </div>
+                <div class="form-group">
+                    <label>Email hoặc Số điện thoại đặt vé</label>
+                    <input type="text" id="txt-contact" class="form-control" placeholder="Nhập email hoặc SĐT đã dùng khi đặt">
+                </div>
+                
+                <button class="btn btn-primary" id="btn-submit-support" style="width: 100%;" onclick="submitSupport()">
+                    GỬI YÊU CẦU TRA SOÁT
+                </button>
+                
+                <div id="result-alert" class="alert-box"></div>
+            </div>
+            
+            <div class="chat-box">
+                <div class="chat-header">🎧 Hỗ Trợ Trực Tuyến Beta</div>
+                <div class="chat-body" id="chat-messages" style="display: flex; flex-direction: column;">
+                    <div class="chat-msg bot">
+                        <strong>Beta Bot:</strong> Xin chào quý khách! Tôi có thể giúp gì cho bạn?<br><br>
+                        Nếu bạn bị trừ tiền nhưng chưa thấy vé hoặc muốn kiểm tra trạng thái hoàn tiền, hãy nhập thông tin ở biểu mẫu bên cạnh để tra cứu tức thì nhé!
+                    </div>
+                </div>
+                <div style="padding: 10px; border-top: 1px solid #ddd; background: white; border-radius: 0 0 8px 8px;">
+                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." disabled style="background: #f0f0f0; cursor: not-allowed;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script layout chung và API client -->
+    <script src="js/layout.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        (function() {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Tự động điền email nếu có người dùng đăng nhập
+                try {
+                    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    if (user && user.email) {
+                        const contactInput = document.getElementById('txt-contact');
+                        if (contactInput && !contactInput.value) {
+                            contactInput.value = user.email;
+                        }
+                    }
+                } catch (e) {}
+
+                // Kiểm tra nếu có orderId trên URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const orderIdParam = urlParams.get('orderId');
+                if (orderIdParam) {
+                    const orderInput = document.getElementById('txt-order');
+                    if (orderInput) orderInput.value = orderIdParam;
+                }
+            });
+
+            function formatMoney(amount) {
+                if (amount === null || amount === undefined) return '0 ₫';
+                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+            }
+
+            function addBotMessage(html) {
+                const chatBody = document.getElementById('chat-messages');
+                if (!chatBody) return;
+                const msgEl = document.createElement('div');
+                msgEl.className = 'chat-msg bot';
+                msgEl.innerHTML = html;
+                chatBody.appendChild(msgEl);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            window.submitSupport = async function() {
+                const codeInput = document.getElementById('txt-order').value.trim();
+                const contact = document.getElementById('txt-contact').value.trim();
+                const alertBox = document.getElementById('result-alert');
+                const submitBtn = document.getElementById('btn-submit-support');
+                
+                if (!codeInput || !contact) {
+                    alertBox.className = 'alert-box alert-warning';
+                    alertBox.innerHTML = '⚠️ Vui lòng nhập đầy đủ Mã đơn hàng / Giao dịch và Email / Số điện thoại.';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+
+                alertBox.style.display = 'none';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = 'Đang tra cứu hệ thống...';
+                }
+
+                // Xác định codeInput là orderId (BC...) hay txnId (GW...)
+                const payload = {
+                    contact: contact,
+                    orderId: codeInput.startsWith('BC') ? codeInput : undefined,
+                    txnId: !codeInput.startsWith('BC') ? codeInput : undefined,
+                };
+                // Nếu không rõ thì gửi cả hai
+                if (!payload.orderId && !payload.txnId) {
+                    payload.orderId = codeInput;
+                }
+
+                try {
+                    const res = await API.post('/support/lookup', payload);
+
+                    if (res && res.found) {
+                        alertBox.className = 'alert-box alert-success';
+                        let refundInfoHtml = '<div style="margin-top: 8px; color: #555;">Chưa có lệnh hoàn tiền cho đơn hàng này.</div>';
+                        if (res.hasRefund && res.refund) {
+                            refundInfoHtml = `
+                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #28a745;">
+                                    <div class="lookup-detail-row"><span>Mã lệnh hoàn:</span><strong>${res.refund.refundId}</strong></div>
+                                    <div class="lookup-detail-row"><span>Số tiền hoàn:</span><strong style="color: #d9534f;">${formatMoney(res.refund.amount)}</strong></div>
+                                    <div class="lookup-detail-row"><span>Tiến độ hoàn:</span><strong style="color: #28a745;">${res.refund.statusText}</strong></div>
+                                </div>
+                            `;
+                        }
+
+                        alertBox.innerHTML = `
+                            <div style="font-weight: 700; font-size: 15px; margin-bottom: 10px;">
+                                ✅ ĐÃ TÌM THẤY THÔNG TIN GIAO DỊCH
+                            </div>
+                            <div class="lookup-detail-row"><span>Mã đơn hàng:</span><strong>${res.orderId}</strong></div>
+                            <div class="lookup-detail-row"><span>Trạng thái:</span><strong style="color: #03599d;">${res.statusText}</strong></div>
+                            <div class="lookup-detail-row"><span>Tổng tiền:</span><strong>${formatMoney(res.amount)}</strong></div>
+                            ${refundInfoHtml}
+                            <div style="margin-top: 15px; text-align: center;">
+                                <a href="result.html?orderId=${res.orderId}" style="color: #03599d; font-weight: 700; text-decoration: underline;">
+                                    👉 Xem chi tiết trạng thái đơn hàng & tiến trình
+                                </a>
+                            </div>
+                        `;
+                        alertBox.style.display = 'block';
+
+                        // Bot chat cập nhật
+                        addBotMessage(`
+                            <strong>Beta Bot:</strong> Tôi đã tìm thấy đơn hàng <strong>${res.orderId}</strong> của bạn!<br>
+                            - Trạng thái hiện tại: <strong>${res.statusText}</strong><br>
+                            - Số tiền: <strong>${formatMoney(res.amount)}</strong><br>
+                            ${res.hasRefund && res.refund ? `- Hoàn tiền: <strong>${res.refund.statusText}</strong> (${formatMoney(res.refund.amount)})<br>` : ''}
+                            Bạn có thể bấm vào liên kết trong khung bên trái để theo dõi chi tiết nhé!
+                        `);
+                    } else {
+                        alertBox.className = 'alert-box alert-warning';
+                        alertBox.innerHTML = `
+                            ⚠️ ${res.message || 'Không tìm thấy thông tin đơn hàng khớp với dữ liệu bạn cung cấp. Vui lòng kiểm tra lại.'}
+                        `;
+                        alertBox.style.display = 'block';
+
+                        addBotMessage(`
+                            <strong>Beta Bot:</strong> Tiếc quá, tôi không tìm thấy đơn hàng nào khớp với mã <strong>${codeInput}</strong> và liên hệ <strong>${contact}</strong>.<br>
+                            Quý khách vui lòng kiểm tra lại chính xác email/số điện thoại đã dùng khi đặt vé nhé!
+                        `);
+                    }
+                } catch (err) {
+                    console.error('Lỗi khi tra cứu hỗ trợ:', err);
+                    alertBox.className = 'alert-box alert-danger';
+                    alertBox.innerHTML = `❌ ${err.message || 'Lỗi kết nối máy chủ. Vui lòng thử lại sau.'}`;
+                    alertBox.style.display = 'block';
+
+                    addBotMessage(`
+                        <strong>Beta Bot:</strong> Đã có lỗi xảy ra trong quá trình tra soát (${err.message || 'Lỗi mạng'}). Quý khách vui lòng thử lại sau ít phút hoặc liên hệ hotline.
+                    `);
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = 'GỬI YÊU CẦU TRA SOÁT';
+                    }
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
