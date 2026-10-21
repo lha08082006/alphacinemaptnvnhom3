@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập / Đăng ký - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container { max-width: 450px; margin: 60px auto; }
+    </style>
+</head>
+<body>
+    <div class="container auth-container">
+        <div class="card">
+            <div class="card-header" style="text-align: center; font-size: 22px; color: var(--beta-blue); padding: 20px;">
+                BETA CINEMAS
+            </div>
+            <div class="card-body">
+                <div class="tabs" style="margin-bottom: 25px; display: flex; justify-content: center;">
+                    <div class="tab-item active" style="flex:1; text-align:center;">ĐĂNG NHẬP</div>
+                    <div class="tab-item" style="flex:1; text-align:center; color:#ccc;" onclick="alert('Demo hiện chỉ hỗ trợ đăng nhập bằng tài khoản mẫu. Tính năng đăng ký nằm ngoài phạm vi!')">ĐĂNG KÝ</div>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control" value="khachhang@gmail.com" required placeholder="Nhập email...">
+                        <div class="invalid-feedback">Vui lòng nhập định dạng email hợp lệ.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" id="password" class="form-control" value="Password@123" required placeholder="Nhập mật khẩu...">
+                        <div class="invalid-feedback">Vui lòng nhập mật khẩu.</div>
+                    </div>
+                    
+                    <div id="login-error" style="color: var(--danger); font-size: 13px; margin-bottom: 15px; display: none; background:#ffebeb; padding:10px; border-radius:4px;">
+                        Sai email hoặc mật khẩu.
+                    </div>
+                    
+                    <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 12px;">ĐĂNG NHẬP</button>
+                </form>
+                
+                <div style="margin-top: 25px; font-size: 13px; color: #555; text-align: left; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                    <strong style="color: var(--beta-orange);">Tài khoản Demo có sẵn (Pass: Password@123):</strong><br><br>
+                    • Khách hàng: <b>khachhang@gmail.com</b><br>
+                    • Quản lý: <b>manager@betacinemas.vn</b><br>
+                    • CSKH: <b>cskh@betacinemas.vn</b><br>
+                    • Kế toán: <b>ketoan@betacinemas.vn</b><br>
+                    • Kỹ thuật / IT: <b>it@betacinemas.vn</b>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Core -->
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('login-form');
+            const btnSubmit = document.getElementById('btn-submit');
+            const errBox = document.getElementById('login-error');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    errBox.innerText = "Vui lòng nhập đầy đủ email và mật khẩu.";
+                    errBox.style.display = 'block';
+                    return;
+                }
+
+                errBox.style.display = 'none';
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "Đang xử lý...";
+
+                try {
+                    const result = await API.post('/auth/login', { email, password });
+                    const user = result.user;
+
+                    // Lưu thông tin người dùng cơ bản vào localStorage cho giao diện
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const next = urlParams.get('next');
+
+                    // Role khác CUSTOMER chuyển vào admin/index.html
+                    if (user.role !== 'CUSTOMER') {
+                        location.href = 'admin/index.html';
+                    } else if (next) {
+                        location.href = next;
+                    } else {
+                        location.href = 'index.html';
+                    }
+                } catch (err) {
+                    errBox.innerText = err.message || "Sai email hoặc mật khẩu. Vui lòng kiểm tra lại.";
+                    errBox.style.display = 'block';
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "ĐĂNG NHẬP";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
