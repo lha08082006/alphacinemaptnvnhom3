@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đối soát Giao dịch - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="margin: 0; color: #333;">ĐỘNG CƠ ĐỐI SOÁT GIAO DỊCH (RECONCILIATION)</h3>
+            <p style="color: #666; font-size: 13.5px; margin-top: 5px;" id="recon-info">
+                Chu kỳ: 15 phút/lần. Động cơ tự động đối soát giữa VNPay và Beta Cinemas, tự động cấp vé muộn hoặc hoàn tiền.
+            </p>
+        </div>
+        <button class="btn btn-primary" id="btn-run-recon" onclick="forceRun()" style="padding: 10px 18px; font-weight: 700;">
+            ⚡ CHẠY ĐỐI SOÁT NGAY
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Tình hình đối soát theo ngày</span>
+            <button class="btn" style="background: #e9ecef; color: #333; padding: 4px 10px; font-size: 12px;" onclick="loadReconData()">
+                🔄 Làm mới
+            </button>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Tổng tiền Cổng (VNPay)</th>
+                        <th>Tổng tiền Beta</th>
+                        <th>Chênh lệch</th>
+                        <th>Số GD Treo</th>
+                        <th>Đã hoàn tiền</th>
+                        <th>Đang hoàn tiền</th>
+                        <th>Đánh giá</th>
+                    </tr>
+                </thead>
+                <tbody id="recon-summary-table">
+                    <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải dữ liệu đối soát...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 25px;">
+        <div class="card-header">Sự cố & Ca lệch cần chú ý gần nhất (Support Tickets)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Ticket</th>
+                        <th>Mã Đơn hàng</th>
+                        <th>Nguồn phát hiện</th>
+                        <th>Lý do / Phân loại</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody id="flagged-table">
+                    <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải danh sách...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    
+    <script>
+        (function() {
+            function formatMoney(amount) {
+                if (amount === null || amount === undefined) return '0 ₫';
+                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+            }
+
+            function formatTime(isoStr) {
+                if (!isoStr) return '';
+                try {
+                    const d = new Date(isoStr);
+                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            window.loadReconData = async function() {
+                try {
+                    const [reportRes, ticketsRes] = await Promise.all([
+                        API.get('/admin/reports/reconciliation').catch(() => []),
+                        API.get('/admin/tickets?source=SYSTEM').catch(() => []),
+                    ]);
+
+                    const report = Array.isArray(reportRes) ? reportRes : [];
+                    const tickets = Array.isArray(ticketsRes) ? ticketsRes : [];
+
+                    // 1. Render Báo cáo tổng hợp đối soát theo ngày
+                    const summaryTable = document.getElementById('recon-summary-table');
+                    if (summaryTable) {
+                        if (report.length === 0) {
+                            summaryTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #777;">Chưa có dữ liệu đối soát.</td></tr>';
+                        } else {
+                            summaryTable.innerHTML = report.map(r => {
+                                const diff = Number(r.difference || 0);
+                                const isMismatch = diff !== 0 || Number(r.hanging_count || 0) > 0;
+                                const diffStyle = diff !== 0 ? 'color: #dc3545; font-weight: bold;' : 'color: #28a745;';
+                                const statusBadge = isMismatch 
+                                    ? '<span class="badge error">Có ca lệch / treo</span>'
+                                    : '<span class="badge success">Khớp 100%</span>';
+
+                                return `
+                                    <tr style="${isMismatch ? 'background: #fff8f8;' : ''}">
+                                        <td><strong>${r.date}</strong></td>
+                                        <td>${formatMoney(r.gateway_total)}</td>
+                                        <td>${formatMoney(r.beta_total)}</td>
+                                        <td style="${diffStyle}">${formatMoney(diff)}</td>
+                                        <td><strong>${r.hanging_count}</strong></td>
+                                        <td><span class="badge success">${r.refunded_count}</span></td>
+                                        <td><span class="badge warning">${r.refunding_count}</span></td>
+                                        <td>${statusBadge}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        }
+                    }
+
+                    // 2. Render Flagged / System Support Tickets
+                    const flaggedTable = document.getElementById('flagged-table');
+                    if (flaggedTable) {
+                        if (tickets.length === 0) {
+                            flaggedTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777;">Không có ca lệch hoặc cảnh báo nào.</td></tr>';
+                        } else {
+                            flaggedTable.innerHTML = tickets.map(t => {
+                                let badgeClass = 'badge warning';
+                                if (t.status === 'RESOLVED') badgeClass = 'badge success';
+                                if (t.status === 'REJECTED') badgeClass = 'badge gray';
+
+                                return `
+                                    <tr>
+                                        <td><strong>${t.ticket_id}</strong></td>
+                                        <td>${t.order_id || '—'}</td>
+                                        <td><span class="badge primary">${t.source}</span></td>
+                                        <td style="color: #444;">${t.reason || '—'}</td>
+                                        <td><span class="${badgeClass}">${t.status}</span></td>
+                                        <td style="font-size: 12px; color: #888;">${formatTime(t.created_at)}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi khi tải dữ liệu đối soát:', err);
+                }
+            };
+
+            window.forceRun = async function() {
+                const btn = document.getElementById('btn-run-recon');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = 'Đang chạy đối soát...';
+                }
+
+                try {
+                    const res = await API.post('/admin/recon/run');
+                    alert(
+                        `ĐỐI SOÁT HOÀN TẤT!\n` +
+                        `-----------------------------\n` +
+                        `- Trạng thái: ${res.status}\n` +
+                        `- Tổng đơn quét: ${res.scanned}\n` +
+                        `- Ca khớp hoàn toàn: ${res.matched}\n` +
+                        `- Ca phát hiện lệch: ${res.mismatched}\n` +
+                        `- Ca hoàn tiền tự động: ${res.autoRefunds || 0}\n` +
+                        `- Ca đánh dấu cảnh báo (Flagged): ${res.flagged || 0}`
+                    );
+                    await loadReconData();
+                } catch (err) {
+                    console.error('Lỗi khi chạy đối soát thủ công:', err);
+                    alert('Lỗi: ' + (err.message || 'Không thể thực thi đối soát'));
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = '⚡ CHẠY ĐỐI SOÁT NGAY';
+                    }
+                }
+            };
+
+            window.addEventListener('adminReady', loadReconData);
+        })();
+    </script>
+</body>
+</html>
