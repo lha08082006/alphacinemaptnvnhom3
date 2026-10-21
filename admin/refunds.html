@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Hoàn tiền - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .check-list { display: flex; gap: 4px; font-size: 13px; }
+        .check-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: white; font-weight: bold; font-size: 10.5px; }
+        .check-ok { background: #28a745; }
+        .check-ng { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #333;">QUẢN LÝ TIẾN ĐỘ HOÀN TIỀN (REFUNDS)</h3>
+        <button class="btn btn-primary" onclick="loadRefundsData()">🔄 Làm mới dữ liệu</button>
+    </div>
+    
+    <div class="card" style="border-left: 4px solid #dc3545; margin-bottom: 25px;">
+        <div class="card-header" style="color: #dc3545;">CA LỆCH THIẾU ĐIỀU KIỆN - CẦN CSKH XỬ LÝ (SYSTEM TICKETS)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Ticket</th>
+                        <th>Mã Đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="ticket-table">
+                    <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải danh sách ca lệch...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #03599d;">
+        <div class="card-header">DANH SÁCH LỆNH HOÀN TIỀN (AUTO & MANUAL)</div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã Hoàn (RefundId)</th>
+                        <th>Mã Đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Số Tiền</th>
+                        <th>Loại</th>
+                        <th>Kiểm tra (a-e)</th>
+                        <th>Trạng thái / SLA</th>
+                        <th>Thời gian tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="refund-table">
+                    <tr><td colspan="9" style="text-align: center; color: #888;">Đang tải danh sách lệnh hoàn...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    
+    <script>
+        (function() {
+            function formatMoney(amount) {
+                if (amount === null || amount === undefined) return '0 ₫';
+                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+            }
+
+            function formatTime(isoStr) {
+                if (!isoStr) return '';
+                try {
+                    const d = new Date(isoStr);
+                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            window.loadRefundsData = async function() {
+                try {
+                    const [refundsRes, ticketsRes] = await Promise.all([
+                        API.get('/admin/refunds').catch(() => []),
+                        API.get('/admin/tickets?source=SYSTEM').catch(() => []),
+                    ]);
+
+                    const refunds = Array.isArray(refundsRes) ? refundsRes : [];
+                    const tickets = Array.isArray(ticketsRes) ? ticketsRes : [];
+
+                    // 1. Render Tickets
+                    const tBody = document.getElementById('ticket-table');
+                    if (tBody) {
+                        const openTickets = tickets.filter(t => t.status === 'NEW' || t.status === 'IN_REVIEW' || t.status === 'WAITING_REFUND');
+                        if (openTickets.length === 0) {
+                            tBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777;">Không có ca lệch nào cần xử lý thủ công.</td></tr>';
+                        } else {
+                            tBody.innerHTML = openTickets.map(t => `
+                                <tr>
+                                    <td><strong>${t.ticket_id}</strong></td>
+                                    <td><strong>${t.order_id || '—'}</strong></td>
+                                    <td>${t.customer_name || t.customer_email || '—'}</td>
+                                    <td style="color: #444;">${t.reason}</td>
+                                    <td><span class="badge warning">${t.status}</span></td>
+                                    <td>
+                                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="resolveTicket('${t.ticket_id}')">Giải quyết</button>
+                                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;" onclick="rejectTicket('${t.ticket_id}')">Từ chối</button>
+                                    </td>
+                                </tr>
+                            `).join('');
+                        }
+                    }
+
+                    // 2. Render Refunds
+                    const rBody = document.getElementById('refund-table');
+                    if (rBody) {
+                        if (refunds.length === 0) {
+                            rBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #777;">Chưa có lệnh hoàn tiền nào.</td></tr>';
+                        } else {
+                            rBody.innerHTML = refunds.map(r => {
+                                let checks = {};
+                                try {
+                                    checks = typeof r.checks_json === 'string' ? JSON.parse(r.checks_json) : (r.checks_json || {});
+                                } catch (e) {}
+
+                                const checkHtml = r.type === 'AUTO' ? `
+                                    <div class="check-list" title="a:Cổng OK, b:Chưa vé, c:Khớp tiền, d:Chưa hoàn, e:Chưa xử lý CSKH">
+                                        <span class="check-item ${checks.a ? 'check-ok' : 'check-ng'}">a</span>
+                                        <span class="check-item ${checks.b ? 'check-ok' : 'check-ng'}">b</span>
+                                        <span class="check-item ${checks.c ? 'check-ok' : 'check-ng'}">c</span>
+                                        <span class="check-item ${checks.d ? 'check-ok' : 'check-ng'}">d</span>
+                                        <span class="check-item ${checks.e ? 'check-ok' : 'check-ng'}">e</span>
+                                    </div>
+                                ` : '<span style="font-size: 12px; color: #888;">Thủ công</span>';
+
+                                let stBadge = `<span class="badge gray">${r.status}</span>`;
+                                if (r.status === 'CHECKING') stBadge = '<span class="badge warning">Đang giữ lệnh</span>';
+                                if (r.status === 'SENT') stBadge = '<span class="badge info">Đã gửi cổng VNPay</span>';
+                                if (r.status === 'BANK_PROCESSING') stBadge = '<span class="badge info">Ngân hàng xử lý</span>';
+                                if (r.status === 'COMPLETED') stBadge = '<span class="badge success">Đã về tài khoản</span>';
+                                if (r.status === 'REJECTED') stBadge = '<span class="badge error">Từ chối</span>';
+
+                                if (r.sla_breached) {
+                                    stBadge += ' <span class="badge error" style="margin-left: 4px;">Quá hạn 24h</span>';
+                                }
+
+                                const canApprove = r.status !== 'COMPLETED' && r.status !== 'REJECTED';
+
+                                return `
+                                    <tr>
+                                        <td><strong>${r.refund_id}</strong></td>
+                                        <td>${r.order_id}</td>
+                                        <td>${r.customer_name || r.customer_email || '—'}</td>
+                                        <td style="color: #dc3545; font-weight: bold;">${formatMoney(r.amount)}</td>
+                                        <td><span class="badge ${r.type === 'AUTO' ? 'gray' : 'primary'}">${r.type}</span></td>
+                                        <td>${checkHtml}</td>
+                                        <td>${stBadge}</td>
+                                        <td style="font-size: 12px; color: #888;">${formatTime(r.detected_at || r.created_at)}</td>
+                                        <td>
+                                            ${canApprove ? `
+                                                <button class="btn btn-success" style="padding: 4px 8px; font-size: 11px;" onclick="approveRefund('${r.refund_id}')">
+                                                    Phê duyệt ngay
+                                                </button>
+                                            ` : '—'}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('');
+                        }
+                    }
+
+                } catch (err) {
+                    console.error('Lỗi tải danh sách hoàn tiền:', err);
+                }
+            };
+
+            window.approveRefund = async function(refundId) {
+                if (!confirm(`Xác nhận phê duyệt và thực thi hoàn tiền ngay cho mã: ${refundId}?`)) return;
+                try {
+                    await API.post(`/admin/refunds/${refundId}/approve`);
+                    alert('Đã phê duyệt và thực hiện hoàn tiền thành công!');
+                    loadRefundsData();
+                } catch (err) {
+                    alert('Lỗi phê duyệt hoàn tiền: ' + (err.message || 'Thất bại'));
+                }
+            };
+
+            window.resolveTicket = async function(ticketId) {
+                const note = prompt('Nhập ghi chú xử lý ticket:', 'Đã rà soát và xử lý khiếu nại');
+                if (note === null) return;
+                try {
+                    await API.patch(`/admin/tickets/${ticketId}`, { status: 'RESOLVED', note });
+                    alert('Đã cập nhật trạng thái ticket thành công!');
+                    loadRefundsData();
+                } catch (err) {
+                    alert('Lỗi: ' + (err.message || 'Cập nhật thất bại'));
+                }
+            };
+
+            window.rejectTicket = async function(ticketId) {
+                const resolution = prompt('Nhập lý do từ chối khiếu nại:', 'Giao dịch không hợp lệ');
+                if (resolution === null) return;
+                try {
+                    await API.patch(`/admin/tickets/${ticketId}`, { status: 'REJECTED', resolution });
+                    alert('Đã từ chối ticket!');
+                    loadRefundsData();
+                } catch (err) {
+                    alert('Lỗi: ' + (err.message || 'Thất bại'));
+                }
+            };
+
+            window.addEventListener('adminReady', loadRefundsData);
+        })();
+    </script>
+</body>
+</html>
