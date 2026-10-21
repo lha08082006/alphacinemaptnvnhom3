@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hộp thư thông báo - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .inbox-container {
+            max-width: 900px;
+            margin: 30px auto 60px;
+            padding: 0 15px;
+            min-height: 500px;
+        }
+        .msg-item {
+            padding: 18px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+            background: #fff;
+        }
+        .msg-item:hover {
+            background: #fbfbfb;
+        }
+        .msg-item.unread {
+            font-weight: 600;
+            background: #f0f7ff;
+            border-left: 4px solid #03599d;
+        }
+        .msg-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 10px;
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .bg-web { background: var(--beta-blue, #03599d); }
+        .bg-email { background: #e91e63; }
+        .bg-sms { background: #28a745; }
+        .inbox-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        .inbox-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="inbox-container">
+        <h2 style="color: var(--beta-blue, #03599d); border-left: 4px solid #f26b38; padding-left: 12px; margin-bottom: 25px; font-size: 22px;">
+            HỘP THƯ THÔNG BÁO
+        </h2>
+
+        <div class="inbox-card">
+            <div class="inbox-header">
+                <span style="font-weight: 700; color: #444;" id="inbox-count">Danh sách thông báo</span>
+                <button class="btn btn-secondary" onclick="loadNotifications()" style="padding: 5px 12px; font-size: 13px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fff;">
+                    🔄 Làm mới
+                </button>
+            </div>
+            <div id="inbox-list">
+                <div style="padding: 40px; text-align: center; color: #888;">
+                    Đang tải danh sách thông báo...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script layout chung và API client -->
+    <script src="js/layout.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        (function() {
+            let notifications = [];
+
+            function formatTime(isoStr) {
+                if (!isoStr) return '';
+                try {
+                    const d = new Date(isoStr);
+                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            function renderNotifications() {
+                const list = document.getElementById('inbox-list');
+                const countEl = document.getElementById('inbox-count');
+                if (!list) return;
+
+                if (!notifications || notifications.length === 0) {
+                    list.innerHTML = '<div style="padding: 50px 20px; text-align: center; color: #777;">Hộp thư trống. Không có thông báo nào.</div>';
+                    if (countEl) countEl.innerText = '0 thông báo';
+                    return;
+                }
+
+                const unreadCount = notifications.filter(n => !n.read_at).length;
+                if (countEl) {
+                    countEl.innerText = `Tất cả (${notifications.length}) - Chưa đọc (${unreadCount})`;
+                }
+
+                list.innerHTML = '';
+                notifications.forEach(n => {
+                    const channel = (n.channel || 'WEB').toUpperCase();
+                    let bgClass = 'bg-web';
+                    if (channel === 'EMAIL') bgClass = 'bg-email';
+                    if (channel === 'SMS') bgClass = 'bg-sms';
+
+                    const isUnread = !n.read_at;
+                    const timeStr = formatTime(n.sent_at || n.scheduled_at);
+
+                    const el = document.createElement('div');
+                    el.className = `msg-item ${isUnread ? 'unread' : ''}`;
+                    el.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <span class="msg-type ${bgClass}">${channel}</span>
+                                <span style="color: #222; font-size: 15px;">${n.title || 'Thông báo từ Beta'}</span>
+                                ${n.order_id ? `<span style="font-size: 12px; color: #03599d; margin-left: 8px; font-weight: normal;">[Đơn: ${n.order_id}]</span>` : ''}
+                            </div>
+                            <div style="font-size: 12px; color: #888;">${timeStr}</div>
+                        </div>
+                        <div style="font-size: 14px; color: #444; line-height: 1.5; font-weight: normal;">${n.body || ''}</div>
+                    `;
+
+                    el.onclick = async () => {
+                        if (isUnread) {
+                            try {
+                                await API.patch(`/notifications/${n.id}/read`);
+                                n.read_at = new Date().toISOString();
+                                renderNotifications();
+                            } catch (err) {
+                                console.error('Không thể đánh dấu đã đọc:', err);
+                            }
+                        }
+                    };
+
+                    list.appendChild(el);
+                });
+            }
+
+            window.loadNotifications = async function() {
+                try {
+                    const data = await API.get('/notifications');
+                    notifications = Array.isArray(data) ? data : [];
+                    renderNotifications();
+                } catch (err) {
+                    console.error('Lỗi tải thông báo:', err);
+                    if (err.status === 401) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    const list = document.getElementById('inbox-list');
+                    if (list) {
+                        list.innerHTML = `<div style="padding: 30px; text-align: center; color: #dc3545;">Lỗi tải thông báo: ${err.message || 'Vui lòng thử lại sau.'}</div>`;
+                    }
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                loadNotifications();
+                // Tự động làm mới mỗi 10 giây
+                setInterval(loadNotifications, 10000);
+            });
+        })();
+    </script>
+</body>
+</html>
