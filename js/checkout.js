@@ -218,45 +218,82 @@
         }
     };
 
-    // 10. Tiến hành thanh toán sau khi xác nhận điều khoản
-    window.proceedPayment = function() {
+    // 10. Tiến hành thanh toán sau khi xác nhận điều khoản (BR-11)
+    window.proceedPayment = async function() {
         const checkbox = document.getElementById('tnc-agree');
         if (checkbox && !checkbox.checked) {
             alert('Vui lòng đồng ý với điều khoản sử dụng và mua vé cho người có độ tuổi phù hợp!');
             return;
         }
 
-        closeTncModal();
+        const submitBtn = document.querySelector('.btn-tnc-submit');
+        const nextBtn = document.querySelector('.btn-sidebar-next');
 
-        const paymentRadio = document.querySelector('input[name="payment_method"]:checked');
-        const method = paymentRadio ? paymentRadio.value : 'QR';
-
-        const currentOrd = window.currentOrder || order;
-        if (!currentOrd) return;
-
-        const txnId = (typeof DB !== 'undefined' && DB.generateId) 
-            ? DB.generateId.txn() 
-            : 'GW' + Math.random().toString(36).substring(2, 12).toUpperCase();
-
-        if (typeof DB !== 'undefined') {
-            DB.insert('gateway_txns', {
-                txnId: txnId,
-                orderId: currentOrd.orderId,
-                method: method,
-                amount: currentOrd.amount,
-                status: 'PENDING',
-                debited: false,
-                callback: null,
-                createdAt: new Date().toISOString()
-            });
-            DB.update('beta_orders', currentOrd.orderId, { txnId: txnId, status: 'AWAITING_PAYMENT' });
+        // BR-11: Khóa nút ngay sau khi bấm để chống double-click / gửi trùng
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Đang chuyển tới cổng thanh toán...';
+        }
+        if (nextBtn) {
+            nextBtn.disabled = true;
         }
 
-        // Chuyển tới màn hình Thanh toán QR
-        if (window.spaNavigate) {
-            window.spaNavigate('gateway', `txn=${txnId}&orderId=${currentOrd.orderId}&method=${method}`);
+        const paymentRadio = document.querySelector('input[name="payment_method"]:checked');
+        const rawMethod = paymentRadio ? paymentRadio.value : 'QR';
+        let method = 'WALLET';
+        if (rawMethod === 'ATM') {
+            method = 'ATM';
+        } else if (rawMethod === 'CC' || rawMethod === 'INTL_CARD') {
+            method = 'INTL_CARD';
         } else {
-            location.href = `#gateway?txn=${txnId}&orderId=${currentOrd.orderId}&method=${method}`;
+            method = 'WALLET';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
+        const currentOrd = window.currentOrder || order;
+        const orderId = urlParams.get('orderId') || localStorage.getItem('currentOrder') || (currentOrd && currentOrd.orderId);
+
+        if (!orderId) {
+            alert('Không tìm thấy thông tin đơn hàng!');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'THANH TOÁN';
+            }
+            if (nextBtn) nextBtn.disabled = false;
+            return;
+        }
+
+        // BR-11: Sinh Idempotency-Key (8-64 ký tự hợp lệ: alphanumeric + _ -)
+        let idempotencyKey = sessionStorage.getItem(`idemp_${orderId}`);
+        if (!idempotencyKey) {
+            idempotencyKey = 'IDEMP_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+            sessionStorage.setItem(`idemp_${orderId}`, idempotencyKey);
+        }
+
+        try {
+            if (typeof API === 'undefined' || !API.post) {
+                throw new Error('Module kết nối máy chủ API chưa sẵn sàng. Vui lòng tải lại trang.');
+            }
+
+            const res = await API.post(
+                '/payments',
+                { orderId, method },
+                { 'Idempotency-Key': idempotencyKey }
+            );
+
+            if (res && res.paymentUrl) {
+                window.location.href = res.paymentUrl;
+            } else {
+                throw new Error('Không nhận được đường dẫn thanh toán từ máy chủ.');
+            }
+        } catch (err) {
+            console.error('Lỗi khởi tạo thanh toán:', err);
+            alert(err.message || 'Khởi tạo thanh toán thất bại. Vui lòng thử lại!');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'THANH TOÁN';
+            }
+            if (nextBtn) nextBtn.disabled = false;
         }
     };
 
