@@ -20,6 +20,7 @@ function buildApiRouter() {
   router.use('/health', healthRouter);
   router.use('/auth', authRouter);
   router.use('/payments', paymentsRouter);
+  router.use('/payment', paymentsRouter);
   router.use('/orders', ordersRouter);
   router.use('/notifications', notificationsRouter);
   router.use('/support', supportRouter);

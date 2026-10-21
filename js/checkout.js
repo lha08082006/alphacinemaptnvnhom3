@@ -239,14 +239,23 @@
         }
 
         const paymentRadio = document.querySelector('input[name="payment_method"]:checked');
-        const rawMethod = paymentRadio ? paymentRadio.value : 'QR';
+        const rawMethod = paymentRadio ? paymentRadio.value : 'VNPAY';
         let method = 'WALLET';
-        if (rawMethod === 'ATM') {
+        let bankCode = undefined;
+
+        if (rawMethod === 'ATM' || rawMethod === 'VNBANK' || rawMethod === 'NCB') {
             method = 'ATM';
-        } else if (rawMethod === 'CC' || rawMethod === 'INTL_CARD') {
+            bankCode = rawMethod === 'NCB' ? 'NCB' : 'VNBANK';
+        } else if (rawMethod === 'CC' || rawMethod === 'INTL_CARD' || rawMethod === 'INTCARD') {
             method = 'INTL_CARD';
-        } else {
+            bankCode = 'INTCARD';
+        } else if (rawMethod === 'QR' || rawMethod === 'VNPAYQR') {
             method = 'WALLET';
+            bankCode = 'VNPAYQR';
+        } else {
+            // Mặc định VNPAY (mở cổng VNPay cho khách tự chọn phương thức)
+            method = 'WALLET';
+            bankCode = undefined;
         }
 
         const urlParams = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
@@ -275,9 +284,12 @@
                 throw new Error('Module kết nối máy chủ API chưa sẵn sàng. Vui lòng tải lại trang.');
             }
 
+            const payload = { orderId, method };
+            if (bankCode) payload.bankCode = bankCode;
+
             const res = await API.post(
                 '/payments',
-                { orderId, method },
+                payload,
                 { 'Idempotency-Key': idempotencyKey }
             );
 

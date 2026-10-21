@@ -20,6 +20,7 @@ const createPaymentSchema = z.object({
   method: z.enum(['WALLET', 'ATM', 'INTL_CARD'], {
     errorMap: () => ({ message: 'Phương thức thanh toán phải là WALLET, ATM hoặc INTL_CARD' }),
   }),
+  bankCode: z.string().optional(),
 });
 
 /**
@@ -41,13 +42,14 @@ router.post(
       );
     }
 
-    const { orderId, method } = req.valid.body;
+    const { orderId, method, bankCode } = req.valid.body;
     const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     const result = await paymentService.createPayment({
       userId: req.user.id,
       orderId,
       method,
+      bankCode,
       idempotencyKey,
       ip,
     });

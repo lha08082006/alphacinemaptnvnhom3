@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -54,6 +55,8 @@ function createApp() {
   app.use(requestLogger);
 
   app.use('/api/v1', buildApiRouter());
+
+  app.use(express.static(path.join(__dirname, '..', '..')));
 
   app.use(notFound);
   app.use(errorHandler);

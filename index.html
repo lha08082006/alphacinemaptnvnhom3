@@ -684,9 +684,9 @@ body {
         /* Payment methods grid */
         .payment-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px 12px;
-            margin: 15px 0 35px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px 12px;
+            margin: 15px 0 20px;
         }
         .payment-option {
             display: flex;
@@ -2454,12 +2454,31 @@ body {
                     <a href="#support" data-view="support" style="color: #03599d; font-weight: 700; text-decoration: none; font-size: 13.5px;">Hướng dẫn thanh toán</a>
                 </div>
                 
-                <div style="font-size: 15px; margin-bottom: 15px; font-weight: 500; color: #333;">Chọn thẻ thanh toán</div>
+                <div style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Chọn phương thức qua Cổng VNPAY</span>
+                    <span style="font-size: 12.5px; color: #03599d; font-weight: 700;">⚡ VNPAY Sandbox (Mã: RBUMP0RO)</span>
+                </div>
                 
                 <div class="payment-grid" id="payment-methods-grid">
-                    <!-- 1. Mã QR -->
+                    <!-- 1. Cổng VNPAY tổng hợp -->
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="QR" checked>
+                        <input type="radio" name="payment_method" value="VNPAY" checked>
+                        <div class="pay-icon-box" style="border-color: #03599d;">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#03599d" stroke-width="2">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                                <path d="M6 15h3M13 15h5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #03599d;">Cổng VNPAY</div>
+                            <div style="font-size: 11px; color: #777;">Tất cả phương thức</div>
+                        </div>
+                    </label>
+
+                    <!-- 2. VNPAY-QR -->
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="QR">
                         <div class="pay-icon-box">
                             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -2469,66 +2488,64 @@ body {
                                 <rect x="18" y="18" width="3" height="3"></rect>
                             </svg>
                         </div>
-                        <span>Mã QR</span>
+                        <div>
+                            <div style="font-weight: 700;">VNPAY-QR</div>
+                            <div style="font-size: 11px; color: #777;">App Ngân hàng & Ví</div>
+                        </div>
                     </label>
                     
-                    <!-- 2. Thẻ nội địa -->
+                    <!-- 3. Thẻ ATM nội địa (NCB) -->
                     <label class="payment-option">
                         <input type="radio" name="payment_method" value="ATM">
                         <div class="pay-icon-box">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8">
                                 <rect x="2" y="5" width="20" height="14" rx="2"></rect>
                                 <line x1="2" y1="10" x2="22" y2="10" stroke-dasharray="2 1"></line>
                                 <rect x="5" y="13" width="6" height="3" fill="#222"></rect>
                             </svg>
                         </div>
-                        <span>Thẻ nội địa</span>
+                        <div>
+                            <div style="font-weight: 700;">Thẻ nội địa / ATM</div>
+                            <div style="font-size: 11px; color: #28a745; font-weight: 600;">Hỗ trợ thẻ test NCB</div>
+                        </div>
                     </label>
                     
-                    <!-- 3. Thẻ quốc tế -->
+                    <!-- 4. Thẻ quốc tế -->
                     <label class="payment-option">
                         <input type="radio" name="payment_method" value="CC">
                         <div class="pay-icon-box">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8">
                                 <rect x="4" y="4" width="16" height="12" rx="2"></rect>
                                 <circle cx="10" cy="10" r="3"></circle>
                                 <circle cx="14" cy="10" r="3"></circle>
                             </svg>
                         </div>
-                        <span>Thẻ quốc tế</span>
-                    </label>
-                    
-                    <!-- 4. Ví ShopeePay -->
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="SHOPEEPAY">
-                        <div class="pay-icon-box pay-icon-shopee">
-                            <span style="font-size: 13px; font-weight: 900;">S</span>
-                            <span style="font-size: 7px; margin-top:-2px;">Pay</span>
+                        <div>
+                            <div style="font-weight: 700;">Thẻ quốc tế</div>
+                            <div style="font-size: 11px; color: #777;">Visa, Master, JCB</div>
                         </div>
-                        <span>Ví ShopeePay</span>
-                    </label>
-                    
-                    <!-- 5. Ví MoMo -->
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="MOMO">
-                        <div class="pay-icon-box pay-icon-momo">
-                            <span>mo</span>
-                            <span>mo</span>
-                        </div>
-                        <span>Ví MoMo</span>
-                    </label>
-                    
-                    <!-- 6. Ví ZaloPay -->
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="ZALOPAY">
-                        <div class="pay-icon-box pay-icon-zalopay">
-                            <span>Zalo</span>
-                            <span>Pay</span>
-                        </div>
-                        <span>Ví ZaloPay</span>
                     </label>
                 </div>
-                
+
+                <!-- Box thông tin Thẻ Test VNPay Sandbox theo file đính kèm -->
+                <div class="vnpay-test-card" style="margin-top: 5px; margin-bottom: 25px; padding: 14px 18px; background: #f0f7ff; border: 1px solid #b8daff; border-radius: 6px; font-size: 13.5px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #03599d; display: flex; align-items: center; gap: 6px;">
+                            💳 THÔNG TIN THẺ TEST VNPAY SANDBOX (TỪ FILE TÍCH HỢP)
+                        </span>
+                        <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700;">TEST ACCOUNT</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; font-size: 13px; color: #333;">
+                        <div>Ngân hàng: <strong style="color: #03599d;">NCB (Ngân hàng Quốc Dân)</strong></div>
+                        <div>Số thẻ: <code style="font-family: monospace; font-size: 14px; color: #dc3545; background: #fff; padding: 2px 6px; border-radius: 3px; border: 1px dashed #03599d; cursor: pointer;" onclick="navigator.clipboard.writeText('9704198526191432198'); alert('Đã sao chép số thẻ: 9704198526191432198');" title="Bấm để sao chép">9704198526191432198 📋</code></div>
+                        <div>Tên chủ thẻ: <strong>NGUYEN VAN A</strong></div>
+                        <div>Ngày phát hành: <strong>07/15</strong></div>
+                        <div>Mật khẩu OTP: <strong style="color: #28a745;">123456</strong></div>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #555; border-top: 1px dashed #cce5ff; padding-top: 6px;">
+                        💡 <em>Gợi ý:</em> Sau khi nhấn "THANH TOÁN", hệ thống chuyển sang cổng VNPay Sandbox. Quý khách chọn ngân hàng <strong>NCB</strong> và điền thông tin thẻ trên để hoàn tất kiểm thử.
+                    </div>
+                </div>
                 <!-- Hộp Lưu ý & Đếm ngược 10 phút (Ảnh 3) -->
                 <div class="notice-timer-box">
                     <div class="notice-text">

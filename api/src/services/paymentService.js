@@ -102,7 +102,7 @@ function mapMethodToBankCode(method) {
  * @param {string} [params.ip='127.0.0.1']
  * @returns {Promise<{ attemptId: string, paymentUrl: string }>}
  */
-async function createPayment({ userId, orderId, method, idempotencyKey, ip = '127.0.0.1' }) {
+async function createPayment({ userId, orderId, method, bankCode, idempotencyKey, ip = '127.0.0.1' }) {
   // 1. Kiểm tra Idempotency-Key trước
   const existingAttempt = await knex('payment_attempts')
     .where({ idempotency_key: idempotencyKey })
@@ -126,7 +126,7 @@ async function createPayment({ userId, orderId, method, idempotencyKey, ip = '12
       orderInfo: `Thanh toan don hang ${order.order_id}`,
       ipAddr: ip,
       expireAt: order.hold_expires_at,
-      method: mapMethodToBankCode(existingAttempt.method),
+      method: bankCode || mapMethodToBankCode(existingAttempt.method),
     });
 
     return {
@@ -189,7 +189,7 @@ async function createPayment({ userId, orderId, method, idempotencyKey, ip = '12
       orderInfo: `Thanh toan don hang ${order.order_id}`,
       ipAddr: ip,
       expireAt: order.hold_expires_at,
-      method: mapMethodToBankCode(method),
+      method: bankCode || mapMethodToBankCode(method),
     });
 
     return {
