@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Kế toán - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #333;">BÁO CÁO ĐỐI SOÁT THEO NGÀY (KẾ TOÁN & QUẢN LÝ)</h3>
+        <button class="btn btn-success" style="padding: 9px 18px; font-weight: bold;" onclick="exportCSV()">
+            📥 TẢI XUỐNG CSV (UTF-8)
+        </button>
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-body" style="padding: 15px 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 13.5px; font-weight: 600; color: #555;">Từ ngày:</label>
+                <input type="date" id="filter-from" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 13.5px; font-weight: 600; color: #555;">Đến ngày:</label>
+                <input type="date" id="filter-to" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+            </div>
+            <button class="btn btn-primary" onclick="loadReportData()" style="padding: 7px 15px;">
+                🔍 Lọc báo cáo
+            </button>
+            <button class="btn" style="background: #e9ecef; color: #333; padding: 7px 12px;" onclick="resetFilter()">
+                Đặt lại
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Tổng tiền Cổng Ghi Nhận</th>
+                        <th>Tổng tiền Beta Thực Thu</th>
+                        <th>CHÊNH LỆCH</th>
+                        <th>Số GD Treo</th>
+                        <th>Lệnh Đã Hoàn</th>
+                        <th>Lệnh Đang Xử Lý</th>
+                    </tr>
+                </thead>
+                <tbody id="report-table">
+                    <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải dữ liệu báo cáo...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Script dependencies -->
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    
+    <script>
+        (function() {
+            function formatMoney(amount) {
+                if (amount === null || amount === undefined) return '0 ₫';
+                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+            }
+
+            window.loadReportData = async function() {
+                const from = document.getElementById('filter-from').value;
+                const to = document.getElementById('filter-to').value;
+                const params = new URLSearchParams();
+                if (from) params.set('from', from);
+                if (to) params.set('to', to);
+
+                const endpoint = '/admin/reports/reconciliation' + (params.toString() ? '?' + params.toString() : '');
+
+                try {
+                    const data = await API.get(endpoint);
+                    const list = Array.isArray(data) ? data : [];
+                    const tbody = document.getElementById('report-table');
+                    if (!tbody) return;
+
+                    if (list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #777;">Không có dữ liệu đối soát trong khoảng thời gian này.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = list.map(r => {
+                        const diff = Number(r.difference || 0);
+                        const diffStyle = diff > 0 
+                            ? 'color: #dc3545; font-weight: bold;' 
+                            : (diff < 0 ? 'color: #f39c12; font-weight: bold;' : 'color: #28a745; font-weight: bold;');
+
+                        return `
+                            <tr>
+                                <td><strong>${r.date}</strong></td>
+                                <td>${formatMoney(r.gateway_total)}</td>
+                                <td>${formatMoney(r.beta_total)}</td>
+                                <td style="${diffStyle}">${formatMoney(diff)}</td>
+                                <td><span class="badge ${r.hanging_count > 0 ? 'error' : 'gray'}">${r.hanging_count}</span></td>
+                                <td><span class="badge success">${r.refunded_count}</span></td>
+                                <td><span class="badge warning">${r.refunding_count}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                } catch (err) {
+                    console.error('Lỗi tải báo cáo đối soát:', err);
+                    const tbody = document.getElementById('report-table');
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc3545;">Lỗi tải dữ liệu: ${err.message || 'Thất bại'}</td></tr>`;
+                    }
+                }
+            };
+
+            window.exportCSV = function() {
+                const from = document.getElementById('filter-from').value;
+                const to = document.getElementById('filter-to').value;
+                const params = new URLSearchParams();
+                if (from) params.set('from', from);
+                if (to) params.set('to', to);
+
+                const exportUrl = `${API.BASE_URL}/admin/reports/reconciliation/export.csv${params.toString() ? '?' + params.toString() : ''}`;
+                window.location.href = exportUrl;
+            };
+
+            window.resetFilter = function() {
+                document.getElementById('filter-from').value = '';
+                document.getElementById('filter-to').value = '';
+                loadReportData();
+            };
+
+            window.addEventListener('adminReady', loadReportData);
+        })();
+    </script>
+</body>
+</html>
