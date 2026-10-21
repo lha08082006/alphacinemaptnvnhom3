@@ -13,7 +13,18 @@ describe('Database Constraints', () => {
   });
 
   afterAll(() => {
-    if (db) db.close();
+    if (db) {
+      try {
+        db.prepare("DELETE FROM order_seats WHERE order_id = 'BC88888888'").run();
+        db.prepare("DELETE FROM orders WHERE order_id = 'BC88888888'").run();
+        db.prepare("DELETE FROM showtimes WHERE id = 999").run();
+        db.prepare("DELETE FROM rooms WHERE id = 999").run();
+        db.prepare("DELETE FROM cinemas WHERE id = 999").run();
+        db.prepare("DELETE FROM movies WHERE id = 999").run();
+        db.prepare("DELETE FROM users WHERE id = 999").run();
+      } catch (e) {}
+      db.close();
+    }
   });
 
   it('should enforce CHECK on orders amount_total', () => {

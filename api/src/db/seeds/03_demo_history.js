@@ -2,11 +2,11 @@
 
 const path = require('path');
 const crypto = require('crypto');
-const clock = require('../../../lib/clock');
-const ids = require('../../../lib/ids');
+const clock = require('../../lib/clock');
+const ids = require('../../lib/ids');
 
 function createGatewayKnex() {
-  const dbPath = path.join(__dirname, '../../../../../gateway-mock/data/gateway.sqlite');
+  const dbPath = path.join(__dirname, '../../../../gateway-mock/data/gateway.sqlite');
   return require('knex')({
     client: 'better-sqlite3',
     connection: { filename: dbPath },

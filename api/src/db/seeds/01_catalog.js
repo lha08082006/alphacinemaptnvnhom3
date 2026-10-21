@@ -2,17 +2,17 @@
 
 const fs = require('fs');
 const path = require('path');
-const clock = require('../../../lib/clock');
+const clock = require('../../lib/clock');
 
 function loadDemoData() {
-  const dataPath = path.join(__dirname, '../../../../../../js/data.js');
+  const dataPath = path.join(__dirname, '../../../../js/data.js');
   const code = fs.readFileSync(dataPath, 'utf8');
   const window = {};
   // Cung cấp VirtualClock giả để data.js chạy được _initDates()
   const VirtualClock = { now: () => clock.now() };
   
   // Chạy code data.js trong một function tạm
-  const fn = new Function('window', 'VirtualClock', code + '\nreturn window.DemoData;');
+  const fn = new Function('window', 'VirtualClock', code + '\nreturn typeof DemoData !== "undefined" ? DemoData : window.DemoData;');
   const data = fn(window, VirtualClock);
   
   // Khởi tạo ngày tháng
@@ -23,8 +23,24 @@ function loadDemoData() {
 exports.seed = async function (knex) {
   const data = loadDemoData();
   
-  // 1. Cinemas
+  // Tắt FK tạm thời để dọn dẹp sạch sẽ khi re-seed
+  await knex.raw('PRAGMA foreign_keys = OFF');
+  await knex('tickets').del();
+  await knex('order_status_history').del();
+  await knex('order_combos').del();
+  await knex('order_seats').del();
+  await knex('payment_attempts').del();
+  await knex('orders').del();
+  await knex('showtime_seats').del();
+  await knex('showtimes').del();
+  await knex('seats').del();
+  await knex('rooms').del();
   await knex('cinemas').del();
+  await knex('movies').del();
+  await knex('combos').del();
+  await knex.raw('PRAGMA foreign_keys = ON');
+
+  // 1. Cinemas
   const cinemas = data.cinemas.map(c => ({
     id: parseInt(c.id.replace('c', ''), 10),
     code: c.id.toUpperCase(),
@@ -36,8 +52,6 @@ exports.seed = async function (knex) {
   await knex('cinemas').insert(cinemas);
 
   // 2. Rooms & Seats
-  await knex('seats').del();
-  await knex('rooms').del();
   const rooms = [];
   const seats = [];
   
@@ -95,7 +109,6 @@ exports.seed = async function (knex) {
   }
 
   // 3. Movies
-  await knex('movies').del();
   const movies = data.movies.map((m, idx) => {
     return {
       id: parseInt(m.id.replace('m', ''), 10),
@@ -120,7 +133,6 @@ exports.seed = async function (knex) {
   await knex('movies').insert(movies);
 
   // 4. Combos
-  await knex('combos').del();
   const combos = data.combos.map(c => ({
     id: parseInt(c.id.replace('cb', ''), 10),
     name: c.name,
@@ -131,7 +143,6 @@ exports.seed = async function (knex) {
   await knex('combos').insert(combos);
 
   // 5. Showtimes (Sinh lịch chiếu 7 ngày)
-  await knex('showtimes').del();
   const showtimes = [];
   const now = clock.now();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -174,7 +185,6 @@ exports.seed = async function (knex) {
   await knex('showtimes').insert(showtimes);
   
   // 6. Bán sẵn một số ghế (Showtime Seats)
-  await knex('showtime_seats').del();
   const soldSeats = [];
   for (let i = 0; i < showtimes.length; i+=5) { // Chọn 1/5 số suất chiếu
     const st = showtimes[i];

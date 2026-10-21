@@ -3,6 +3,7 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { env } = require('./config/env');
 const { IDEMPOTENCY } = require('./config/constants');
 const requestId = require('./middleware/requestId');
@@ -32,6 +33,7 @@ function createApp() {
 
   app.use(requestId); // đặt đầu tiên để cả lỗi parse JSON cũng có requestId
   app.use(helmet());
+  app.use(cookieParser());
   app.use(
     cors({
       origin: env.CORS_ORIGINS,

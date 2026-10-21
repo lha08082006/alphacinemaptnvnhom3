@@ -17,8 +17,6 @@ exports.up = async (knex) => {
     t.integer('flagged').notNullable().defaultTo(0);
     t.string('status').notNullable(); // CHECK IN (RUNNING,DONE,FAILED)
   });
-  await knex.raw(`ALTER TABLE recon_runs ADD CONSTRAINT check_rr_trigger CHECK (trigger IN ('SCHEDULED','MANUAL'))`);
-  await knex.raw(`ALTER TABLE recon_runs ADD CONSTRAINT check_rr_status CHECK (status IN ('RUNNING','DONE','FAILED'))`);
 
   // recon_items
   await knex.schema.createTable('recon_items', (t) => {
@@ -34,8 +32,6 @@ exports.up = async (knex) => {
     t.string('classification').notNullable(); // MATCHED,NO_TICKET_DEBITED,LATE_CALLBACK,DUPLICATE_PAYMENT,AMOUNT_MISMATCH,GATEWAY_FAILED,ALREADY_HANDLED
     t.string('action').notNullable(); // NONE,AUTO_REFUND,FLAGGED
   });
-  await knex.raw(`ALTER TABLE recon_items ADD CONSTRAINT check_ri_classification CHECK (classification IN ('MATCHED','NO_TICKET_DEBITED','LATE_CALLBACK','DUPLICATE_PAYMENT','AMOUNT_MISMATCH','GATEWAY_FAILED','ALREADY_HANDLED'))`);
-  await knex.raw(`ALTER TABLE recon_items ADD CONSTRAINT check_ri_action CHECK (action IN ('NONE','AUTO_REFUND','FLAGGED'))`);
 
   // refunds
   await knex.schema.createTable('refunds', (t) => {
@@ -56,9 +52,7 @@ exports.up = async (knex) => {
     t.integer('created_by').nullable().references('id').inTable('users').onDelete('RESTRICT'); // NULL = SYSTEM
     t.string('reject_reason').nullable();
   });
-  await knex.raw(`ALTER TABLE refunds ADD CONSTRAINT check_refunds_type CHECK (type IN ('AUTO','MANUAL'))`);
-  await knex.raw(`ALTER TABLE refunds ADD CONSTRAINT check_refunds_status CHECK (status IN ('CHECKING','SENT','BANK_PROCESSING','COMPLETED','REJECTED'))`);
-  await knex.raw(`ALTER TABLE refunds ADD CONSTRAINT check_refunds_amount CHECK (amount > 0)`);
+
   // UNIQUE partial index on gateway_txn_id WHERE status <> 'REJECTED' to prevent duplicate refunds for the same txn
   await knex.raw(`CREATE UNIQUE INDEX idx_refunds_unique_txn ON refunds (gateway_txn_id) WHERE status <> 'REJECTED'`);
 };

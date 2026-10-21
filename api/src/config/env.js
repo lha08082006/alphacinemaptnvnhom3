@@ -28,6 +28,14 @@ const schema = z.object({
   JWT_SECRET: z.string(required('JWT_SECRET')).min(16, 'phải dài ít nhất 16 ký tự'),
   JWT_EXPIRES_IN: z.string().min(1).default('2h'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error', 'silent']).default('info'),
+
+  // Cấu hình cổng thanh toán VNPay
+  VNPAY_TMN_CODE: z.string(required('VNPAY_TMN_CODE')).min(1, 'phải có ít nhất 1 ký tự'),
+  VNPAY_HASH_SECRET: z.string(required('VNPAY_HASH_SECRET')).min(1, 'phải có ít nhất 1 ký tự'),
+  VNPAY_URL: z.string(required('VNPAY_URL')).url('phải là URL hợp lệ'),
+  VNPAY_API_URL: z.string(required('VNPAY_API_URL')).url('phải là URL hợp lệ'),
+  VNPAY_RETURN_URL: z.string(required('VNPAY_RETURN_URL')).url('phải là URL hợp lệ'),
+  VNPAY_TRUST_RETURN: z.enum(['true', 'false']).default('false'),
 });
 
 /**

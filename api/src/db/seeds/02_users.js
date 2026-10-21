@@ -1,18 +1,15 @@
 'use strict';
 
 const bcrypt = require('bcryptjs'); // Thuần JS, tương thích Windows
-require('dotenv').config({ path: require('path').join(__dirname, '../../../../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
 
 exports.seed = async function (knex) {
   await knex('users').del();
   
-  const defaultPass = process.env.SEED_DEFAULT_PASSWORD;
-  if (!defaultPass) {
-    throw new Error('Thiếu biến môi trường SEED_DEFAULT_PASSWORD trong file .env ở thư mục gốc');
-  }
+  const defaultPass = process.env.SEED_DEFAULT_PASSWORD || 'Password@123';
   
   const hash = bcrypt.hashSync(defaultPass, 10);
-  const now = require('../../../lib/clock').nowIso();
+  const now = require('../../lib/clock').nowIso();
 
   const users = [
     {

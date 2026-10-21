@@ -11,6 +11,7 @@ try {
 const { createApp } = require('./app');
 const knex = require('./db/knex');
 const logger = require('./lib/logger');
+const scheduler = require('./jobs/scheduler');
 
 const app = createApp();
 
@@ -21,6 +22,7 @@ const server = app.listen(env.PORT, () => {
     port: env.PORT,
     health: `http://localhost:${env.PORT}/api/v1/health`,
   });
+  scheduler.start();
 });
 
 server.on('error', (err) => {
@@ -34,6 +36,7 @@ server.on('error', (err) => {
 
 function shutdown(signal) {
   logger.info('server_stopping', { signal });
+  scheduler.stop();
   server.close(async () => {
     await knex.destroy();
     process.exit(0);

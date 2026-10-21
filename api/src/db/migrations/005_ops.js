@@ -18,8 +18,6 @@ exports.up = async (knex) => {
     t.string('resolved_at').nullable();
     t.text('resolution').nullable();
   });
-  await knex.raw(`ALTER TABLE support_tickets ADD CONSTRAINT check_st_source CHECK (source IN ('CUSTOMER','SYSTEM'))`);
-  await knex.raw(`ALTER TABLE support_tickets ADD CONSTRAINT check_st_status CHECK (status IN ('NEW','IN_REVIEW','WAITING_REFUND','RESOLVED','REJECTED'))`);
 
   // support_ticket_notes
   await knex.schema.createTable('support_ticket_notes', (t) => {
@@ -46,8 +44,6 @@ exports.up = async (knex) => {
     t.index(['user_id', 'read_at']);
     t.index(['status', 'scheduled_at']);
   });
-  await knex.raw(`ALTER TABLE notifications ADD CONSTRAINT check_notif_channel CHECK (channel IN ('WEB','EMAIL','SMS'))`);
-  await knex.raw(`ALTER TABLE notifications ADD CONSTRAINT check_notif_status CHECK (status IN ('PENDING','SENT','FAILED'))`);
 
   // audit_log
   await knex.schema.createTable('audit_log', (t) => {

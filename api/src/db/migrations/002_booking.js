@@ -23,13 +23,11 @@ exports.up = async (knex) => {
     t.string('updated_at').notNullable();
     t.string('paid_at').nullable();
     t.string('callback_at').nullable();
+    t.check('amount_total = amount_tickets + amount_combos', [], 'check_orders_amounts');
 
     t.index(['status', 'hold_expires_at']);
     t.index(['user_id', 'created_at']);
   });
-  await knex.raw(`ALTER TABLE orders ADD CONSTRAINT check_orders_status CHECK (status IN ('HOLDING','AWAITING_PAYMENT','PAID','FAILED','CANCELLED','EXPIRED','PENDING_VERIFY','REFUND_PENDING','REFUNDED'))`);
-  await knex.raw(`ALTER TABLE orders ADD CONSTRAINT check_orders_method CHECK (payment_method IS NULL OR payment_method IN ('WALLET','ATM','INTL_CARD','POINTS'))`);
-  await knex.raw(`ALTER TABLE orders ADD CONSTRAINT check_orders_amounts CHECK (amount_total = amount_tickets + amount_combos AND amount_tickets >= 0 AND amount_combos >= 0)`);
 
   // order_seats
   await knex.schema.createTable('order_seats', (t) => {
@@ -39,8 +37,7 @@ exports.up = async (knex) => {
     t.integer('price').notNullable();
     t.primary(['order_id', 'seat_id']);
   });
-  await knex.raw(`ALTER TABLE order_seats ADD CONSTRAINT check_order_seats_price CHECK (price >= 0)`);
-  
+
   // Trigger BR-01: max 8 seats
   await knex.raw(`
     CREATE TRIGGER trg_max_seats_exceeded
@@ -60,8 +57,6 @@ exports.up = async (knex) => {
     t.integer('unit_price').notNullable();
     t.primary(['order_id', 'combo_id']);
   });
-  await knex.raw(`ALTER TABLE order_combos ADD CONSTRAINT check_order_combos_qty CHECK (qty BETWEEN 1 AND 10)`);
-  await knex.raw(`ALTER TABLE order_combos ADD CONSTRAINT check_order_combos_price CHECK (unit_price >= 0)`);
 
   // showtime_seats
   await knex.schema.createTable('showtime_seats', (t) => {
@@ -72,8 +67,6 @@ exports.up = async (knex) => {
     t.string('held_until').nullable();
     t.primary(['showtime_id', 'seat_id']);
   });
-  await knex.raw(`ALTER TABLE showtime_seats ADD CONSTRAINT check_showtime_seats_state CHECK (state IN ('HELD','SOLD'))`);
-  await knex.raw(`ALTER TABLE showtime_seats ADD CONSTRAINT check_showtime_seats_held CHECK ((state = 'HELD') = (held_until IS NOT NULL))`);
 
   // order_status_history
   await knex.schema.createTable('order_status_history', (t) => {
@@ -87,7 +80,6 @@ exports.up = async (knex) => {
     t.string('at').notNullable(); // ISO-8601
     t.index(['order_id', 'at']);
   });
-  await knex.raw(`ALTER TABLE order_status_history ADD CONSTRAINT check_osh_actor_type CHECK (actor_type IN ('USER','SYSTEM','GATEWAY','STAFF'))`);
 
   // tickets
   await knex.schema.createTable('tickets', (t) => {
@@ -97,7 +89,7 @@ exports.up = async (knex) => {
     t.string('status').notNullable(); // CHECK IN (VALID,USED,VOID)
     t.string('issued_at').notNullable();
   });
-  await knex.raw(`ALTER TABLE tickets ADD CONSTRAINT check_tickets_status CHECK (status IN ('VALID','USED','VOID'))`);
+  
 };
 
 exports.down = async (knex) => {

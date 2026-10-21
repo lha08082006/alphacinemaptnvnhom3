@@ -16,8 +16,6 @@ exports.up = async (knex) => {
     t.string('created_at').notNullable();
     t.string('callback_at').nullable();
   });
-  await knex.raw(`ALTER TABLE payment_attempts ADD CONSTRAINT check_pa_status CHECK (status IN ('CREATED','REDIRECTED','SUCCESS','FAILED','CANCELLED','TIMEOUT'))`);
-  await knex.raw(`ALTER TABLE payment_attempts ADD CONSTRAINT check_pa_amount CHECK (amount >= 0)`);
 
   // webhook_events
   await knex.schema.createTable('webhook_events', (t) => {
@@ -30,7 +28,7 @@ exports.up = async (knex) => {
     t.string('result').nullable(); // CHECK IN (APPLIED,DUPLICATE,REJECTED,LATE_APPLIED)
     t.string('reject_reason').nullable();
   });
-  await knex.raw(`ALTER TABLE webhook_events ADD CONSTRAINT check_webhook_result CHECK (result IS NULL OR result IN ('APPLIED','DUPLICATE','REJECTED','LATE_APPLIED'))`);
+  
 };
 
 exports.down = async (knex) => {

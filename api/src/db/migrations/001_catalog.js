@@ -17,7 +17,6 @@ exports.up = async (knex) => {
     t.string('created_at').notNullable();
     t.string('updated_at').notNullable();
   });
-  await knex.raw(`ALTER TABLE users ADD CONSTRAINT check_users_role CHECK (role IN ('CUSTOMER','IT','ACCOUNTANT','CSKH','MANAGER'))`);
 
   // cinemas
   await knex.schema.createTable('cinemas', (t) => {
@@ -37,7 +36,6 @@ exports.up = async (knex) => {
     t.string('room_type').notNullable(); // CHECK IN (2D,3D)
     t.unique(['cinema_id', 'name']);
   });
-  await knex.raw(`ALTER TABLE rooms ADD CONSTRAINT check_rooms_type CHECK (room_type IN ('2D','3D'))`);
 
   // seats
   await knex.schema.createTable('seats', (t) => {
@@ -49,7 +47,6 @@ exports.up = async (knex) => {
     t.integer('pair_col').nullable();
     t.unique(['room_id', 'row_label', 'col_number']);
   });
-  await knex.raw(`ALTER TABLE seats ADD CONSTRAINT check_seats_type CHECK (seat_type IN ('STANDARD','VIP','COUPLE'))`);
 
   // movies
   await knex.schema.createTable('movies', (t) => {
@@ -71,8 +68,6 @@ exports.up = async (knex) => {
     t.json('poster_style_json').notNullable();
     t.json('trailer_json').notNullable();
   });
-  await knex.raw(`ALTER TABLE movies ADD CONSTRAINT check_movies_age_rating CHECK (age_rating IN ('P','T13','T16','T18'))`);
-  await knex.raw(`ALTER TABLE movies ADD CONSTRAINT check_movies_status CHECK (status IN ('NOW_SHOWING','COMING_SOON','SPECIAL'))`);
 
   // showtimes
   await knex.schema.createTable('showtimes', (t) => {
@@ -90,9 +85,6 @@ exports.up = async (knex) => {
     t.index(['movie_id', 'starts_at']);
     t.index(['room_id', 'starts_at']);
   });
-  await knex.raw(`ALTER TABLE showtimes ADD CONSTRAINT check_showtimes_format CHECK (format IN ('2D','3D'))`);
-  await knex.raw(`ALTER TABLE showtimes ADD CONSTRAINT check_showtimes_status CHECK (status IN ('OPEN','CLOSED','CANCELLED'))`);
-  await knex.raw(`ALTER TABLE showtimes ADD CONSTRAINT check_showtimes_price CHECK (price_standard >= 0 AND price_vip >= 0 AND price_couple >= 0)`);
 
   // combos
   await knex.schema.createTable('combos', (t) => {
@@ -102,7 +94,7 @@ exports.up = async (knex) => {
     t.integer('price').notNullable();
     t.boolean('is_active').notNullable().defaultTo(true);
   });
-  await knex.raw(`ALTER TABLE combos ADD CONSTRAINT check_combos_price CHECK (price >= 0)`);
+  
 };
 
 exports.down = async (knex) => {
