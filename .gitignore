@@ -1,7 +1,13 @@
 node_modules/
 .env
+.env.*
+!.env.example
+*.env
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 coverage/
 npm-debug.log*
+test.py
+*.pyc
+__pycache__/

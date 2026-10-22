@@ -36,6 +36,10 @@ const schema = z.object({
   VNPAY_API_URL: z.string(required('VNPAY_API_URL')).url('phải là URL hợp lệ'),
   VNPAY_RETURN_URL: z.string(required('VNPAY_RETURN_URL')).url('phải là URL hợp lệ'),
   VNPAY_TRUST_RETURN: z.enum(['true', 'false']).default('false'),
+
+  // Cấu hình Gemini AI
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-3.8-flash').optional(),
 });
 
 /**

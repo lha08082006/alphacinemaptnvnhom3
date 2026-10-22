@@ -8,6 +8,8 @@ describe('Database Seeds', () => {
   let db;
 
   beforeAll(() => {
+    const { execSync } = require('child_process');
+    execSync('npm run seed', { cwd: path.join(__dirname, '..'), stdio: 'ignore' });
     db = new Database(dbPath, { readonly: true });
   });
 
