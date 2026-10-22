@@ -240,6 +240,66 @@
         }
     };
 
+    // Hàm thanh toán SePay chuẩn theo yêu cầu mẫu
+    async function payWithSepay(orderId, amount) {
+        let endpoint = '/api/sepay/checkout';
+        if (window.location.port === '5500' || window.location.protocol === 'file:') {
+            endpoint = 'http://localhost:4000/api/sepay/checkout';
+        }
+
+        let r;
+        try {
+            r = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: String(orderId), amount: Number(amount) })
+            });
+        } catch (fetchErr) {
+            if (endpoint.includes(':4000')) {
+                endpoint = 'http://localhost:3000/api/sepay/checkout';
+                r = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: String(orderId), amount: Number(amount) })
+                });
+            } else {
+                throw fetchErr;
+            }
+        }
+
+        if (!r.ok && endpoint.includes(':4000')) {
+            endpoint = 'http://localhost:3000/api/sepay/checkout';
+            r = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: String(orderId), amount: Number(amount) })
+            });
+        }
+
+        const data = await r.json();
+        const url = data.url || data.checkoutUrl;
+        const fields = data.fields;
+
+        if (!url || !fields) {
+            throw new Error(data.error || 'Dữ liệu phiên thanh toán SePay không hợp lệ.');
+        }
+
+        const f = document.createElement('form');
+        f.method = 'POST';
+        f.action = url;
+        f.style.display = 'none';
+        for (const k in fields) {
+            const i = document.createElement('input');
+            i.type = 'hidden';
+            i.name = k;
+            i.value = fields[k];
+            f.appendChild(i);
+        }
+        document.body.appendChild(f);
+        f.submit(); // chuyển sang trang thanh toán sandbox của SePay
+    }
+    window.payWithSepay = payWithSepay;
+
     // 10. Tiến hành thanh toán sau khi xác nhận điều khoản (BR-11)
     window.proceedPayment = async function() {
         const checkbox = document.getElementById('tnc-agree');
@@ -310,6 +370,14 @@
             }
 
             if (isSepay) {
+                const totalAmount = (order && (order.totalAmount || order.amount)) || (currentOrd && currentOrd.amount) || 136000;
+                try {
+                    await payWithSepay(orderId, totalAmount);
+                    return;
+                } catch (sepayDirectErr) {
+                    console.warn('[Checkout] Thử payWithSepay gặp sự cố, chuyển tiếp qua API chuẩn:', sepayDirectErr);
+                }
+
                 const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
                 const res = await API.post(
                     '/payments/sepay',

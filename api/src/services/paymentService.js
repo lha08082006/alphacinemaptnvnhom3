@@ -545,28 +545,32 @@ async function createSepayPayment({
  * - Ghi nhận payment_attempts và webhook_events
  */
 async function applySepayIpn({ payload, headers = {}, rawBody }) {
+  const safePayload = payload || {};
   const orderInvoiceNumber =
-    payload.order?.order_invoice_number ||
-    payload.order_invoice_number ||
-    payload.orderId ||
-    payload.order_id;
+    safePayload.order?.order_invoice_number ||
+    safePayload.order_invoice_number ||
+    safePayload.orderId ||
+    safePayload.order_id;
 
-  const amountVnd = Number(
-    payload.order?.order_amount !== undefined
-      ? payload.order.order_amount
-      : payload.transaction?.transaction_amount !== undefined
-        ? payload.transaction.transaction_amount
-        : payload.order_amount !== undefined
-          ? payload.order_amount
-          : payload.amount || 0
-  );
+  const rawAmount =
+    safePayload.order?.order_amount !== undefined
+      ? safePayload.order.order_amount
+      : safePayload.transaction?.transfer_amount !== undefined
+        ? safePayload.transaction.transfer_amount
+        : safePayload.transaction?.transaction_amount !== undefined
+          ? safePayload.transaction.transaction_amount
+          : safePayload.order_amount !== undefined
+            ? safePayload.order_amount
+            : safePayload.amount || 0;
 
-  const notificationType = payload.notification_type;
-  const orderStatus = payload.order?.order_status;
+  const amountVnd = Math.round(Number(rawAmount));
+
+  const notificationType = safePayload.notification_type;
+  const orderStatus = safePayload.order?.order_status;
   const transStatus =
-    payload.transaction?.transaction_status ||
-    payload.transaction_status ||
-    payload.status;
+    safePayload.transaction?.transaction_status ||
+    safePayload.transaction_status ||
+    safePayload.status;
 
   const isSuccess =
     notificationType === 'ORDER_PAID' ||
@@ -575,11 +579,22 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
     transStatus === 'SUCCESS';
 
   const transNo =
-    payload.transaction?.id ||
-    payload.sepay_transaction_id ||
-    payload.transaction_id ||
-    payload.id ||
-    payload.order?.id;
+    safePayload.transaction?.id ||
+    safePayload.sepay_transaction_id ||
+    safePayload.transaction_id ||
+    safePayload.id ||
+    safePayload.order?.id;
+
+  const bankCode =
+    safePayload.transaction?.gateway ||
+    safePayload.bank_code ||
+    'BANK_TRANSFER';
+
+  const payDate =
+    safePayload.transaction?.transaction_date ||
+    safePayload.transaction_date ||
+    safePayload.pay_date ||
+    null;
 
   // Xác thực chữ ký nếu header X-SePay-Signature được cung cấp
   const signatureHeader =
@@ -598,84 +613,110 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
     signatureValid = verifyWebhookSignature({
       signatureHeader,
       timestamp,
-      rawBody: rawBody || payload,
+      rawBody: rawBody || safePayload,
       secretKey: env.SEPAY_SECRET_KEY,
     });
 
     if (!signatureValid) {
       const nowIso = new Date().toISOString();
-      const eventId = `SEPAY:${orderInvoiceNumber || 'UNKNOWN'}:${transNo || Date.now()}:SIG_FAILED`;
-      await knex('webhook_events').insert({
-        event_id: eventId,
-        gateway_txn_id: String(orderInvoiceNumber || 'UNKNOWN'),
-        payload_json: JSON.stringify(payload || {}),
-        signature_valid: false,
-        received_at: nowIso,
-        processed_at: nowIso,
-        result: 'REJECTED',
-        reject_reason: 'Invalid signature',
-      });
+      const eventId = `SEPAY:${orderInvoiceNumber || 'UNKNOWN'}:${transNo || '0'}:SIG_FAILED`;
+      const existingSig = await knex('webhook_events').where({ event_id: eventId }).first();
+      if (existingSig) {
+        await knex('webhook_events').where({ event_id: eventId }).update({
+          processed_at: nowIso,
+          reject_reason: 'Invalid signature',
+        });
+      } else {
+        await knex('webhook_events').insert({
+          event_id: eventId,
+          gateway_txn_id: String(orderInvoiceNumber || 'UNKNOWN'),
+          payload_json: JSON.stringify(safePayload),
+          signature_valid: false,
+          received_at: nowIso,
+          processed_at: nowIso,
+          result: 'REJECTED',
+          reject_reason: 'Invalid signature',
+        });
+      }
       return { success: false, message: 'Invalid signature' };
     }
   }
 
   return await knex.transaction(async (trx) => {
-    const eventId = `SEPAY:${orderInvoiceNumber}:${transNo || '0'}:${isSuccess ? 'SUCCESS' : 'FAILED'}`;
+    const eventId = `SEPAY:${orderInvoiceNumber || 'UNKNOWN'}:${transNo || '0'}:${isSuccess ? 'SUCCESS' : 'FAILED'}`;
     const nowIso = new Date().toISOString();
 
-    // 1. Chống trùng lặp (Idempotency của webhook): chỉ xác nhận nếu sự kiện trước đã thành công
+    // 1. Chống trùng lặp (Idempotency của webhook)
     const existingEvent = await trx('webhook_events')
       .where({ event_id: eventId })
-      .whereIn('result', ['APPLIED', 'LATE_APPLIED', 'DUPLICATE'])
       .first();
-    if (existingEvent) {
+
+    if (existingEvent && ['APPLIED', 'LATE_APPLIED', 'DUPLICATE'].includes(existingEvent.result)) {
       return { success: true, message: 'Order already confirmed', duplicate: true };
+    }
+
+    // Helper ghi nhận / cập nhật webhook_events an toàn không văng lỗi UNIQUE constraint
+    async function recordEvent(resultStatus, reason, txnId = orderInvoiceNumber) {
+      if (existingEvent) {
+        await trx('webhook_events').where({ event_id: eventId }).update({
+          gateway_txn_id: String(txnId || orderInvoiceNumber || 'UNKNOWN'),
+          payload_json: JSON.stringify(safePayload),
+          signature_valid: signatureValid,
+          processed_at: nowIso,
+          result: resultStatus,
+          reject_reason: reason || null,
+        });
+      } else {
+        await trx('webhook_events').insert({
+          event_id: eventId,
+          gateway_txn_id: String(txnId || orderInvoiceNumber || 'UNKNOWN'),
+          payload_json: JSON.stringify(safePayload),
+          signature_valid: signatureValid,
+          received_at: nowIso,
+          processed_at: nowIso,
+          result: resultStatus,
+          reject_reason: reason || null,
+        });
+      }
     }
 
     // 2. Tìm payment_attempts tương ứng
     const attempt = await trx('payment_attempts')
-      .where({ gateway_txn_id: orderInvoiceNumber })
-      .orWhere({ order_id: orderInvoiceNumber })
+      .where({ gateway_txn_id: orderInvoiceNumber || '' })
+      .orWhere({ order_id: orderInvoiceNumber || '' })
       .first();
 
     if (!attempt) {
-      await trx('webhook_events').insert({
-        event_id: eventId,
-        gateway_txn_id: String(orderInvoiceNumber || 'UNKNOWN'),
-        payload_json: JSON.stringify(payload || {}),
-        signature_valid: signatureValid,
-        received_at: nowIso,
-        processed_at: nowIso,
-        result: 'REJECTED',
-        reject_reason: 'Order not found',
-      });
+      await recordEvent('REJECTED', 'Order not found', orderInvoiceNumber || 'UNKNOWN');
       return { success: false, message: 'Order not found' };
     }
 
     // 3. Kiểm tra số tiền: So sánh với payment_attempts.amount (Số nguyên VND)
-    if (Number(attempt.amount) !== Math.round(amountVnd)) {
-      await trx('webhook_events').insert({
-        event_id: eventId,
-        gateway_txn_id: attempt.gateway_txn_id,
-        payload_json: JSON.stringify(payload || {}),
-        signature_valid: signatureValid,
-        received_at: nowIso,
-        processed_at: nowIso,
-        result: 'REJECTED',
-        reject_reason: `Số tiền thanh toán lệch: cổng trả ${amountVnd}, hệ thống yêu cầu ${attempt.amount}`,
-      });
+    if (Number(attempt.amount) !== amountVnd) {
+      await recordEvent(
+        'REJECTED',
+        `Số tiền thanh toán lệch: cổng trả ${amountVnd}, hệ thống yêu cầu ${attempt.amount}`,
+        attempt.gateway_txn_id
+      );
 
-      const order = await trx('orders').where({ order_id: attempt.order_id }).first();
-      await trx('support_tickets').insert({
-        ticket_id: 'ST_' + ids.randomCode(10),
-        order_id: attempt.order_id,
-        user_id: order ? order.user_id : null,
-        contact: order ? (order.customer_email || order.customer_phone || 'SYSTEM') : 'SYSTEM',
-        source: 'SYSTEM',
-        status: 'NEW',
-        created_at: nowIso,
-        resolution: `Lệch số tiền thanh toán SePay: cổng trả về ${amountVnd} VND, hệ thống yêu cầu ${attempt.amount} VND (invoice: ${orderInvoiceNumber})`,
-      });
+      const existingTicket = await trx('support_tickets')
+        .where({ order_id: attempt.order_id, source: 'SYSTEM' })
+        .andWhere('resolution', 'like', '%Lệch số tiền thanh toán SePay%')
+        .first();
+
+      if (!existingTicket) {
+        const order = await trx('orders').where({ order_id: attempt.order_id }).first();
+        await trx('support_tickets').insert({
+          ticket_id: 'ST_' + ids.randomCode(10),
+          order_id: attempt.order_id,
+          user_id: order ? order.user_id : null,
+          contact: order ? (order.customer_email || order.customer_phone || 'SYSTEM') : 'SYSTEM',
+          source: 'SYSTEM',
+          status: 'NEW',
+          created_at: nowIso,
+          resolution: `Lệch số tiền thanh toán SePay: cổng trả về ${amountVnd} VND, hệ thống yêu cầu ${attempt.amount} VND (invoice: ${orderInvoiceNumber})`,
+        });
+      }
 
       return { success: false, message: 'Invalid amount' };
     }
@@ -691,11 +732,29 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
         callback_at: nowIso,
         gateway_trans_no: transNo ? String(transNo) : null,
         gateway_response_code: '00',
-        bank_code: 'BANK_TRANSFER',
+        bank_code: bankCode,
+        gateway_pay_date: payDate,
       });
 
       if (order) {
         if (order.status === 'AWAITING_PAYMENT') {
+          await setStatus(trx, order, 'PAID', {
+            reason: 'SePay thanh toán thành công',
+            actorType: 'GATEWAY',
+            extraUpdates: {
+              paid_at: nowIso,
+              callback_at: nowIso,
+              payment_method: 'BANK_TRANSFER',
+            },
+          });
+          await issueTicket(trx, order);
+          webhookResult = 'APPLIED';
+        } else if (order.status === 'HOLDING') {
+          // Xử lý an toàn khi IPN đến sớm: HOLDING -> AWAITING_PAYMENT -> PAID
+          await setStatus(trx, order, 'AWAITING_PAYMENT', {
+            reason: 'Khởi tạo thanh toán SePay (IPN)',
+            actorType: 'GATEWAY',
+          });
           await setStatus(trx, order, 'PAID', {
             reason: 'SePay thanh toán thành công',
             actorType: 'GATEWAY',
@@ -722,7 +781,26 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
         } else if (['FAILED', 'EXPIRED', 'CANCELLED'].includes(order.status)) {
           webhookResult = 'LATE_APPLIED';
           rejectReason = `Nhận tiền cho đơn đã kết thúc ở trạng thái ${order.status}`;
-        } else if (order.status === 'PAID') {
+
+          // BR-07: Gọi refundService để đánh giá và tạo lệnh hoàn tiền tự động
+          const { evaluateAndCreate } = require('./refundService');
+          try {
+            await evaluateAndCreate(trx, order, {
+              ...attempt,
+              status: 'SUCCESS',
+              gateway_response_code: '00',
+              gateway_trans_no: transNo ? String(transNo) : attempt.gateway_txn_id,
+              gateway_pay_date: payDate || nowIso,
+              bank_code: bankCode,
+              amount: amountVnd,
+            });
+          } catch (rfErr) {
+            logger.error('applySepayIpn_refund_failed', {
+              orderId: order.order_id,
+              cause: rfErr.message,
+            });
+          }
+        } else if (['PAID', 'REFUND_PENDING', 'REFUNDED'].includes(order.status)) {
           webhookResult = 'DUPLICATE';
         }
       }
@@ -743,22 +821,22 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
           },
         });
         await releaseSeats(trx, order.order_id);
+      } else if (order && order.status === 'HOLDING') {
+        await setStatus(trx, order, 'CANCELLED', {
+          reason: 'SePay thanh toán thất bại từ trạng thái giữ chỗ',
+          actorType: 'GATEWAY',
+          extraUpdates: {
+            callback_at: nowIso,
+          },
+        });
+        await releaseSeats(trx, order.order_id);
       }
       webhookResult = 'APPLIED';
       rejectReason = 'SePay reported payment failure';
     }
 
     // 5. Ghi nhật ký vào webhook_events
-    await trx('webhook_events').insert({
-      event_id: eventId,
-      gateway_txn_id: attempt.gateway_txn_id,
-      payload_json: JSON.stringify(payload || {}),
-      signature_valid: signatureValid,
-      received_at: nowIso,
-      processed_at: nowIso,
-      result: webhookResult,
-      reject_reason: rejectReason,
-    });
+    await recordEvent(webhookResult, rejectReason, attempt.gateway_txn_id);
 
     return {
       success: true,

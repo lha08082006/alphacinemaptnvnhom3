@@ -106,13 +106,25 @@ router.get(
       };
     });
 
+    let posterUrl = null;
+    try {
+      const posterData = typeof showtime.poster_style_json === 'string'
+        ? JSON.parse(showtime.poster_style_json)
+        : (showtime.poster_style_json || {});
+      posterUrl = posterData.url || posterData.imageUrl || null;
+    } catch (_) {
+      posterUrl = null;
+    }
+
     sendOk(res, {
       showtime: {
         id: showtime.showtime_id,
+        movieId: showtime.movie_id,
         movieTitle: showtime.movie_title,
         ageRating: showtime.age_rating,
         durationMin: showtime.duration_min,
         genres: typeof showtime.genres_json === 'string' ? JSON.parse(showtime.genres_json) : showtime.genres_json,
+        imageUrl: posterUrl,
         cinemaName: showtime.cinema_name,
         roomName: showtime.room_name,
         startsAt: showtime.starts_at,
@@ -125,6 +137,132 @@ router.get(
         },
       },
       seats: seatList,
+    });
+  })
+);
+
+/**
+ * GET /showtimes
+ * Lấy danh sách lịch chiếu theo rạp và ngày.
+ * Query: cinemaId, cinema, date (YYYY-MM-DD), movieId
+ */
+router.get(
+  '/',
+  validate({
+    query: z.object({
+      cinemaId: z.coerce.number().int().positive().optional(),
+      cinema: z.string().optional(),
+      date: z.string().optional(),
+      movieId: z.coerce.number().int().positive().optional(),
+    }),
+  }),
+  asyncHandler(async (req, res) => {
+    const { cinemaId, cinema, date, movieId } = req.valid.query;
+
+    // 1. Lấy danh sách rạp để frontend tạo bộ lọc
+    const cinemas = await knex('cinemas')
+      .whereNot('id', 999)
+      .select('id', 'name', 'city', 'address', 'hotline')
+      .orderBy('id');
+
+    let targetCinemaId = cinemaId;
+    if (!targetCinemaId && cinema) {
+      const found = cinemas.find(c => String(c.id) === String(cinema) || c.name.toLowerCase().includes(cinema.toLowerCase()));
+      if (found) targetCinemaId = found.id;
+    }
+    if (!targetCinemaId && cinemas.length > 0) {
+      targetCinemaId = cinemas[0].id; // Mặc định rạp đầu tiên
+    }
+
+    // 2. Lấy các suất chiếu
+    let query = knex('showtimes as st')
+      .join('movies as m', 'st.movie_id', 'm.id')
+      .join('rooms as r', 'st.room_id', 'r.id')
+      .join('cinemas as c', 'r.cinema_id', 'c.id')
+      .where('st.status', 'OPEN');
+
+    if (targetCinemaId) {
+      query = query.where('c.id', targetCinemaId);
+    }
+
+    if (date) {
+      query = query.where('st.starts_at', 'like', `${date}%`);
+    }
+
+    if (movieId) {
+      query = query.where('m.id', movieId);
+    }
+
+    const showtimes = await query
+      .select(
+        'st.id',
+        'st.starts_at',
+        'st.ends_at',
+        'st.format',
+        'st.price_standard',
+        'st.price_vip',
+        'st.price_couple',
+        'st.status',
+        'r.id as room_id',
+        'r.name as room_name',
+        'c.id as cinema_id',
+        'c.name as cinema_name',
+        'm.id as movie_id',
+        'm.title as movie_title',
+        'm.age_rating',
+        'm.duration_min',
+        'm.genres_json',
+        'm.poster_style_json'
+      )
+      .orderBy(['m.sort_order', 'm.id', 'st.starts_at']);
+
+    // 3. Gom nhóm theo từng phim
+    const movieMap = new Map();
+    for (const st of showtimes) {
+      if (!movieMap.has(st.movie_id)) {
+        let posterUrl = null;
+        try {
+          const posterData = typeof st.poster_style_json === 'string'
+            ? JSON.parse(st.poster_style_json)
+            : (st.poster_style_json || {});
+          posterUrl = posterData.url || posterData.imageUrl || null;
+        } catch (_) {}
+
+        movieMap.set(st.movie_id, {
+          movieId: st.movie_id,
+          movieTitle: st.movie_title,
+          ageRating: st.age_rating,
+          durationMin: st.duration_min,
+          genres: typeof st.genres_json === 'string' ? JSON.parse(st.genres_json) : st.genres_json,
+          posterUrl,
+          showtimes: [],
+        });
+      }
+
+      const startsDate = new Date(st.starts_at);
+      const timeStr = st.starts_at.length >= 16 ? st.starts_at.substring(11, 16) : '';
+      const hour = startsDate.getUTCHours(); // giờ UTC hoặc giờ trong ISO
+
+      movieMap.get(st.movie_id).showtimes.push({
+        id: st.id,
+        startsAt: st.starts_at,
+        endsAt: st.ends_at,
+        time: timeStr,
+        format: st.format,
+        roomName: st.room_name,
+        priceStandard: st.price_standard,
+        priceVip: st.price_vip,
+        priceCouple: st.price_couple,
+        isLate: hour >= 15 || timeStr >= '22:00', // Suất chiếu muộn
+      });
+    }
+
+    sendOk(res, {
+      cinemas,
+      selectedCinemaId: targetCinemaId,
+      selectedDate: date || null,
+      totalShowtimes: showtimes.length,
+      movies: Array.from(movieMap.values()),
     });
   })
 );

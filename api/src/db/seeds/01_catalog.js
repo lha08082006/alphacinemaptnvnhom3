@@ -84,16 +84,14 @@ exports.seed = async function (knex) {
         const isDouble = layout.doubleRows && layout.doubleRows.includes(rowLabel);
         
         for (let j = 1; j <= layout.cols; j++) {
-          if (layout.aisles && layout.aisles.includes(j)) continue; // Lối đi
-          
           const seatType = isDouble ? 'COUPLE' : (isVip ? 'VIP' : 'STANDARD');
           let pairCol = null;
           
           if (isDouble) {
-            // Cứ 2 cột liền nhau là 1 cặp (giả định đơn giản: cột lẻ và chẵn tiếp theo)
-            if (j % 2 !== 0 && !layout.aisles.includes(j+1) && j < layout.cols) {
+            // Cứ 2 cột liền nhau là 1 cặp (cột lẻ và chẵn tiếp theo)
+            if (j % 2 !== 0 && j < layout.cols) {
               pairCol = j + 1;
-            } else if (j % 2 === 0 && !layout.aisles.includes(j-1)) {
+            } else if (j % 2 === 0) {
               pairCol = j - 1;
             }
           }

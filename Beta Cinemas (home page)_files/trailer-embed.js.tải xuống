@@ -1,0 +1,8 @@
+// Build an embeddable iframe src from a trailer URL (YouTube or Facebook video link).
+// Thêm nhà cung cấp mới (Vimeo, TikTok, ...) thì chỉ sửa 1 chỗ ở đây.
+function buildTrailerEmbedUrl(urlTrailer) {
+    if (/facebook\.com|fb\.watch/i.test(urlTrailer)) {
+        return 'https://www.facebook.com/plugins/video.php?href=' + encodeURIComponent(urlTrailer) + '&show_text=false';
+    }
+    return urlTrailer.replace("watch?v=", "embed/") + '?rel=0&showinfo=0&autoplay=1';
+}

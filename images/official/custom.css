@@ -1,0 +1,394 @@
+/* here you can put your own css to customize and override the theme */
+.img-b {
+    border: 1px solid #ccc;
+    border-radius: 5px 5px 0px 0px;
+    border-bottom: 0px;
+}
+
+.des-b {
+    border: 1px solid #ccc;
+    border-radius: 0px 0px 5px 5px;
+    border-top: 0px;
+}
+
+.pre-header a.btn {
+    padding: 4px 10px 1px 10px;
+    /*border-radius: 5px !important;*/
+    width: 90px;
+    font-size: 12px;
+}
+
+.lang-vi {
+    background: red;
+    color: yellow !important;
+    width: 35px !important;
+    padding: 4px 0px 1px 0px !important;
+}
+
+.nav-tabs > li.active > a:after {
+    width: 0;
+    height: 0;
+    content: " ";
+    display: block !important;
+    position: absolute;
+    border-top: 8px solid red;
+    border-right: 8px solid transparent;
+    border-left: 8px solid transparent;
+    bottom: -8px;
+    left: 45%;
+}
+
+.nav-tabs > li > a.dayofweek {
+    margin-right: 0px;
+}
+
+.nav-tabs > li.active > a.dayofweek, .nav-tabs > li.active > a.dayofweek:hover, .nav-tabs > li.active > a.dayofweek:focus {
+    background: transparent;
+    font-size: smaller;
+    color: #005198;
+}
+
+.nav-tabs > li > a.dayofweek, .nav-tabs > li > a.dayofweek:hover, .nav-tabs > li > a.dayofweek:focus {
+    background: transparent;
+    font-size: smaller;
+    color: #000;
+}
+
+.nav-tabs > li.active > a.dayofweek:after {
+    width: 100%;
+    height: 0;
+    content: " ";
+    display: block !important;
+    position: absolute;
+    border: 3px solid #055ca0;
+    border-top: 0px;
+    bottom: 0px;
+    left: 0px;
+}
+
+.dayofweek > li.active {
+    /*border-bottom: 5px solid transparent;
+    border-image: linear-gradient(to right, #39adf0 0%, #075fa3 100%);
+    border-image-slice: 1;*/
+}
+
+.nav-tabs > li > a.dayofweek, .nav-tabs > li > a.dayofweek:hover, .nav-tabs > li > a.dayofweek:focus {
+    padding: 0px;
+    margin: 0px 0px;
+    text-align: center;
+}
+
+.btn {
+    flex: 1 1 auto;
+    text-align: center;
+    transition: 0.5s;
+    background-size: 200% auto;
+    color: white;
+    /* text-shadow: 0px 0px 10px rgba(0,0,0,0.2);*/
+    /*box-shadow: 0 0 20px #eee;*/
+    border-radius: 10px;
+}
+
+    /* Demo Stuff End -> */
+
+    /* <- Magic Stuff Start */
+
+    .btn:hover {
+        background-position: right center; /* change the direction of the change here */
+    }
+
+.btn-1, .btn-1:hover {
+    background-image: linear-gradient(to right, #fc3606 0%, #fda085 51%, #fc7704 100%) !important;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.btn-2, .btn-2:hover {
+    background-image: linear-gradient(to right, #0a64a7 0%, #258dcf 51%, #3db1f3 100%) !important;
+    color: #fff;
+}
+
+.btn-3, .btn-3:hover {
+    background-image: linear-gradient(to right, #fc3606 0%, #fda085 51%, #fc7704 100%) !important;
+}
+
+.blog-info, .content-page p, .content-page .list-unstyled {
+    font-family: Montserrat-Regular !important;
+}
+
+.show-in {
+    font-family: Montserrat-Medium !important;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.btn-ok {
+    border-radius: 10px !important;
+    background-color: #005198;
+    color: white;
+    padding: 12px 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    height: 42px;
+    border: 0;
+}
+
+    .btn-ok:hover {
+        background-color: #3db1f3;
+        border-color: #005bb5;
+        text-decoration: none;
+        color: white;
+    }
+
+.btn-loginfacebook {
+    background-color: #F595A6 !important;
+}
+
+    .btn-loginfacebook:hover {
+        background-color: #e67388 !important;
+    }
+
+.btn-back {
+    background-color: #E0E0E0 !important;
+    color: #333 !important;
+}
+
+    .btn-back:hover {
+        background-color: #CCCCCC !important;
+    }
+
+.btn-mua-ve {
+    border: 0;
+    padding: 10px 40px;
+    position: relative;
+    border-radius: 10px !important;
+    background-color: #005198;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.5s ease;
+}
+
+    .btn-mua-ve:hover {
+        text-decoration: none;
+        color: #fff;
+        background-color: #3db1f3;
+    }
+
+.btn-mua-ve2 {
+    /*padding: 10px 70px;*/
+    position: relative;
+    font-size: large;
+    border-radius: 4px !important;
+}
+
+.ticket-link {
+    text-decoration: none !important;
+}
+
+    .ticket-link .ticket-button-alt {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #005198;
+        color: white;
+        border: 0;
+        border-radius: 10px !important;
+        padding: 12px 25px;
+        font-size: large;
+        font-weight: 600;
+        cursor: pointer;
+        position: relative;
+        height: 42px;
+        width: 100%;
+        transition: all 0.5s ease;
+        margin-bottom: 30px;
+    }
+
+        .ticket-link .ticket-button-alt:hover {
+            background-color: #3db1f3;
+            border-color: #005bb5;
+        }
+
+        .ticket-link .ticket-button-alt .ticket-icon {
+            position: absolute;
+            left: 6px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .ticket-link .ticket-button-alt .button-text {
+            flex: 1;
+            text-align: center;
+            margin-left: 20px;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+
+.mr3 {
+    font-size: 70px;
+    position: absolute;
+    left: -10px;
+    opacity: 0.5;
+    color: #fff;
+}
+
+.content-page h1, .content-page h2, .content-page h3, .content-page h4, .content-page h5, .content-page h6 {
+    margin: 0px;
+    padding: 0px;
+}
+
+.pre-footer .site-logo {
+    float: initial;
+}
+
+.dayofweek li {
+    width: 14.285%;
+}
+
+/*@media (min-width:1300px) {
+    .container {
+        width: 1250px;
+    }
+}*/
+
+.font-small {
+    font-size: small;
+}
+
+@media (max-width:576px) {
+    .font-xs-9 {
+        font-size: 9px !important;
+    }
+
+    .font-xs-10 {
+        font-size: 10px !important;
+    }
+
+    .font-xs-11 {
+        font-size: 11px !important;
+    }
+
+    .font-xs-14 {
+        font-size: 14px;
+    }
+
+    .text-xs-left {
+        text-align: left;
+    }
+}
+
+@media (min-width:767px) and (max-width: 991.98px) {
+    .font-small {
+        font-size: large !important;
+    }
+
+    .font-s-35 {
+        font-size: 30px !important;
+    }
+
+    .font-xs-14 {
+        font-size: 14px;
+    }
+
+    .font-xs-9 {
+        font-size: 9px !important;
+    }
+
+    .font-xs-10 {
+        font-size: 10px !important;
+    }
+
+    .font-xs-12 {
+        font-size: 12px !important;
+    }
+
+    .film-xs-info {
+        height: 100px;
+        min-height: 100px;
+    }
+
+    .text-xs-left {
+        text-align: left;
+    }
+
+    .font-sm-15 {
+        font-size: 15px;
+    }
+}
+
+.font-smaller {
+    font-size: 9.8px;
+}
+
+.font-sm-15 {
+    font-size: 15px;
+}
+
+.font-20 {
+    font-size: 20px;
+}
+
+.font-25 {
+    font-size: 25px;
+}
+
+.font-30 {
+    font-size: 30px;
+}
+
+.font-s-34 {
+    font-size: 34px;
+}
+
+.font-38 {
+    font-size: 38px;
+}
+
+.tab-films {
+    display: inline-block;
+    margin-bottom: 30px;
+}
+
+    .tab-films > li.active {
+        border-bottom: 4px solid #005198;
+        border-image-slice: 1;
+        border-width: 0px 0px 4px 0px;
+    }
+
+        .tab-films > li.active > a, .tab-films > li.active > a:hover, .tab-films > li.active > a:focus {
+            background-color: transparent !important;
+            color: #005198 !important;
+            padding: 0px 30px;
+        }
+
+    .tab-films > li > a, .tab-films > li > a:hover, .tab-films > li > a:focus {
+        padding: 0px 30px;
+    }
+
+    .tab-films > li.active > a:after {
+        border-top: none;
+    }
+
+.menu-cinema {
+    width: 100%;
+}
+
+    .menu-cinema > ul > li > a {
+        color: #333;
+        display: block;
+        padding: 45px 12px 40px;
+        font-size: large;
+        font-weight: bold;
+        height: 24px;
+        font-size: 12px !important;
+    }
+
+    .menu-cinema > ul > li {
+        width: 100%;
+    }
+
+.modal-footer {
+    text-align: center;
+}

@@ -18,6 +18,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
   const orderSepayExpired = 'BCSEPAY004';
   const orderSepayFail = 'BCSEPAY005';
   const orderSepayMainRoute = 'BCSEPAY006';
+  const orderSepayRefundBR07 = 'BCSEPAY007';
 
   beforeAll(async () => {
     app = createApp();
@@ -41,11 +42,13 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
       orderSepayExpired,
       orderSepayFail,
       orderSepayMainRoute,
+      orderSepayRefundBR07,
     ];
 
     // Dọn dẹp CSDL test
+    await knex('refunds').whereIn('order_id', testOrders).del();
     await knex('support_tickets').whereIn('order_id', testOrders).del();
-    await knex('webhook_events').whereIn('gateway_txn_id', [...testOrders, 'NON_EXISTENT_ORDER']).orWhere('event_id', 'like', '%NON_EXISTENT_ORDER%').del();
+    await knex('webhook_events').whereIn('gateway_txn_id', [...testOrders, 'NON_EXISTENT_ORDER']).orWhere('event_id', 'like', '%NON_EXISTENT_ORDER%').orWhere('event_id', 'like', '%BCSEPAY%').del();
     await knex('tickets').whereIn('order_id', testOrders).del();
     await knex('showtime_seats').whereIn('order_id', testOrders).orWhereIn('seat_id', [1050, 1051, 1052]).del();
     await knex('payment_attempts').whereIn('order_id', testOrders).del();
@@ -207,6 +210,33 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
       created_at: nowIso,
       updated_at: nowIso,
     });
+
+    // Chuẩn bị đơn hàng 7: Đơn hàng EXPIRED có payment attempt để test BR-07 hoàn tiền tự động khi callback muộn
+    await knex('orders').insert({
+      order_id: orderSepayRefundBR07,
+      user_id: 1,
+      showtime_id: 1,
+      status: 'EXPIRED',
+      amount_tickets: 60000,
+      amount_combos: 0,
+      amount_total: 60000,
+      customer_name: 'Khách Hàng',
+      customer_phone: '0987654321',
+      customer_email: 'khachhang@gmail.com',
+      hold_expires_at: pastExp,
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+    await knex('payment_attempts').insert({
+      attempt_id: 'ATT_SEPAY_EXP_01',
+      order_id: orderSepayRefundBR07,
+      gateway_txn_id: orderSepayRefundBR07,
+      method: 'BANK_TRANSFER',
+      amount: 60000,
+      status: 'REDIRECTED',
+      idempotency_key: 'IDEMP_SEPAY_EXP_01',
+      created_at: nowIso,
+    });
   });
 
   afterAll(async () => {
@@ -218,7 +248,9 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
         orderSepayExpired,
         orderSepayFail,
         orderSepayMainRoute,
+        orderSepayRefundBR07,
       ];
+      await knex('refunds').whereIn('order_id', testOrders).del();
       await knex('support_tickets').whereIn('order_id', testOrders).del();
       await knex('webhook_events').whereIn('gateway_txn_id', testOrders).del();
       await knex('tickets').whereIn('order_id', testOrders).del();
@@ -675,6 +707,150 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
       expect(res.headers.location).toContain(`orderId=${orderSepaySuccess}`);
       expect(res.headers.location).toContain('gateway=sepay');
       expect(res.headers.location).toContain('status=success');
+    });
+
+    it('should handle repeated rejected IPN gracefully without crashing on unique event_id constraint', async () => {
+      // Gửi IPN lệch tiền lần 1
+      const payload = {
+        order_invoice_number: orderSepayMismatch,
+        order_amount: 50000,
+        transaction_status: 'SUCCESS',
+        sepay_transaction_id: 'SP_TXN_RETRY_REJECT_01',
+      };
+
+      const res1 = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .send(payload);
+
+      expect(res1.status).toBe(200);
+      expect(res1.body.success).toBe(false);
+      expect(res1.body.message).toBe('Invalid amount');
+
+      // Gửi lại IPN cùng payload lần 2 (SePay retry khi mạng gián đoạn)
+      const res2 = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .send(payload);
+
+      // Phải trả về kết quả lỗi hợp lệ, KHÔNG văng 500 do SQLite UNIQUE constraint
+      expect(res2.status).toBe(200);
+      expect(res2.body.success).toBe(false);
+      expect(res2.body.message).toBe('Invalid amount');
+    });
+
+    it('should accept uppercase hex signature in X-SePay-Signature (case-insensitive)', async () => {
+      const payload = {
+        order_invoice_number: orderSepayLate,
+        order_amount: 80000,
+        transaction_status: 'SUCCESS',
+        sepay_transaction_id: 'SP_UPPER_HEX_TXN',
+      };
+      const timestamp = '1757058220';
+      const rawBodyStr = JSON.stringify(payload);
+      const hmacHash = crypto
+        .createHmac('sha256', env.SEPAY_SECRET_KEY)
+        .update(`${timestamp}.${rawBodyStr}`)
+        .digest('hex')
+        .toUpperCase(); // Chữ ký in hoa
+
+      const res = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .set('X-SePay-Signature', `sha256=${hmacHash}`)
+        .set('X-SePay-Timestamp', timestamp)
+        .send(payload);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('should parse real SePay gateway payload with transfer_amount string and gateway name', async () => {
+      const transNo = 'SEPAY_REAL_GATEWAY_TXN_01';
+      const realPayload = {
+        notification_type: 'ORDER_PAID',
+        order: {
+          order_invoice_number: orderSepayMainRoute,
+          order_amount: '110000.00', // Định dạng chuỗi thập phân thực tế từ SePay
+          order_status: 'CAPTURED',
+        },
+        transaction: {
+          id: transNo,
+          gateway: 'Vietcombank', // Tên ngân hàng thực tế
+          transfer_amount: '110000.00',
+          transfer_type: 'in',
+          transaction_date: '2026-10-22 17:15:00',
+        },
+      };
+
+      const res = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .send(realPayload);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      const attempt = await knex('payment_attempts').where({ order_id: orderSepayMainRoute }).first();
+      expect(attempt.status).toBe('SUCCESS');
+      expect(attempt.bank_code).toBe('Vietcombank');
+      expect(attempt.gateway_trans_no).toBe(transNo);
+    });
+
+    it('should evaluate and create auto refund (BR-07) when receiving late payment for an EXPIRED order', async () => {
+      const transNo = 'SEPAY_LATE_EXP_TXN_01';
+      const payload = {
+        notification_type: 'ORDER_PAID',
+        order: {
+          order_invoice_number: orderSepayRefundBR07,
+          order_amount: 60000,
+          order_status: 'CAPTURED',
+        },
+        transaction: {
+          id: transNo,
+          transfer_amount: 60000,
+          transaction_status: 'APPROVED',
+        },
+      };
+
+      const res = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .send(payload);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.result).toBe('LATE_APPLIED');
+
+      // Kiểm tra bảng refunds: đã kích hoạt quy tắc BR-07 tự động tạo lệnh hoàn tiền
+      const refund = await knex('refunds').where({ order_id: orderSepayRefundBR07 }).first();
+      expect(refund).toBeDefined();
+      expect(refund.type).toBe('AUTO');
+      expect(refund.amount).toBe(60000);
+
+      // Đơn hàng chuyển sang REFUND_PENDING
+      const order = await knex('orders').where({ order_id: orderSepayRefundBR07 }).first();
+      expect(order.status).toBe('REFUND_PENDING');
+    });
+
+    it('should verify signature against raw body bytes when rawBody is present', async () => {
+      const payload = {
+        order_invoice_number: orderSepaySuccess,
+        order_amount: 90000,
+        transaction_status: 'SUCCESS',
+        sepay_transaction_id: 'SP_TXN_RAW_TEST_01',
+      };
+      const timestamp = '1757058220';
+      const rawBody = JSON.stringify(payload);
+      const hmacHash = crypto
+        .createHmac('sha256', env.SEPAY_SECRET_KEY)
+        .update(`${timestamp}.${rawBody}`)
+        .digest('hex');
+
+      const res = await request(app)
+        .post('/api/v1/payments/sepay/ipn')
+        .set('Content-Type', 'application/json')
+        .set('X-SePay-Signature', `sha256=${hmacHash}`)
+        .set('X-SePay-Timestamp', timestamp)
+        .send(rawBody);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
     });
   });
 });

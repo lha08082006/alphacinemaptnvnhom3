@@ -506,13 +506,44 @@
 
     // Hàm lấy trạng thái từ API và kích hoạt Polling
     async function initResult() {
-        const urlParams = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
-        const orderId = urlParams.get('orderId') || localStorage.getItem('currentOrder');
+        let queryStr = '';
+        if (window.location.hash.includes('?')) {
+            queryStr = window.location.hash.split('?')[1];
+        }
+        if (!queryStr && window.location.search) {
+            queryStr = window.location.search.replace(/^\?/, '');
+        }
+        const urlParams = new URLSearchParams(queryStr);
+        const orderId = urlParams.get('orderId') || urlParams.get('order_invoice_number') || urlParams.get('order_id') || localStorage.getItem('currentOrder');
         const demoMode = urlParams.get('demo');
+        const returnStatus = (urlParams.get('status') || '').toLowerCase();
 
         // Hỗ trợ chế độ Demo mô phỏng (Nghiệm thu)
         if (demoMode) {
             handleDemoMode(demoMode, orderId || 'BC896751187266');
+            return;
+        }
+
+        // Người dùng chủ động hủy thanh toán tại cổng SePay
+        if (returnStatus === 'cancelled' || returnStatus === 'cancel') {
+            stopPolling();
+            const content = document.getElementById('result-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="icon-large icon-warning" style="font-size: 54px; color: #f59e0b; margin-bottom: 15px;">🚫</div>
+                    <h2 style="color: #d97706; font-weight: 800; margin-bottom: 8px;">ĐÃ HỦY PHIÊN THANH TOÁN</h2>
+                    <p style="margin: 10px 0 20px; font-size: 15px; color: #555;">
+                        Quý khách đã hủy phiên thanh toán SePay cho đơn hàng <strong>${orderId || ''}</strong>.
+                    </p>
+                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 14px 18px; margin: 15px 0 25px; text-align: left; font-size: 13.5px; color: #92400e; line-height: 1.6;">
+                        ℹ️ Ghế của bạn vẫn đang được giữ trong thời gian giữ chỗ. Bạn có thể bấm <strong>"Thanh toán lại"</strong> để tiếp tục quét mã QR chuyển khoản hoặc đổi phương thức thanh toán.
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+                        <a href="index.html#checkout?orderId=${encodeURIComponent(orderId || '')}" class="btn btn-primary" style="background: #005198; color: white; padding: 10px 22px; border-radius: 6px; text-decoration: none; font-weight: 700;">THANH TOÁN LẠI</a>
+                        <a href="index.html" class="btn btn-secondary" style="background: #e2e8f0; color: #334155; padding: 10px 22px; border-radius: 6px; text-decoration: none; font-weight: 600;">VỀ TRANG CHỦ</a>
+                    </div>
+                `;
+            }
             return;
         }
 
@@ -542,6 +573,21 @@
             } catch (err) {
                 console.error('Lỗi khi tải trạng thái đơn hàng:', err);
                 stopPolling();
+
+                // Fallback nếu có đơn giả lập trong local DB
+                if (typeof DB !== 'undefined') {
+                    const localOrder = DB.get('beta_orders', orderId);
+                    if (localOrder) {
+                        renderStatusView({
+                            orderId: localOrder.orderId || orderId,
+                            status: localOrder.status || 'PAID',
+                            amountTotal: localOrder.amount || 136000,
+                            paymentMethod: localOrder.method || 'SEPAY',
+                            ticket: { ticket_id: localOrder.ticketId || ('CS' + orderId.substring(2)), status: 'VALID' }
+                        });
+                        return;
+                    }
+                }
 
                 // Requirement 4: Nếu 401 hoặc 404 -> Cho phép tra cứu bảo mật bằng mã đơn + Email/SĐT
                 if (err.status === 401) {
@@ -707,7 +753,14 @@
         }
     }
 
+    window.initResult = initResult;
+    window.renderStatusView = renderStatusView;
+    window.renderVerificationLookup = renderVerificationLookup;
+
     document.addEventListener('DOMContentLoaded', () => {
-        initResult();
+        // Tự động chạy nếu đang ở view-result hoặc trang result.html
+        if (window.location.hash.startsWith('#result') || window.location.pathname.endsWith('result.html') || document.getElementById('result-content')) {
+            initResult();
+        }
     });
 })();

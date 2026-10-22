@@ -152,7 +152,7 @@ router.post(['/sepay/ipn', '/sepay/webhook', '/sepay_ipn'], async (req, res) => 
     const result = await paymentService.applySepayIpn({
       payload: req.body,
       headers: req.headers,
-      rawBody: req.body,
+      rawBody: req.rawBody || req.body,
     });
 
     if (result.success === false && result.message === 'Invalid signature') {

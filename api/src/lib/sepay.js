@@ -96,9 +96,10 @@ function verifyWebhookSignature({
   if (!signatureHeader) return false;
 
   try {
-    const cleanSig = signatureHeader.startsWith('sha256=')
+    const rawSig = signatureHeader.startsWith('sha256=')
       ? signatureHeader.slice(7)
       : signatureHeader;
+    const cleanSig = String(rawSig).trim().toLowerCase();
 
     const bodyStr = typeof rawBody === 'string' ? rawBody : JSON.stringify(rawBody);
     const dataToSign = timestamp ? `${timestamp}.${bodyStr}` : bodyStr;
@@ -106,7 +107,8 @@ function verifyWebhookSignature({
     const expectedHash = crypto
       .createHmac('sha256', secretKey)
       .update(dataToSign)
-      .digest('hex');
+      .digest('hex')
+      .toLowerCase();
 
     const expectedBuf = Buffer.from(expectedHash, 'utf8');
     const actualBuf = Buffer.from(cleanSig, 'utf8');

@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Logo to hơn -->
                 <a href="index.html" class="logo-box" style="flex-shrink: 0;">
-                    <img alt="Beta Cinemas" style="height: 65px;" src="https://www.betacinemas.vn/Assets/Common/logo/logo.png">
+                    <img alt="Beta Cinemas" style="height: 65px;" src="https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/Gemini_Generated_Image_6pkjbl6pkjbl6pkj.png">
                 </a>
                 
                 <!-- Khung Dropdown to hơn -->
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Column 1 -->
         <div style="text-align: center;">
             <a href="index.html" style="display:inline-block; margin-bottom:20px;">
-                <img alt="Beta Cinemas" style="height: 55px;" src="https://betacinemas.vn/Assets/Common/logo/logo-white.png">
+                <img alt="Beta Cinemas" style="height: 55px;" src="https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/Gemini_Generated_Image_iuxjc6iuxjc6iuxj.png">
             </a>
             <p style="margin:0 0 10px 0; font-family: 'Montserrat', sans-serif; font-size:16px;"><strong>TUYỂN DỤNG</strong></p>
             <a href="#" style="display:inline-block; padding:8px 20px; border:2px solid white; color:white; text-decoration:none; border-radius:20px; font-weight:bold; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='#064e96';" onmouseout="this.style.background='transparent'; this.style.color='white';">ỨNG TUYỂN NGAY</a>
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         select.value = currentCin;
     }
 
-        // 3. Hiển thị Trạng thái Đăng nhập
+    // 3. Hiển thị Trạng thái Đăng nhập
     updateAuthUI();
 
     // 4. Khởi tạo Smart Sticky Header
@@ -298,7 +298,7 @@ window.logout = async function (e) {
         if (window.API && API.post) {
             await API.post('/auth/logout');
         }
-    } catch (_err) {}
+    } catch (_err) { }
     localStorage.removeItem('currentUser');
     if (typeof Notify !== 'undefined' && Notify.success) {
         Notify.success("Đã đăng xuất.");

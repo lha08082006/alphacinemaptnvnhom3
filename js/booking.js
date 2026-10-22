@@ -76,7 +76,7 @@
             genres: movie?.genres || ['Hành động', 'Tâm lý'],
             durationMin: movie?.duration || 120,
             ageRating: movie?.ageRating || 'T13',
-            imageUrl: movie?.imageUrl || 'https://placehold.co/150x220',
+            imageUrl: movie?.imageUrl || 'https://files.betacorp.vn/media%2fimages%2f2026%2f09%2f29%2f400x633%2D095119%2D290926%2D27.jpg',
             priceStandard: 68000,
             priceVip: 75000,
             priceCouple: 145000,
@@ -91,16 +91,18 @@
         
         rows.forEach((r) => {
             if (r === 'H') {
-                // Hàng ghế đôi Sweetbox (6 ghế đôi = 12 chỗ)
-                for (let c = 1; c <= 6; c++) {
+                // Hàng ghế đôi Sweetbox (6 cặp ghế đôi = 12 chỗ)
+                for (let c = 1; c <= 12; c++) {
+                    const pairCol = (c % 2 !== 0) ? (c + 1) : (c - 1);
                     fallbackSeats.push({
-                        id: `${r}${c*2-1}-${r}${c*2}`,
+                        id: `${r}${c}`,
                         row: r,
                         col: c,
-                        label: `${r}${c*2-1}-${r}${c*2}`,
+                        label: `${r}${c}`,
                         type: 'COUPLE',
+                        pairCol: pairCol,
                         price: 145000,
-                        status: (c === 3) ? 'SOLD' : 'AVAILABLE',
+                        status: (c === 5 || c === 6) ? 'SOLD' : 'AVAILABLE',
                     });
                 }
             } else {
@@ -151,8 +153,15 @@
         }
 
         const elPoster = document.getElementById('bk-poster');
-        if (elPoster && showtime.imageUrl) {
-            elPoster.src = showtime.imageUrl;
+        if (elPoster) {
+            let imgUrl = showtime.imageUrl;
+            if (!imgUrl && typeof DemoData !== 'undefined' && DemoData.movies) {
+                const found = DemoData.movies.find((m) => m.id === showtime.movieId || m.title === showtime.movieTitle);
+                if (found) imgUrl = found.imageUrl;
+            }
+            if (imgUrl) {
+                elPoster.src = imgUrl;
+            }
         }
 
         const elWarning = document.getElementById('bk-warning');
@@ -189,6 +198,7 @@
             leftLabel.innerText = rowKey;
             rowEl.appendChild(leftLabel);
 
+            let prevCol = 0;
             rowSeats.forEach((s) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -198,10 +208,21 @@
                 btn.dataset.price = s.price;
                 btn.dataset.type = s.type;
 
+                // Lối đi phân bổ cân xứng tuyệt đối 4 - 4 - 4 cho phòng 12 cột (giữa cột 4-5 và 8-9)
+                if (s.col === 5 || s.col === 9 || (prevCol > 0 && s.col - prevCol > 1)) {
+                    btn.style.marginLeft = '18px';
+                }
+                prevCol = s.col;
+
                 if (s.type === 'VIP') {
                     btn.classList.add('seat-vip');
                 } else if (s.type === 'COUPLE') {
                     btn.classList.add('seat-double');
+                    if (s.pairCol && s.pairCol === s.col + 1) {
+                        btn.classList.add('seat-couple-left');
+                    } else if (s.pairCol && s.pairCol === s.col - 1) {
+                        btn.classList.add('seat-couple-right');
+                    }
                 }
 
                 if (s.status === 'SOLD') {

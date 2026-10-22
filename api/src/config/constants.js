@@ -68,6 +68,8 @@ const REFUND_ESTIMATED_TIMES = Object.freeze({
   ATM: 'trong vòng 7 ngày làm việc',
   WALLET: '7-14 ngày làm việc',
   QR: '7-14 ngày làm việc',
+  BANK_TRANSFER: '24-48 giờ làm việc',
+  SEPAY: '24-48 giờ làm việc',
   DEFAULT: '7-14 ngày làm việc',
 });
 
