@@ -3,241 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kết quả giao dịch - Beta Cinemas</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta http-equiv="refresh" content="0; url=index.html#result">
+    <title>Beta Cinemas - Kết quả giao dịch</title>
     <style>
         body {
-            background-color: #f5f5f5;
-            font-family: 'Be Vietnam Pro', sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Demo Toolbar */
-        .demo-bar {
-            background: #212529;
-            color: #fff;
-            padding: 8px 15px;
-            font-size: 13px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #334155;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            z-index: 1000;
+            height: 100vh;
+            margin: 0;
         }
-        .demo-bar span {
-            color: #ffc107;
-            font-weight: 700;
-            margin-right: 4px;
-        }
-        .demo-btn {
-            background: #343a40;
-            color: #fff;
-            border: 1px solid #495057;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.15s;
-        }
-        .demo-btn:hover {
-            background: #03599d;
-            border-color: #03599d;
-            color: #fff;
-        }
-        .demo-btn.active {
-            background: #03599d;
-            border-color: #03599d;
-            font-weight: 700;
-        }
-
-        .result-box {
-            max-width: 680px;
-            margin: 40px auto 70px;
+        .redirect-box {
             text-align: center;
-            padding: 40px 32px;
+            padding: 30px;
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            max-width: 400px;
         }
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--beta-blue, #03599d);
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #005198;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.85; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .icon-large {
-            font-size: 56px;
-            margin-bottom: 16px;
-            line-height: 1;
-        }
-        .icon-success { color: #28a745; }
-        .icon-error { color: #dc3545; }
-        .icon-warning { color: #f39c12; }
-        .icon-refund { color: #17a2b8; }
-
-        .timeline-box {
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 1px dashed #ddd;
-            text-align: left;
-        }
-        .timeline-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-        }
-        .timeline-items {
-            position: relative;
-            padding-left: 10px;
-        }
-        .timeline-item {
-            position: relative;
-            padding-left: 24px;
-            padding-bottom: 16px;
-            border-left: 2px solid #03599d;
-        }
-        .timeline-item:last-child {
-            border-left: 2px solid transparent;
-            padding-bottom: 0;
-        }
-        .timeline-dot {
-            position: absolute;
-            left: -7px;
-            top: 3px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #03599d;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 1px #03599d;
-        }
-        .timeline-time {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 2px;
-        }
-        .timeline-content {
-            font-size: 13.5px;
-            color: #333;
-            font-weight: 500;
-        }
-        .timeline-reason {
-            font-size: 12.5px;
-            color: #666;
-            margin-top: 2px;
-        }
-        .btn {
-            display: inline-block;
-            padding: 11px 24px;
-            border-radius: 4px;
-            font-weight: 700;
-            font-size: 14px;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .btn-primary {
-            background: #03599d;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: #024477;
-        }
-        .btn-orange {
-            background: #f26b38;
-            color: #fff;
-        }
-        .btn-orange:hover {
-            background: #d85727;
-        }
-        .btn-secondary {
-            background: #e9ecef;
-            color: #495057;
-        }
-        .btn-secondary:hover {
-            background: #dee2e6;
-        }
-        .info-card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            padding: 16px 20px;
-            margin: 20px 0;
-            text-align: left;
-            font-size: 14px;
-        }
-        .info-card-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 9px;
-            align-items: center;
-        }
-        .info-card-row:last-child {
-            margin-bottom: 0;
-        }
+        a { color: #005198; text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
     </style>
-</head>
-<body>
-    <!-- Thanh điều khiển mô phỏng trạng thái (Demo / Nghiệm thu) -->
-    <div class="demo-bar" id="demo-toolbar">
-        <span>🧪 MÔ PHỎNG TRẠNG THÁI:</span>
-        <a href="result.html?demo=paid" class="demo-btn" id="btn-demo-paid">1. Thành công (có vé)</a>
-        <a href="result.html?demo=pending_verify" class="demo-btn" id="btn-demo-pending">2. Đang xác minh</a>
-        <a href="result.html?demo=failed" class="demo-btn" id="btn-demo-failed">3. Thất bại</a>
-        <a href="result.html?demo=expired" class="demo-btn" id="btn-demo-expired">4. Hết hạn giữ ghế</a>
-        <a href="result.html?demo=refund_pending" class="demo-btn" id="btn-demo-refund-pending">5. Đã tạo lệnh hoàn</a>
-        <a href="result.html?demo=refunded" class="demo-btn" id="btn-demo-refunded">6. Đã hoàn xong</a>
-        <a href="result.html?demo=lookup" class="demo-btn" id="btn-demo-lookup">7. Chưa đăng nhập / Tra cứu SĐT</a>
-    </div>
-
-    <div class="container-fluid" id="result-container">
-        <div class="result-box" id="result-content">
-            <div class="spinner"></div>
-            <h2 style="color: var(--beta-blue, #03599d); font-size: 20px;">Đang tải thông tin đơn hàng...</h2>
-            <p style="color: #666; margin-top: 12px; font-size: 14px;">Vui lòng chờ trong giây lát.</p>
-        </div>
-    </div>
-
-    <!-- Nạp layout chung, client API và controller kết quả -->
-    <script src="js/layout.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/result.js"></script>
-
     <script>
-        // Đánh dấu nút demo đang được chọn
         (function() {
-            const params = new URLSearchParams(window.location.search);
-            const demo = params.get('demo');
-            if (demo) {
-                const btn = document.querySelector(`.demo-btn[href*="demo=${demo}"]`);
-                if (btn) btn.classList.add('active');
+            const search = window.location.search || '';
+            const hash = window.location.hash || '';
+            let params = '';
+            if (search) {
+                params = search.startsWith('?') ? search.substring(1) : search;
+            } else if (hash.includes('?')) {
+                params = hash.split('?')[1];
             }
+            const target = 'index.html#result' + (params ? '?' + params : '');
+            window.location.replace(target);
         })();
     </script>
+</head>
+<body>
+    <div class="redirect-box">
+        <div class="spinner"></div>
+        <p style="margin: 0 0 10px 0; font-size: 15px; font-weight: 600;">Đang chuyển hướng sang Beta Cinemas...</p>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">Nếu không tự động chuyển tiếp, <a href="index.html#result">bấm vào đây</a>.</p>
+    </div>
 </body>
 </html>

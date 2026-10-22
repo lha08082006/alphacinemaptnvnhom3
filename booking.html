@@ -3,104 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt vé & Chọn ghế - Beta Cinemas</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/booking.css">
+    <meta http-equiv="refresh" content="0; url=index.html#booking">
+    <title>Beta Cinemas - Đặt vé xem phim</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .redirect-box {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            max-width: 400px;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #005198;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a { color: #005198; text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
+    </style>
+    <script>
+        (function() {
+            const search = window.location.search || '';
+            const hash = window.location.hash || '';
+            let params = '';
+            if (search) {
+                params = search.startsWith('?') ? search.substring(1) : search;
+            } else if (hash.includes('?')) {
+                params = hash.split('?')[1];
+            }
+            const target = 'index.html#booking' + (params ? '?' + params : '');
+            window.location.replace(target);
+        })();
+    </script>
 </head>
 <body>
-    <!-- Header và top-bar sẽ được chèn bởi layout.js -->
-
-    <div class="container breadcrumb">
-        <a href="index.html">Trang chủ</a> &gt; 
-        <a href="#">Đặt vé</a> &gt; 
-        <span id="bk-movie-name-bc">Đang tải phim...</span>
+    <div class="redirect-box">
+        <div class="spinner"></div>
+        <p style="margin: 0 0 10px 0; font-size: 15px; font-weight: 600;">Đang chuyển hướng sang Beta Cinemas...</p>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">Nếu không tự động chuyển tiếp, <a href="index.html#booking">bấm vào đây</a>.</p>
     </div>
-
-    <div class="container booking-layout">
-        <!-- CỘT TRÁI: SƠ ĐỒ GHẾ THỰC TẾ -->
-        <div class="booking-main">
-            <div class="bk-warning" id="bk-warning">
-                Theo quy định của cục điện ảnh, phim này không dành cho khán giả dưới 13 tuổi.
-            </div>
-
-            <div class="bk-legends-top">
-                <div class="bk-legend"><div class="seat-icon seat-empty"></div> Ghế trống</div>
-                <div class="bk-legend"><div class="seat-icon seat-selecting"></div> Ghế đang chọn</div>
-                <div class="bk-legend"><div class="seat-icon seat-holding"></div> Ghế đang giữ</div>
-                <div class="bk-legend"><div class="seat-icon seat-sold"></div> Ghế đã bán</div>
-            </div>
-
-            <div class="bk-screen-wrapper">
-                <div class="bk-screen-curve"></div>
-                <div class="bk-screen-text">MÀN HÌNH CHIẾU</div>
-            </div>
-
-            <div class="bk-seat-map" id="bk-seat-map">
-                <!-- JS sẽ render ghế thực tế từ API GET /showtimes/:id/seats -->
-            </div>
-
-            <div class="bk-bottom-bar">
-                <div class="bk-legends-bottom">
-                    <div class="bk-legend"><div class="seat-icon seat-normal-legend"></div> Ghế thường</div>
-                    <div class="bk-legend"><div class="seat-icon seat-vip-legend" style="border: 2px solid #e50914;"></div> Ghế VIP</div>
-                    <div class="bk-legend"><div class="seat-icon seat-double-legend" style="width: 44px; border: 2px solid #e91e63;"></div> Ghế đôi</div>
-                </div>
-                <div class="bk-total-price">
-                    <div class="bk-label">Tổng tiền</div>
-                    <div class="bk-val" id="bk-total-val">0 vnđ</div>
-                </div>
-                <div class="bk-countdown">
-                    <div class="bk-label">Thời gian giữ lượt</div>
-                    <div class="bk-val hold-timer" id="bk-countdown-val">05:00</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CỘT PHẢI: TÓM TẮT ĐƠN HÀNG -->
-        <div class="booking-sidebar">
-            <div class="bk-summary-top">
-                <div class="bk-poster-box" style="position: relative;">
-                    <div class="mg-age" id="bk-age-badge" style="position:absolute; top:0; left:0;">P</div>
-                    <img id="bk-poster" src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Poster" style="max-height: 140px; object-fit: cover;">
-                </div>
-                <div class="bk-movie-info-top">
-                    <h2 id="bk-movie-title" style="font-size: 18px; line-height: 1.4;">Đang tải tên phim...</h2>
-                    <div class="bk-format" style="color: #666; font-size: 13px; margin-top: 5px;">2D Phụ đề</div>
-                </div>
-            </div>
-
-            <div class="bk-info-grid">
-                <div class="bk-info-label">🏷️ Thể loại</div>
-                <div class="bk-info-val" id="bk-genres">—</div>
-
-                <div class="bk-info-label">⏱️ Thời lượng</div>
-                <div class="bk-info-val" id="bk-duration">—</div>
-            </div>
-            
-            <hr class="bk-divider">
-
-            <div class="bk-info-grid">
-                <div class="bk-info-label">🏛️ Rạp chiếu</div>
-                <div class="bk-info-val" id="bk-cinema">Beta Cinemas</div>
-
-                <div class="bk-info-label">📅 Ngày chiếu</div>
-                <div class="bk-info-val" id="bk-date">—</div>
-
-                <div class="bk-info-label">🕒 Giờ chiếu</div>
-                <div class="bk-info-val" id="bk-time">—</div>
-
-                <div class="bk-info-label">💺 Ghế ngồi</div>
-                <div class="bk-info-val" id="bk-seats-selected" style="color:var(--orange, #f26b38); font-weight:bold;">Chưa chọn ghế</div>
-            </div>
-
-            <button class="bk-submit-btn" id="bk-submit-btn">TIẾP TỤC</button>
-        </div>
-    </div>
-
-    <!-- Scripts Core -->
-    <script src="js/api.js"></script>
-    <script src="js/layout.js"></script>
-    <script src="js/timer.js"></script>
-    <script src="js/booking.js"></script>
 </body>
 </html>

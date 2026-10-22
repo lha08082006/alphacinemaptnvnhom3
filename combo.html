@@ -2,13 +2,64 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=booking.html">
-    <title>Chuyển hướng...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=index.html#booking">
+    <title>Beta Cinemas - Đặt vé</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .redirect-box {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            max-width: 400px;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #005198;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a { color: #005198; text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; }
+    </style>
     <script>
-        window.location.replace('booking.html' + window.location.search);
+        (function() {
+            const search = window.location.search || '';
+            const hash = window.location.hash || '';
+            let params = '';
+            if (search) {
+                params = search.startsWith('?') ? search.substring(1) : search;
+            } else if (hash.includes('?')) {
+                params = hash.split('?')[1];
+            }
+            const target = 'index.html#booking' + (params ? '?' + params : '');
+            window.location.replace(target);
+        })();
     </script>
 </head>
 <body>
-    <p>Đang chuyển hướng sang trang chọn ghế...</p>
+    <div class="redirect-box">
+        <div class="spinner"></div>
+        <p style="margin: 0 0 10px 0; font-size: 15px; font-weight: 600;">Đang chuyển hướng sang Beta Cinemas...</p>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">Nếu không tự động chuyển tiếp, <a href="index.html#booking">bấm vào đây</a>.</p>
+    </div>
 </body>
 </html>
