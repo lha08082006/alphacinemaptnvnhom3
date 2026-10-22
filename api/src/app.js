@@ -33,7 +33,7 @@ function createApp() {
   app.disable('x-powered-by');
 
   app.use(requestId); // đặt đầu tiên để cả lỗi parse JSON cũng có requestId
-  app.use(helmet());
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieParser());
   app.use(
     cors({

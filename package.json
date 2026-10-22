@@ -4,12 +4,13 @@
   "private": true,
   "description": "Demo Beta Cinemas - giao dịch treo, đối soát và hoàn tiền tự động (frontend + api + gateway-mock)",
   "scripts": {
+    "start": "node api/src/server.js",
     "setup": "npm install && npm --prefix api install && npm --prefix gateway-mock install",
-    "dev": "concurrently -k -n api,gateway -c blue,magenta \"npm:dev:api\" \"npm:dev:gateway\"",
+    "dev": "npm --prefix api run dev",
+    "dev:all": "concurrently -k -n api,gateway -c blue,magenta \"npm:dev:api\" \"npm:dev:gateway\"",
     "dev:api": "npm --prefix api run dev",
     "dev:gateway": "npm --prefix gateway-mock run dev",
-    "test": "npm --prefix api test && npm --prefix gateway-mock test",
-    "demo": "node beta-payment-demo/server.js"
+    "test": "npm --prefix api test && npm --prefix gateway-mock test"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
