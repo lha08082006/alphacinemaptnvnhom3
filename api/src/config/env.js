@@ -23,18 +23,18 @@ const schema = z.object({
   DB_FILE: z.string().min(1).default(path.join('data', 'beta.sqlite')),
   CORS_ORIGINS: csvList('http://127.0.0.1:5500,http://localhost:5500'),
   GATEWAY_BASE_URL: z.string().url('phải là URL hợp lệ').default('http://127.0.0.1:4100'),
-  WEBHOOK_SECRET: z.string(required('WEBHOOK_SECRET')).min(16, 'phải dài ít nhất 16 ký tự'),
+  WEBHOOK_SECRET: z.string().min(16, 'phải dài ít nhất 16 ký tự').default('dev_webhook_secret_change_me_0123'),
   WEBHOOK_TOLERANCE_SEC: z.coerce.number().int().positive().default(300),
-  JWT_SECRET: z.string(required('JWT_SECRET')).min(16, 'phải dài ít nhất 16 ký tự'),
+  JWT_SECRET: z.string().min(16, 'phải dài ít nhất 16 ký tự').default('dev_jwt_secret_change_me_0123456789'),
   JWT_EXPIRES_IN: z.string().min(1).default('2h'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error', 'silent']).default('info'),
 
   // Cấu hình cổng thanh toán VNPay
-  VNPAY_TMN_CODE: z.string(required('VNPAY_TMN_CODE')).min(1, 'phải có ít nhất 1 ký tự'),
-  VNPAY_HASH_SECRET: z.string(required('VNPAY_HASH_SECRET')).min(1, 'phải có ít nhất 1 ký tự'),
-  VNPAY_URL: z.string(required('VNPAY_URL')).url('phải là URL hợp lệ'),
-  VNPAY_API_URL: z.string(required('VNPAY_API_URL')).url('phải là URL hợp lệ'),
-  VNPAY_RETURN_URL: z.string(required('VNPAY_RETURN_URL')).url('phải là URL hợp lệ'),
+  VNPAY_TMN_CODE: z.string().min(1, 'phải có ít nhất 1 ký tự').default('2QXUI4J4'),
+  VNPAY_HASH_SECRET: z.string().min(1, 'phải có ít nhất 1 ký tự').default('RAOCTQKWZTYAEGISKBLWTRAAILXUANMD'),
+  VNPAY_URL: z.string().url('phải là URL hợp lệ').default('https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),
+  VNPAY_API_URL: z.string().url('phải là URL hợp lệ').default('https://sandbox.vnpayment.vn/merchant_webapi/api/transaction'),
+  VNPAY_RETURN_URL: z.string().url('phải là URL hợp lệ').default('http://localhost:4000/api/v1/payment/vnpay/return'),
   VNPAY_TRUST_RETURN: z.enum(['true', 'false']).default('false'),
 
   // Cấu hình cổng thanh toán SePay (Sandbox)
@@ -69,11 +69,13 @@ function parseEnv(source) {
 
   const env = { ...result.data };
   env.DB_PATH =
-    env.DB_FILE === ':memory:'
-      ? ':memory:'
-      : path.isAbsolute(env.DB_FILE)
-        ? env.DB_FILE
-        : path.join(API_ROOT, env.DB_FILE);
+    process.env.VERCEL
+      ? path.join('/tmp', 'beta.sqlite')
+      : env.DB_FILE === ':memory:'
+        ? ':memory:'
+        : path.isAbsolute(env.DB_FILE)
+          ? env.DB_FILE
+          : path.join(API_ROOT, env.DB_FILE);
 
   return Object.freeze(env);
 }

@@ -197,7 +197,8 @@
                 const res = await API.get(`/showtimes?cinemaId=${cinemaId}&date=${dateStr}`);
                 data = (res && res.data) ? res.data : res;
             } else {
-                const res = await fetch(`http://localhost:4000/api/v1/showtimes?cinemaId=${cinemaId}&date=${dateStr}`);
+                const base = (typeof API_BASE !== 'undefined') ? API_BASE : '/api/v1';
+                const res = await fetch(`${base}/showtimes?cinemaId=${cinemaId}&date=${dateStr}`);
                 const json = await res.json();
                 data = json.data || json;
             }

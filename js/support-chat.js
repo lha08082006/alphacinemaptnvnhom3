@@ -8,6 +8,15 @@
 
 (function () {
   const SESSION_STORAGE_KEY = 'beta_support_session_id';
+  const isOnlineProd =
+    typeof window !== 'undefined' &&
+    window.location &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+  const API_ENDPOINT_ONLINE =
+    typeof window !== 'undefined' && window.location
+      ? `${window.location.origin}/api/v1/support/chat`
+      : '/api/v1/support/chat';
   const API_ENDPOINT_3000 = 'http://127.0.0.1:3000/api/v1/support/chat';
   const API_ENDPOINT_4000 = 'http://127.0.0.1:4000/api/v1/support/chat';
 
@@ -232,15 +241,23 @@
     }
 
     let res = null;
-    try {
-      // 1. Thử gọi cổng 3000 theo yêu cầu đề bài
-      res = await sendToUrl(API_ENDPOINT_3000);
-    } catch (err3000) {
-      // 2. Nếu cổng 3000 không mở hoặc lỗi mạng -> tự động thử cổng 4000 của server
+    if (isOnlineProd) {
       try {
-        res = await sendToUrl(API_ENDPOINT_4000);
-      } catch (err4000) {
+        res = await sendToUrl(API_ENDPOINT_ONLINE);
+      } catch (errOnline) {
         throw new Error('NETWORK_FAILED');
+      }
+    } else {
+      try {
+        // 1. Thử gọi cổng 3000 theo yêu cầu đề bài
+        res = await sendToUrl(API_ENDPOINT_3000);
+      } catch (err3000) {
+        // 2. Nếu cổng 3000 không mở hoặc lỗi mạng -> tự động thử cổng 4000 của server
+        try {
+          res = await sendToUrl(API_ENDPOINT_4000);
+        } catch (err4000) {
+          throw new Error('NETWORK_FAILED');
+        }
       }
     }
 

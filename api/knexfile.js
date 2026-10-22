@@ -27,7 +27,8 @@ function sqliteConfig(filename) {
   };
 }
 
-const config = sqliteConfig(env.DB_PATH);
+const resolvedDbPath = process.env.VERCEL ? path.join('/tmp', 'beta.sqlite') : env.DB_PATH;
+const config = sqliteConfig(resolvedDbPath);
 
 module.exports = {
   development: config,

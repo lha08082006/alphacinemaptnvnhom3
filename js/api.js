@@ -1,9 +1,19 @@
 // js/api.js
 'use strict';
 
-const API_BASE = (typeof window !== 'undefined' && window.location && (window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '4000')
-  ? `${window.location.origin}/api/v1`
-  : 'http://127.0.0.1:4000/api/v1';
+const isProductionDomain =
+  typeof window !== 'undefined' &&
+  window.location &&
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1';
+
+const API_BASE =
+  typeof window !== 'undefined' &&
+  window.location &&
+  (window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
+  (window.location.port === '4000' || isProductionDomain)
+    ? `${window.location.origin}/api/v1`
+    : 'http://127.0.0.1:4000/api/v1';
 
 /**
  * Hàm gửi request tới API backend với credentials: 'include'.
