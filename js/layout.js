@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img alt="Beta Cinemas" style="height: 55px;" src="https://res.cloudinary.com/kzufwtif/image/upload/f_auto/q_auto/Gemini_Generated_Image_iuxjc6iuxjc6iuxj.png">
             </a>
             <p style="margin:0 0 10px 0; font-family: 'Montserrat', sans-serif; font-size:16px;"><strong>TUYỂN DỤNG</strong></p>
-            <a href="#" style="display:inline-block; padding:8px 20px; border:2px solid white; color:white; text-decoration:none; border-radius:20px; font-weight:bold; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='#064e96';" onmouseout="this.style.background='transparent'; this.style.color='white';">ỨNG TUYỂN NGAY</a>
+            <a href="#" style="display:inline-block; padding:8px 20px; border:2px solid white; color:white; text-decoration:none; border-radius:20px; font-weight:bold; transition:0.2s;" onmouseover="this.style.background='white'; this.style.color='#064e96';" onmouseout="this.style.background='transparent'; this.style.color='white';">HỖ TRỢ</a>
         </div>
 
         <!-- Column 2 -->

@@ -3867,7 +3867,7 @@ body {
                     <img alt="Beta Cinemas" style="height: 55px;" src="https://betacinemas.vn/Assets/Common/logo/logo-white.png">
                 </a>
                 <p style="margin:0 0 10px 0; font-family: 'Montserrat', sans-serif; font-size:16px;"><strong>TUYỂN DỤNG</strong></p>
-                <a href="#support" onclick="window.spaNavigate('support')" style="display:inline-block; padding:8px 20px; border:2px solid white; color:white; text-decoration:none; border-radius:20px; font-weight:bold;">ỨNG TUYỂN NGAY</a>
+                <a href="#support" onclick="window.spaNavigate('support')" style="display:inline-block; padding:8px 20px; border:2px solid white; color:white; text-decoration:none; border-radius:20px; font-weight:bold;">HỖ TRỢ</a>
             </div>
 
             <div>
@@ -4794,6 +4794,89 @@ body {
             prompt('Sao chép thông tin thẻ:', text);
         }
     };
+    </script>
+
+        <!-- ========================================== -->
+    <!-- CHAT BOX: FACEBOOK CUSTOMER CHAT & BETA BOT -->
+    <!-- ========================================== -->
+    <div id="fb-root"></div>
+    <script>
+        window.fbAsyncInit = function () {
+            if (typeof FB !== 'undefined') {
+                FB.init({
+                    appId: '367174740769877',
+                    xfbml: true,
+                    version: 'v17.0'
+                });
+                if (FB.AppEvents && FB.AppEvents.logPageView) {
+                    FB.AppEvents.logPageView();
+                }
+            }
+        };
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/vi_VN/sdk/xfbml.customerchat.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+    <div class="fb-customerchat"
+         attribution="setup_tool"
+         page_id="372534489582129"
+         theme_color="#005198"
+         logged_in_greeting="Xin chào tín đồ điện ảnh, Beta có thể giúp gì cho bạn? 😍"
+         logged_out_greeting="Xin chào tín đồ điện ảnh, Beta có thể giúp gì cho bạn? 😍">
+    </div>
+
+    <!-- Floating Chat Box Widget Launcher (Hỗ trợ khi Facebook Messenger chưa load hoặc chạy trên localhost) -->
+    <div id="beta-chat-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 99999; font-family: 'Be Vietnam Pro', sans-serif;">
+        <!-- Greeting bubble -->
+        <div id="beta-chat-greeting" style="position: absolute; bottom: 65px; right: 0; background: #ffffff; color: #1e293b; padding: 10px 14px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; width: 230px; line-height: 1.4; display: flex; align-items: flex-start; gap: 8px;">
+            <span style="font-size: 16px;">💬</span>
+            <div style="flex: 1;">Xin chào tín đồ điện ảnh, Beta có thể giúp gì cho bạn? 😍</div>
+            <button type="button" onclick="document.getElementById('beta-chat-greeting').style.display='none'" style="background: none; border: none; color: #94a3b8; font-size: 14px; cursor: pointer; padding: 0;">&times;</button>
+        </div>
+
+        <!-- Floating Chat Button -->
+        <div id="beta-chat-fab" onclick="window.toggleBetaChatMenu()" title="Mở Chat Hỗ Trợ" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #005198 0%, #0369a1 100%); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 20px rgba(0,81,152,0.4); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+
+        <!-- Chat Menu Popup -->
+        <div id="beta-chat-menu" style="display: none; position: absolute; bottom: 70px; right: 0; width: 280px; background: white; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; overflow: hidden;">
+            <div style="background: #005198; color: white; padding: 14px 16px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <span>💬 Chat Hỗ Trợ Khách Hàng</span>
+                <span onclick="window.toggleBetaChatMenu(false)" style="cursor: pointer; font-size: 18px;">&times;</span>
+            </div>
+            <div style="padding: 12px;">
+                <a href="https://m.me/372534489582129" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f0f7ff; border-radius: 8px; text-decoration: none; color: #005198; font-weight: 600; font-size: 13px; margin-bottom: 8px; border: 1px solid #d0e4fa;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#005198"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.914 1.455 5.517 3.735 7.185V22l3.419-1.876c.905.25 1.865.388 2.846.388 5.523 0 10-4.145 10-9.254C22 6.145 17.523 2 12 2zm1.004 12.443l-2.553-2.723-4.986 2.723 5.485-5.824 2.616 2.723 4.923-2.723-5.485 5.824z"/></svg>
+                    <span>Nhắn qua Facebook Messenger</span>
+                </a>
+                <a href="#support" onclick="window.spaNavigate('support'); window.toggleBetaChatMenu(false);" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff5ee; border-radius: 8px; text-decoration: none; color: #f26a1e; font-weight: 600; font-size: 13px; margin-bottom: 8px; border: 1px solid #fcd3b6;">
+                    <span>🤖 Chat Trợ lý AI (Beta Bot 24/7)</span>
+                </a>
+                <div style="font-size: 12px; color: #64748b; padding: 4px 6px; text-align: center;">
+                    Hotline CSKH: <strong style="color: #005198;">1900 636807</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.toggleBetaChatMenu = function(force) {
+            const menu = document.getElementById('beta-chat-menu');
+            if (!menu) return;
+            const isOpen = menu.style.display !== 'none';
+            const willOpen = typeof force === 'boolean' ? force : !isOpen;
+            menu.style.display = willOpen ? 'block' : 'none';
+            const greeting = document.getElementById('beta-chat-greeting');
+            if (willOpen && greeting) greeting.style.display = 'none';
+        };
     </script>
 
     <script src="js/support-chat.js"></script>
