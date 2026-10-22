@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cấu hình Hệ thống & IT - Beta Cinemas Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/orders">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" class="active" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper" style="max-width: 1000px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 24px; color: #111827; font-weight: 800;">CẤU HÌNH HỆ THỐNG & QUẢN TRỊ IT</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          Điều chỉnh các thông số timeout, chu kỳ đối soát và quản lý tài khoản người dùng.
+        </p>
+      </div>
+      <button class="btn btn-danger" onclick="resetAllData()">
+        ⚠️ Reset toàn bộ dữ liệu Demo
+      </button>
+    </div>
+
+    <!-- 1. FORM CẤU HÌNH THAM SỐ HỆ THỐNG -->
+    <div class="card">
+      <h3 class="card-title">⚙️ THAM SỐ VẬN HÀNH HỆ THỐNG</h3>
+      <form onsubmit="saveSettings(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Thời gian giữ ghế tạm thời (giây):</label>
+            <input type="number" id="cfg-hold" min="10" max="3600" required style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">Mặc định: 300 giây (5 phút). Hết hạn sẽ tự động hủy đơn và nhả ghế.</div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Timeout chờ phản hồi IPN từ cổng (giây):</label>
+            <input type="number" id="cfg-timeout" min="5" max="300" required style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">Mặc định: 15 giây. Khi vượt quá: As-is đánh rớt đơn, To-be chuyển PENDING_VERIFY.</div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Chu kỳ chạy đối soát tự động khi bật TO-BE (giây):</label>
+            <input type="number" id="cfg-recon-interval" min="5" max="300" required style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">Mặc định: 10 giây (quét nền phát hiện giao dịch lệch).</div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Cơ chế xử lý giao dịch hiện tại:</label>
+            <select id="cfg-mode" style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; background:#fff;">
+              <option value="ASIS">AS-IS (Hiện trạng: Timeout là rớt đơn và nhả ghế)</option>
+              <option value="TOBE">TO-BE (Đề xuất: Timeout giữ ghế 15p & tự động đối soát)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-navy" id="btn-save-cfg">
+          💾 Lưu thay đổi cấu hình
+        </button>
+      </form>
+    </div>
+
+    <!-- 2. DANH SÁCH TÀI KHOẢN NGƯỜI DÙNG (DÀNH CHO MANAGER) -->
+    <div class="card" id="users-card" style="display:none;">
+      <h3 class="card-title">👥 DANH SÁCH TÀI KHOẢN NGƯỜI DÙNG (MANAGER ONLY)</h3>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Họ và tên</th>
+              <th>Email</th>
+              <th>Số điện thoại</th>
+              <th>Vai trò (Role)</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    async function loadSettings() {
+      await initAdminNav('settings');
+
+      try {
+        const res = await api('/api/admin/settings');
+        const c = res.config;
+
+        document.getElementById('cfg-hold').value = c.holdSeconds;
+        document.getElementById('cfg-timeout').value = c.callbackTimeoutSeconds;
+        document.getElementById('cfg-recon-interval').value = c.autoReconIntervalSeconds;
+        document.getElementById('cfg-mode').value = c.mode;
+
+        // Thử tải danh sách users nếu là MANAGER
+        loadUsersIfManager();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function loadUsersIfManager() {
+      try {
+        const res = await api('/api/admin/users');
+        if (res.ok && res.users) {
+          document.getElementById('users-card').style.display = 'block';
+          const tbody = document.getElementById('users-tbody');
+          tbody.innerHTML = '';
+          res.users.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${u.id}</td>
+              <td><b>${u.name}</b></td>
+              <td>${u.email}</td>
+              <td>${u.phone || '--'}</td>
+              <td><span class="status-badge status-HOLDING">${u.role}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        // Không phải manager thì bỏ qua
+      }
+    }
+
+    async function saveSettings(e) {
+      e.preventDefault();
+      const holdSeconds = document.getElementById('cfg-hold').value;
+      const callbackTimeoutSeconds = document.getElementById('cfg-timeout').value;
+      const autoReconIntervalSeconds = document.getElementById('cfg-recon-interval').value;
+      const mode = document.getElementById('cfg-mode').value;
+
+      try {
+        await api('/api/admin/settings', {
+          body: { holdSeconds, callbackTimeoutSeconds, autoReconIntervalSeconds, mode }
+        });
+        showToast('Cập nhật cấu hình hệ thống thành công!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function resetAllData() {
+      if (!confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN RESET TOÀN BỘ DỮ LIỆU BỘ NHỚ?\n\nTất cả đơn hàng, giao dịch, ticket và log sẽ được đưa về trạng thái trắng ban đầu.')) {
+        return;
+      }
+
+      try {
+        const res = await api('/api/admin/reset-data', { method: 'POST' });
+        showToast(res.message, 'info');
+        setTimeout(() => location.reload(), 1000);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

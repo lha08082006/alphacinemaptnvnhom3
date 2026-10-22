@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông báo của bạn - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications" class="active">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper" style="max-width: 800px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 24px; color: var(--navy-dark); font-weight: 800;">HỘP THƯ THÔNG BÁO</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Cập nhật trạng thái vé, giao dịch thanh toán và đối soát hoàn tiền.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">✓ Đánh dấu tất cả đã đọc</button>
+    </div>
+
+    <div class="card" id="notif-list">
+      <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        Đang tải thông báo...
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    async function loadNotifications() {
+      await initCustomerNav();
+
+      try {
+        const res = await api('/api/notifications');
+        const listEl = document.getElementById('notif-list');
+        listEl.innerHTML = '';
+
+        if (!res.notifications || res.notifications.length === 0) {
+          listEl.innerHTML = `
+            <div style="text-align:center; padding:50px 20px; color:var(--text-muted);">
+              <div style="font-size:36px; margin-bottom:10px;">🔔</div>
+              Hộp thông báo của bạn đang trống.
+            </div>
+          `;
+          return;
+        }
+
+        res.notifications.forEach(n => {
+          const item = document.createElement('div');
+          item.style = `
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: ${n.read ? '#fff' : '#F0F9FF'};
+            border-left: 4px solid ${getNotifColor(n.type)};
+            margin-bottom: 8px;
+            border-radius: 4px;
+          `;
+
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <b style="font-size:15px; color:var(--navy-dark);">${n.title}</b>
+              <span style="font-size:12px; color:var(--text-muted);">${formatDateTime(n.createdAt)}</span>
+            </div>
+            <div style="font-size:13.5px; color:#334155; line-height:1.5;">${n.message}</div>
+          `;
+          listEl.appendChild(item);
+        });
+      } catch (err) {
+        document.getElementById('notif-list').innerHTML = `
+          <div style="text-align:center; padding:30px; color:var(--color-danger);">
+            ${err.message} (<a href="/login?redirect=/notifications" style="color:var(--primary-navy)">Đăng nhập</a>)
+          </div>
+        `;
+      }
+    }
+
+    function getNotifColor(type) {
+      if (type === 'success') return 'var(--color-success)';
+      if (type === 'error') return 'var(--color-danger)';
+      if (type === 'warn') return 'var(--color-warning)';
+      return 'var(--primary-navy)';
+    }
+
+    async function markAllAsRead() {
+      try {
+        await api('/api/notifications/read', { method: 'POST' });
+        showToast('Đã đánh dấu đã đọc tất cả.', 'info');
+        loadNotifications();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadNotifications();
+  </script>
+</body>
+</html>

@@ -1,34 +1,207 @@
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cổng thanh toán giả lập</title><link rel="stylesheet" href="/style.css"></head><body>
-<header style="background:#00796b"><b>NGÂN HÀNG / CỔNG THANH TOÁN (GIẢ LẬP)</b></header>
-<main style="max-width:520px">
-  <div class="card">
-    <h2 style="color:#00796b">Xác nhận chuyển khoản</h2>
-    <p>Đơn: <b id="code"></b> &nbsp; Số tiền: <b id="amount"></b></p>
-    <p class="muted">Cổng không biết đơn bên website còn hạn hay không: khách quét QR là bị trừ tiền. Chọn kịch bản:</p>
-    <div class="scen" id="scen">
-      <button class="good" onclick="go('success')"><b>Thanh toán thành công</b><br><span class="muted">Cổng ghi SUCCESS và gửi webhook về website.</span></button>
-      <button class="bad" onclick="go('lost')"><b>Thanh toán nhưng MẤT CALLBACK (giao dịch treo)</b><br><span class="muted">Khách bị trừ tiền nhưng website không nhận được webhook.</span></button>
-      <button class="mid" onclick="go('late')"><b>Thanh toán nhưng callback ĐẾN MUỘN (sau 20 giây)</b><br><span class="muted">Webhook gửi trễ, có thể sau khi đơn đã hết hạn.</span></button>
-      <button class="mid" onclick="go('wrong')"><b>Thanh toán SAI SỐ TIỀN</b><br><span class="muted">Cổng ghi số tiền thấp hơn 10.000đ rồi gửi webhook.</span></button>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cổng thanh toán giả lập - MoMo / ZaloPay / VNPay</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body { background-color: #E2E8F0; }
+  </style>
+</head>
+<body>
+  <div class="gateway-frame">
+    <!-- Header màu thương hiệu từng ví -->
+    <div class="gateway-header" id="gw-header">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9;">CỔNG THANH TOÁN ĐIỆN TỬ GIẢ LẬP</div>
+      <h1 style="font-size: 24px; font-weight: 800; margin: 4px 0;" id="gw-wallet-name">...</h1>
+      <div style="font-size: 13px; opacity: 0.9;" id="gw-partner">Đối tác thanh toán: Beta Cinemas</div>
     </div>
-    <div id="result"></div>
+
+    <!-- Thông tin thanh toán & QR Code -->
+    <div class="gateway-qr-box">
+      <div style="margin-bottom: 12px;">
+        <span style="font-size: 13px; color: var(--text-muted);">Số tiền cần thanh toán:</span>
+        <div style="font-size: 32px; font-weight: 900; color: #1E293B;" id="gw-amount">0đ</div>
+      </div>
+
+      <div style="margin-bottom: 14px; font-size: 13px; color: var(--text-muted);">
+        Mã GD: <b id="gw-txn-ref" style="color: var(--primary-navy);">...</b> | Đơn hàng: <b id="gw-order-id">...</b>
+      </div>
+
+      <!-- Khung hiển thị QR -->
+      <div id="qr-container" style="display: flex; justify-content: center; margin: 10px 0;">
+        <div id="qr-offline" class="qr-code-img" style="display:none; justify-content:center; align-items:center;"></div>
+        <img id="qr-online" class="qr-code-img" src="" alt="VietQR" onerror="fallbackOfflineQR()">
+      </div>
+
+      <div class="timer-pill" style="margin-top: 14px;" id="gw-timeout-box">
+        ⏳ Thời gian chờ phản hồi: <span id="gw-timer">15s</span>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+        (Quá 15s mà website chưa nhận được IPN, As-is sẽ đánh rớt đơn gây lỗi treo; To-be sẽ tự động bảo vệ)
+      </p>
+    </div>
+
+    <!-- 5 KỊCH BẢN THUYẾT TRÌNH BÀI TẬP -->
+    <div class="scenario-panel">
+      <div class="scenario-title">CHỌN KỊCH BẢN MÔ PHỎNG (DÙNG CHO BÀI THUYẾT TRÌNH)</div>
+      <div class="scenario-buttons">
+        <button class="btn-scen type-good" onclick="runScenario('1')">
+          <div>
+            <b>(1) Thanh toán thành công (Happy Path)</b>
+            <div style="font-size:11.5px;color:var(--text-muted);">Trừ tiền ví ngay và gửi Webhook IPN lập tức sang Website Beta.</div>
+          </div>
+          <span>🟢 Chạy</span>
+        </button>
+
+        <button class="btn-scen type-bad" onclick="runScenario('2')">
+          <div>
+            <b style="color:var(--color-danger);">(2) MẤT CALLBACK (Gây lỗi treo đơn As-is)</b>
+            <div style="font-size:11.5px;color:var(--text-muted);">Trừ tiền khách thành công, nhưng KHÔNG gửi IPN (mô phỏng rớt mạng).</div>
+          </div>
+          <span>🔴 Chạy</span>
+        </button>
+
+        <button class="btn-scen type-warn" onclick="runScenario('3')">
+          <div>
+            <b style="color:var(--color-warning);">(3) Callback đến muộn (Sau 20 giây)</b>
+            <div style="font-size:11.5px;color:var(--text-muted);">Trừ tiền, hẹn giờ 20 giây sau mới gửi IPN (vượt quá 15s timeout của web).</div>
+          </div>
+          <span>⏳ Chạy</span>
+        </button>
+
+        <button class="btn-scen type-warn" onclick="runScenario('4')">
+          <div>
+            <b style="color:var(--color-warning);">(4) Thanh toán SAI SỐ TIỀN (Lệch 10.000đ)</b>
+            <div style="font-size:11.5px;color:var(--text-muted);">Trừ tiền nhưng gửi IPN với số tiền bị lệch -> Website đẩy vào NEEDS_REVIEW.</div>
+          </div>
+          <span>⚠️ Chạy</span>
+        </button>
+
+        <button class="btn-scen type-bad" onclick="runScenario('5')">
+          <div>
+            <b>(5) Khách hàng HỦY GIAO DỊCH tại cổng</b>
+            <div style="font-size:11.5px;color:var(--text-muted);">Không trừ tiền, gửi IPN báo thất bại và nhả ghế lại.</div>
+          </div>
+          <span>❌ Chạy</span>
+        </button>
+      </div>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <button class="btn btn-navy" style="width: 100%;" onclick="goToResult()">
+          Quay lại Website Beta Cinemas để kiểm tra kết quả đơn hàng →
+        </button>
+      </div>
+    </div>
   </div>
-</main>
-<script src="/common.js"></script>
-<script>
-const code=codeFromPath();
-(async()=>{
-  try{ const g=await api('/api/gateway/'+code);
-    document.getElementById('code').textContent=g.code; document.getElementById('amount').textContent=money(g.amount);
-    if(g.paid) lock('Đơn này đã có giao dịch.');
-  }catch(e){ document.getElementById('result').innerHTML=`<div class="msg err">${e.message}</div>`; lock(); }
-})();
-function lock(m){ document.querySelectorAll('#scen button').forEach(b=>b.disabled=true); if(m) document.getElementById('result').innerHTML=`<div class="msg info">${m}</div>`; }
-async function go(scenario){
-  lock();
-  try{ const r=await api('/api/gateway/pay',{body:{orderCode:code,scenario}});
-    document.getElementById('result').innerHTML=`<div class="msg ok">Đã ghi giao dịch ${r.txn.txnId} (${money(r.txn.amount)}). Webhook: ${r.txn.webhook}.<br>Quay lại tab thanh toán / trang /admin để xem kết quả.</div>`;
-  }catch(e){ document.getElementById('result').innerHTML=`<div class="msg err">${e.message}</div>`; }
-}
-</script></body></html>
+
+  <script src="/common.js"></script>
+  <script>
+    const txnRef = getQueryParam('txnRef');
+    const pathParts = location.pathname.split('/');
+    const method = (pathParts[pathParts.length - 1] || 'vnpay').toUpperCase();
+
+    let txnData = null;
+    let orderData = null;
+    let remainingTimeout = 15;
+    let timerId = null;
+
+    if (!txnRef) {
+      alert('Không tìm thấy mã giao dịch txnRef!');
+      location.href = '/';
+    }
+
+    async function loadGateway() {
+      try {
+        const res = await api(`/api/gateway/txn/${txnRef}`);
+        txnData = res.txn;
+        orderData = res.order;
+        remainingTimeout = res.callbackTimeoutSeconds || 15;
+
+        // Cập nhật giao diện thương hiệu
+        const header = document.getElementById('gw-header');
+        const walletName = document.getElementById('gw-wallet-name');
+
+        if (method === 'MOMO') {
+          header.className = 'gateway-header momo';
+          walletName.textContent = 'VÍ ĐIỆN TỬ MOMO';
+        } else if (method === 'ZALOPAY') {
+          header.className = 'gateway-header zalopay';
+          walletName.textContent = 'CỔNG THANH TOÁN ZALOPAY';
+        } else {
+          header.className = 'gateway-header vnpay';
+          walletName.textContent = 'CỔNG THANH TOÁN VNPAY - QR PAY';
+        }
+
+        document.getElementById('gw-amount').textContent = formatVND(txnData.amount);
+        document.getElementById('gw-txn-ref').textContent = txnData.txnRef;
+        document.getElementById('gw-order-id').textContent = txnData.orderId;
+
+        // Tải ảnh QR trực tuyến qua VietQR (Vietcombank mẫu), có ảnh fallback nếu mất internet
+        const qrUrl = `https://img.vietqr.io/image/970436-1018678999-compact.png?amount=${txnData.amount}&addInfo=${encodeURIComponent(txnData.txnRef)}&accountName=BETA%20CINEMAS`;
+        document.getElementById('qr-online').src = qrUrl;
+
+        startTimeoutCountdown();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function fallbackOfflineQR() {
+      const qrImg = document.getElementById('qr-online');
+      const qrOff = document.getElementById('qr-offline');
+      qrImg.style.display = 'none';
+      qrOff.style.display = 'flex';
+      qrOff.innerHTML = renderFakeQR(txnRef || 'BETA_DEMO_QR', 200);
+    }
+
+    function startTimeoutCountdown() {
+      if (timerId) clearInterval(timerId);
+      const timerEl = document.getElementById('gw-timer');
+
+      timerId = setInterval(() => {
+        remainingTimeout--;
+        if (remainingTimeout <= 0) {
+          clearInterval(timerId);
+          timerEl.textContent = '00s (Hết thời gian chờ phản hồi)';
+          document.getElementById('gw-timeout-box').style.background = '#FEE2E2';
+          document.getElementById('gw-timeout-box').style.color = '#991B1B';
+        } else {
+          timerEl.textContent = `${String(remainingTimeout).padStart(2, '0')}s`;
+        }
+      }, 1000);
+    }
+
+    async function runScenario(scenarioNum) {
+      try {
+        const res = await api('/api/gateway/simulate', {
+          body: {
+            txnRef,
+            scenario: scenarioNum
+          }
+        });
+
+        showToast(res.message, res.status === 'SUCCESS' ? 'success' : 'warning', 4500);
+
+        // Tự động chuyển hướng về trang kết quả đơn hàng sau 1.5 giây
+        setTimeout(() => {
+          goToResult();
+        }, 1500);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function goToResult() {
+      if (orderData && orderData.orderId) {
+        location.href = `/result?orderId=${orderData.orderId}`;
+      } else {
+        location.href = '/orders';
+      }
+    }
+
+    loadGateway();
+  </script>
+</body>
+</html>

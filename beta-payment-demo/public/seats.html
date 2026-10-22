@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chọn ghế xem phim - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div style="margin-bottom: 20px;">
+      <a href="/" style="color: var(--primary-navy); text-decoration: none; font-size: 14px; font-weight: 600;">← Quay lại danh sách phim</a>
+    </div>
+
+    <div class="card" id="showtime-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 id="movie-title" style="color: var(--navy-dark); font-size: 20px;">Đang tải suất chiếu...</h2>
+          <div id="showtime-info" style="color: var(--text-muted); font-size: 13px; margin-top: 4px;"></div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 12px; color: var(--text-muted);">Giá vé niêm yết:</div>
+          <div style="font-size: 20px; font-weight: 800; color: var(--primary-orange);" id="seat-price">75.000đ / ghế</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sơ đồ ghế 5 hàng x 8 cột -->
+    <div class="card">
+      <div class="seatmap-container">
+        <div class="cinema-screen">MÀN HÌNH CHIẾU PHIM</div>
+        <div class="seat-grid" id="seat-grid">
+          <!-- Render 5 hàng A, B, C, D, E x 8 ghế -->
+        </div>
+
+        <div class="seat-legend">
+          <div class="legend-item"><div class="legend-color" style="background: #E2E8F0;"></div> Ghế trống</div>
+          <div class="legend-item"><div class="legend-color" style="background: var(--primary-navy);"></div> Đang chọn</div>
+          <div class="legend-item"><div class="legend-color" style="background: #FBBF24;"></div> Đang giữ (chờ thanh toán)</div>
+          <div class="legend-item"><div class="legend-color" style="background: #EF4444;"></div> Đã bán</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thanh đặt vé cố định -->
+    <div class="booking-bar">
+      <div>
+        <div style="font-size: 13px; color: var(--text-muted);">Ghế đã chọn: <b id="selected-seats-text" style="color: var(--primary-navy);">Chưa chọn</b></div>
+        <div style="font-size: 22px; font-weight: 900; color: var(--color-danger); margin-top: 2px;" id="total-amount-text">0đ</div>
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-muted);">Tối đa 8 ghế/đơn</span>
+        <button class="btn btn-primary btn-lg" id="btn-submit-order" onclick="submitHoldOrder()" disabled>
+          Tiếp tục thanh toán →
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    const showtimeId = getQueryParam('showtimeId') || 'st1';
+    let selectingSeats = new Set();
+    let currentData = null;
+
+    async function loadSeats(isFirst = false) {
+      try {
+        const res = await api(`/api/seats?showtimeId=${showtimeId}`);
+        currentData = res;
+
+        if (isFirst) {
+          document.getElementById('movie-title').textContent = res.showtime.movieTitle;
+          document.getElementById('showtime-info').textContent = `${res.showtime.cinema} • ${res.showtime.room} • Suất chiếu: ${res.showtime.time} (${res.showtime.date})`;
+          document.getElementById('seat-price').textContent = `${formatVND(res.ticketPrice)} / ghế`;
+        }
+
+        renderSeatGrid(res.seats);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function renderSeatGrid(allSeats) {
+      const seatMap = {};
+      allSeats.forEach(s => { seatMap[s.id] = s; });
+
+      const gridEl = document.getElementById('seat-grid');
+      gridEl.innerHTML = '';
+
+      const rows = ['A', 'B', 'C', 'D', 'E'];
+      rows.forEach(r => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'seat-row';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'row-label';
+        labelEl.textContent = r;
+        rowEl.appendChild(labelEl);
+
+        for (let c = 1; c <= 8; c++) {
+          const code = `${r}${c}`;
+          const seatData = seatMap[code] || { status: 'FREE' };
+
+          const btn = document.createElement('button');
+          btn.className = 'seat-item';
+          btn.textContent = code;
+
+          if (seatData.status === 'SOLD') {
+            btn.classList.add('sold');
+            btn.disabled = true;
+            btn.title = `Ghế ${code} đã bán`;
+            selectingSeats.delete(code);
+          } else if (seatData.status === 'HELD') {
+            btn.classList.add('held');
+            btn.disabled = true;
+            btn.title = `Ghế ${code} đang được giữ bởi đơn hàng khác`;
+            selectingSeats.delete(code);
+          } else {
+            if (selectingSeats.has(code)) {
+              btn.classList.add('selecting');
+            }
+            btn.onclick = () => toggleSeat(code);
+          }
+
+          rowEl.appendChild(btn);
+        }
+
+        gridEl.appendChild(rowEl);
+      });
+
+      updateSelectionSummary();
+    }
+
+    function toggleSeat(code) {
+      if (selectingSeats.has(code)) {
+        selectingSeats.delete(code);
+      } else {
+        if (selectingSeats.size >= 8) {
+          showToast('Bạn chỉ được chọn tối đa 8 ghế trong một đơn đặt vé.', 'warning');
+          return;
+        }
+        selectingSeats.add(code);
+      }
+      renderSeatGrid(currentData.seats);
+    }
+
+    function updateSelectionSummary() {
+      const list = Array.from(selectingSeats).sort();
+      const txtSeats = document.getElementById('selected-seats-text');
+      const txtTotal = document.getElementById('total-amount-text');
+      const btnSubmit = document.getElementById('btn-submit-order');
+
+      if (list.length === 0) {
+        txtSeats.textContent = 'Chưa chọn';
+        txtTotal.textContent = '0đ';
+        btnSubmit.disabled = true;
+      } else {
+        txtSeats.textContent = list.join(', ');
+        const total = list.length * (currentData ? currentData.ticketPrice : 75000);
+        txtTotal.textContent = formatVND(total);
+        btnSubmit.disabled = false;
+      }
+    }
+
+    async function submitHoldOrder() {
+      if (selectingSeats.size === 0) return;
+
+      // 1. Kiểm tra đăng nhập tài khoản khách hàng
+      try {
+        const meRes = await api('/api/auth/me');
+        if (!meRes.ok || !meRes.user) {
+          showToast('Vui lòng đăng nhập tài khoản để tiếp tục giữ chỗ đặt vé!', 'warning');
+          setTimeout(() => {
+            location.href = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+          }, 1000);
+          return;
+        }
+      } catch (err) {
+        location.href = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+        return;
+      }
+
+      // 2. Gửi request giữ ghế
+      const btn = document.getElementById('btn-submit-order');
+      btn.disabled = true;
+      btn.textContent = 'Đang giữ ghế...';
+
+      try {
+        const res = await api('/api/hold', {
+          body: {
+            showtimeId,
+            seatCodes: Array.from(selectingSeats)
+          }
+        });
+
+        showToast(`Đã giữ ghế thành công! Mã đơn: ${res.order.orderId}`, 'success');
+        setTimeout(() => {
+          location.href = `/checkout?orderId=${res.order.orderId}`;
+        }, 600);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Tiếp tục thanh toán →';
+        loadSeats(); // Tải lại trạng thái ghế mới nhất
+      }
+    }
+
+    // Khởi động
+    initCustomerNav();
+    loadSeats(true);
+    // Tự động làm mới sơ đồ ghế mỗi 4 giây
+    setInterval(() => loadSeats(false), 4000);
+  </script>
+</body>
+</html>

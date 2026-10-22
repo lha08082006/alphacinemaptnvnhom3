@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trung tâm Hỗ trợ & Xử lý sự cố - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight active">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper" style="max-width: 900px;">
+    <div style="margin-bottom: 24px;">
+      <h1 style="font-size: 26px; color: var(--navy-dark); font-weight: 800;">TRUNG TÂM HỖ TRỢ KHÁCH HÀNG (CSKH)</h1>
+      <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+        Hệ thống tự động tra cứu giao dịch lỗi thanh toán (giao dịch treo, trừ tiền chưa có vé, hoàn tiền).
+      </p>
+    </div>
+
+    <!-- 1. FORM TRA CỨU NHANH GIAO DỊCH LỖI -->
+    <div class="card">
+      <h2 class="card-title">🔍 TRA CỨU GIAO DỊCH LỖI HOẶC CHƯA CÓ VÉ</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Vui lòng nhập Mã đơn hàng (BC...) hoặc Mã giao dịch cổng (TXN...) cùng với Email hoặc Số điện thoại đặt vé.
+      </p>
+
+      <form id="lookup-form" onsubmit="handleLookup(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Mã đơn hàng / Mã GD ví:</label>
+            <input type="text" id="lookup-code" required placeholder="VD: BC123456 hoặc TXN_..." style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; font-size:14px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Email hoặc Số điện thoại:</label>
+            <input type="text" id="lookup-contact" required placeholder="VD: khach@demo.vn hoặc 0987654321" style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; font-size:14px;">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button type="submit" class="btn btn-primary btn-lg" id="btn-lookup">
+            🔎 Tra cứu ngay
+          </button>
+          <a href="/support/tickets" class="btn btn-outline">Theo dõi phiếu khiếu nại đã gửi →</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. KẾT QUẢ TRA CỨU HIỂN THỊ DỄ HIỂU -->
+    <div class="card" id="lookup-result-card" style="display: none;">
+      <h3 class="card-title">KẾT QUẢ XÁC MINH GIAO DỊCH</h3>
+      <div id="lookup-result-content"></div>
+    </div>
+
+    <!-- 3. FORM GỬI PHIẾU KHIẾU NẠI (KHI KHÔNG TỰ GIẢI QUYẾT ĐƯỢC) -->
+    <div class="card" id="complaint-card" style="margin-top: 24px;">
+      <h3 class="card-title" style="color: var(--color-danger);">📝 GỬI YÊU CẦU KHIẾU NẠI ĐẾN ĐỘI NGŨ CSKH (SLA 24H)</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Nếu bạn bị trừ tiền nhưng chưa nhận được phản hồi phù hợp, đội ngũ hỗ trợ Beta Cinemas cam kết xử lý trong vòng <b>24 giờ</b>.
+      </p>
+
+      <form id="complaint-form" onsubmit="handleComplaint(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Mã đơn (nếu có):</label>
+            <input type="text" id="complaint-order-id" placeholder="BC..." style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Mã GD cổng ví (nếu có):</label>
+            <input type="text" id="complaint-txn-ref" placeholder="TXN_..." style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Email / SĐT liên hệ phản hồi:</label>
+            <input type="text" id="complaint-contact" required placeholder="Email hoặc SĐT nhận thông báo" style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Loại sự cố gặp phải:</label>
+            <select id="complaint-type" style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; background:#fff;">
+              <option value="CHARGED_NO_TICKET">Bị trừ tiền nhưng chưa nhận được vé (Giao dịch treo)</option>
+              <option value="DOUBLE_CHARGED">Bị trừ tiền 2 lần cho cùng một đơn</option>
+              <option value="TICKET_NOT_RECEIVED">Thanh toán thành công nhưng chưa nhận mã vé</option>
+              <option value="SLOW_REFUND">Hoàn tiền chậm trễ hơn quy định</option>
+              <option value="OTHER">Sự cố kỹ thuật khác</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Mô tả chi tiết sự cố:</label>
+          <textarea id="complaint-desc" rows="3" required placeholder="Vui lòng cung cấp chi tiết thời gian thanh toán, số tiền bị trừ, ứng dụng ví đã dùng..." style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:6px; font-family:inherit;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-danger btn-lg" id="btn-submit-complaint">
+          ✉️ Gửi khiếu nại CSKH
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    // Tự điền từ query param ?code=...
+    const urlCode = getQueryParam('code');
+    if (urlCode) {
+      document.getElementById('lookup-code').value = urlCode;
+      document.getElementById('complaint-order-id').value = urlCode;
+    }
+
+    async function handleLookup(e) {
+      e.preventDefault();
+      const code = document.getElementById('lookup-code').value;
+      const contact = document.getElementById('lookup-contact').value;
+      const btn = document.getElementById('btn-lookup');
+      const resCard = document.getElementById('lookup-result-card');
+      const resContent = document.getElementById('lookup-result-content');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang tra cứu...';
+
+      try {
+        const res = await api('/api/support/lookup', {
+          body: { code, contact }
+        });
+
+        resCard.style.display = 'block';
+        const order = res.order;
+        const txn = res.gatewayTxn;
+        const ref = res.refund;
+
+        // Diễn giải trạng thái dễ hiểu
+        let statusExplain = '';
+        let statusBadge = `<span class="status-badge status-${order.status}">${order.status}</span>`;
+
+        if (order.status === 'PAID') {
+          statusExplain = `
+            <div style="background:#D1FAE5; color:#065F46; padding:16px; border-radius:8px; margin-bottom:16px;">
+              <b style="font-size:16px;">✅ ĐÃ CÓ VÉ XEM PHIM THÀNH CÔNG</b>
+              <p style="margin-top:4px;">Giao dịch của bạn đã hoàn tất hợp lệ. Mã vé: <b>${order.ticketCode}</b>.</p>
+              <div style="margin-top:10px;"><a href="/ticket/${order.orderId}" class="btn btn-navy btn-sm">Xem vé điện tử</a></div>
+            </div>
+          `;
+        } else if (order.status === 'PENDING_VERIFY') {
+          statusExplain = `
+            <div style="background:#E0F2FE; color:#075985; padding:16px; border-radius:8px; margin-bottom:16px;">
+              <b style="font-size:16px;">🛡️ ĐANG XÁC MINH & BẢO LƯU GHẾ (TO-BE)</b>
+              <p style="margin-top:4px;">Hệ thống phát hiện giao dịch của bạn bị trễ phản hồi từ ví. Ghế của bạn đang được bảo lưu an toàn để máy chủ đối soát cấp vé tự động.</p>
+            </div>
+          `;
+        } else if (order.status === 'REFUND_PENDING') {
+          statusExplain = `
+            <div style="background:#FDF4FF; color:#86198F; padding:16px; border-radius:8px; margin-bottom:16px;">
+              <b style="font-size:16px;">💸 ĐÃ TẠO LỆNH HOÀN TIỀN TỰ ĐỘNG</b>
+              <p style="margin-top:4px;">Lệnh hoàn tiền <b>${formatVND(ref ? ref.amount : order.amount)}</b> đã được hệ thống kích hoạt (Mã hoàn: ${ref ? ref.refundId : 'RF...'}). Tiền sẽ sớm quay về ví của bạn.</p>
+            </div>
+          `;
+        } else if (order.status === 'REFUNDED') {
+          statusExplain = `
+            <div style="background:#F3E8FF; color:#6B21A8; padding:16px; border-radius:8px; margin-bottom:16px;">
+              <b style="font-size:16px;">🎉 ĐÃ HOÀN TIỀN THÀNH CÔNG</b>
+              <p style="margin-top:4px;">Số tiền <b>${formatVND(order.amount)}</b> đã được chuyển trả hoàn tất về tài khoản ví.</p>
+            </div>
+          `;
+        } else if (order.status === 'FAILED' && txn && txn.debited) {
+          statusExplain = `
+            <div style="background:#FEE2E2; color:#991B1B; padding:16px; border-radius:8px; margin-bottom:16px;">
+              <b style="font-size:16px;">⚠️ PHÁT HIỆN GIAO DỊCH TREO (AS-IS)</b>
+              <p style="margin-top:4px;">Ví của bạn đã bị trừ ${formatVND(txn.amount)}, nhưng website bị rớt callback nên đơn bị FAILED! Đừng lo lắng, hãy gửi khiếu nại bên dưới hoặc đợi quản trị viên bấm nút Đối soát để được cấp vé / hoàn tiền tự động.</p>
+            </div>
+          `;
+        } else {
+          statusExplain = `
+            <div style="background:#F8FAFC; padding:14px; border-radius:8px; margin-bottom:16px; color:#475569;">
+              Trạng thái đơn: ${statusBadge}
+            </div>
+          `;
+        }
+
+        resContent.innerHTML = `
+          ${statusExplain}
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:13.5px;">
+            <div><b>Mã đơn hàng:</b> ${order.orderId}</div>
+            <div><b>Tên phim:</b> ${order.movieTitle}</div>
+            <div><b>Suất chiếu:</b> ${order.showtime}</div>
+            <div><b>Ghế đặt:</b> ${(order.seats || []).join(', ')}</div>
+            <div><b>Số tiền đơn:</b> ${formatVND(order.amount)}</div>
+            <div><b>Giao dịch ví:</b> ${txn ? `${txn.txnRef} (${txn.method} - ${txn.status})` : 'Chưa có GD'}</div>
+          </div>
+        `;
+
+        // Tự điền vào form khiếu nại bên dưới
+        document.getElementById('complaint-order-id').value = order.orderId;
+        if (txn) document.getElementById('complaint-txn-ref').value = txn.txnRef;
+        document.getElementById('complaint-contact').value = contact;
+
+      } catch (err) {
+        resCard.style.display = 'block';
+        resContent.innerHTML = `
+          <div style="padding:16px; background:#FEF2F2; color:#B91C1C; border-radius:8px; font-size:14px;">
+            ❌ ${err.message}
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔎 Tra cứu ngay';
+      }
+    }
+
+    async function handleComplaint(e) {
+      e.preventDefault();
+      const orderId = document.getElementById('complaint-order-id').value;
+      const txnRef = document.getElementById('complaint-txn-ref').value;
+      const contact = document.getElementById('complaint-contact').value;
+      const type = document.getElementById('complaint-type').value;
+      const description = document.getElementById('complaint-desc').value;
+      const btn = document.getElementById('btn-submit-complaint');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang gửi...';
+
+      try {
+        const res = await api('/api/support/tickets', {
+          body: { orderId, txnRef, contact, type, description }
+        });
+
+        showToast(`Tạo phiếu khiếu nại thành công! Mã: ${res.ticket.ticketId}`, 'success', 5000);
+        setTimeout(() => {
+          location.href = `/support/tickets?contact=${encodeURIComponent(contact)}`;
+        }, 1200);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '✉️ Gửi khiếu nại CSKH';
+      }
+    }
+
+    initCustomerNav();
+  </script>
+</body>
+</html>

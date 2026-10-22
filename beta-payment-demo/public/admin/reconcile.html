@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trung tâm Đối soát Giao dịch - Beta Cinemas Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/orders">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" class="active" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 24px; color: #111827; font-weight: 800;">TRUNG TÂM ĐỐI SOÁT & KHẮC PHỤC TREO ĐƠN</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          So khớp hai chiều dữ liệu giữa Cổng thanh toán (MoMo/ZaloPay/VNPay) và Hệ thống bán vé Beta Cinemas.
+        </p>
+      </div>
+
+      <!-- ĐIỀU KHIỂN CHẾ ĐỘ AS-IS / TO-BE & NÚT CHẠY -->
+      <div style="display: flex; gap: 12px; align-items: center; background: #fff; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+        <div style="font-size: 13px; font-weight: 700;">Chế độ hệ thống:</div>
+        <select id="mode-select" onchange="toggleSystemMode(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 700; background: #fff;">
+          <option value="ASIS">⚠️ AS-IS (Cũ - Dễ rớt đơn)</option>
+          <option value="TOBE">🛡️ TO-BE (Mới - Tự động đối soát)</option>
+        </select>
+
+        <button class="btn btn-primary" id="btn-run-recon" onclick="runReconNow()">
+          ⚡ Chạy đối soát ngay
+        </button>
+      </div>
+    </div>
+
+    <!-- BANNER TRẠNG THÁI TỰ ĐỘNG KHI Ở TO-BE -->
+    <div id="tobe-banner" style="display:none; background:#E0F2FE; border:1px solid #BAE6FD; padding:14px 20px; border-radius:8px; margin-bottom:20px; color:#0369A1; font-size:13.5px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <b>🛡️ Chế độ TO-BE đang hoạt động:</b> Tiến trình quét đối soát nền tự động chạy <b>mỗi 10 giây</b>. Khi phát hiện giao dịch treo, hệ thống tự cấp vé nếu ghế còn trống, hoặc tự tạo lệnh hoàn nếu ghế đã bị người khác mua.
+      </div>
+      <div class="timer-pill" style="background:#fff; color:#0369A1; border-color:#7DD3FC;" id="recon-auto-timer">
+        Chu kỳ: 10s
+      </div>
+    </div>
+
+    <!-- BẢNG KẾT QUẢ ĐỐI SOÁT TỪNG DÒNG -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="card-title" style="margin-bottom:0;">CHI TIẾT ĐỐI CHIẾU GIAO DỊCH (RECONCILIATION ROWS)</h3>
+        <span style="font-size: 13px; color: var(--text-muted);">Tổng số giao dịch phân tích: <b id="recon-total-rows">0</b></span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="recon-table">
+          <thead>
+            <tr>
+              <th>Mã GD Cổng</th>
+              <th>Mã Đơn</th>
+              <th>Ví</th>
+              <th>Tiền Cổng</th>
+              <th>Trạng thái Cổng</th>
+              <th>Tiền Đơn</th>
+              <th>Trạng thái Đơn</th>
+              <th>Phân loại kết quả</th>
+              <th>Đề xuất giải quyết</th>
+            </tr>
+          </thead>
+          <tbody id="recon-tbody">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                Đang nạp dữ liệu đối soát...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    let reconCountdown = 10;
+    let autoTimerInterval = null;
+
+    async function loadReconciliation() {
+      await initAdminNav('reconcile');
+
+      try {
+        const res = await api('/api/admin/reconcile');
+        document.getElementById('mode-select').value = res.mode;
+
+        const tobeBanner = document.getElementById('tobe-banner');
+        if (res.mode === 'TOBE') {
+          tobeBanner.style.display = 'flex';
+          startReconTimer();
+        } else {
+          tobeBanner.style.display = 'none';
+          if (autoTimerInterval) clearInterval(autoTimerInterval);
+        }
+
+        renderReconRows(res.reconcileRows);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function renderReconRows(rows) {
+      document.getElementById('recon-total-rows').textContent = rows.length;
+      const tbody = document.getElementById('recon-tbody');
+      tbody.innerHTML = '';
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Chưa có giao dịch thanh toán nào được thực hiện.</td></tr>';
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+
+        let matchBadge = '';
+        if (r.matchType === 'MATCHED') {
+          matchBadge = '<span class="status-badge status-PAID">KHỚP HOÀN TOÀN</span>';
+        } else if (r.matchType === 'HANGING_DEBITED') {
+          matchBadge = '<span class="status-badge status-FAILED" style="animation:pulse 1.5s infinite">⚠️ GIAO DỊCH TREO</span>';
+        } else if (r.matchType === 'PENDING_VERIFY') {
+          matchBadge = '<span class="status-badge status-PENDING_VERIFY">🛡️ ĐANG BẢO LƯU</span>';
+        } else if (r.matchType === 'AMOUNT_MISMATCH') {
+          matchBadge = '<span class="status-badge status-NEEDS_REVIEW">LỆCH TIỀN</span>';
+        } else {
+          matchBadge = `<span class="status-badge status-EXPIRED">${r.matchType}</span>`;
+        }
+
+        tr.innerHTML = `
+          <td><b style="color:var(--primary-navy)">${r.txnRef}</b></td>
+          <td><b>${r.orderId}</b></td>
+          <td><b>${r.method}</b></td>
+          <td>${formatVND(r.gatewayAmount)}</td>
+          <td><span class="status-badge status-${r.gatewayStatus}">${r.gatewayStatus}</span></td>
+          <td>${r.orderAmount ? formatVND(r.orderAmount) : '--'}</td>
+          <td><span class="status-badge status-${r.orderStatus}">${r.orderStatus}</span></td>
+          <td>${matchBadge}</td>
+          <td style="font-size:12px; color:#475569;">${r.suggestion}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function startReconTimer() {
+      if (autoTimerInterval) clearInterval(autoTimerInterval);
+      reconCountdown = 10;
+      autoTimerInterval = setInterval(() => {
+        reconCountdown--;
+        if (reconCountdown <= 0) {
+          reconCountdown = 10;
+          loadReconciliation();
+        }
+        const timerEl = document.getElementById('recon-auto-timer');
+        if (timerEl) timerEl.textContent = `Tự quét: ${reconCountdown}s`;
+      }, 1000);
+    }
+
+    async function toggleSystemMode(mode) {
+      try {
+        const res = await api('/api/admin/reconcile/toggle-mode', {
+          body: { mode }
+        });
+        showToast(`Đã chuyển hệ thống sang chế độ [${res.mode}]!`, 'info');
+        loadReconciliation();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function runReconNow() {
+      const btn = document.getElementById('btn-run-recon');
+      btn.disabled = true;
+      btn.textContent = 'Đang xử lý đối soát...';
+
+      try {
+        const res = await api('/api/admin/reconcile/run', { method: 'POST' });
+        const { fixedCount, refundCount, reviewCount } = res.result;
+
+        showToast(`Đối soát hoàn tất! Cấp vé: ${fixedCount} | Tạo hoàn tiền: ${refundCount} | Cần duyệt: ${reviewCount}`, 'success', 5000);
+        loadReconciliation();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Chạy đối soát ngay';
+      }
+    }
+
+    loadReconciliation();
+  </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán đơn hàng - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div style="margin-bottom: 20px;">
+      <a href="/" style="color: var(--primary-navy); text-decoration: none; font-size: 14px; font-weight: 600;">← Hủy và quay lại trang chủ</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;" id="checkout-layout">
+      <!-- Cột trái: Thông tin đơn & Phương thức thanh toán -->
+      <div>
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 class="card-title" style="margin-bottom:0;">XÁC NHẬN ĐƠN HÀNG</h2>
+            <div class="timer-pill" id="hold-timer-pill">
+              ⏱️ Giữ chỗ còn: <span id="countdown-text">--:--</span>
+            </div>
+          </div>
+
+          <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--text-muted); font-size: 13px;">Mã đơn hàng:</span>
+              <b style="color: var(--primary-navy); font-size: 15px;" id="order-id">...</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--text-muted); font-size: 13px;">Phim:</span>
+              <b id="order-movie">...</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--text-muted); font-size: 13px;">Rạp & Phòng chiếu:</span>
+              <span id="order-cinema-room">...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--text-muted); font-size: 13px;">Suất chiếu:</span>
+              <b style="color: var(--primary-orange);" id="order-showtime">...</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: var(--text-muted); font-size: 13px;">Ghế ngồi:</span>
+              <b style="color: var(--primary-navy); font-size: 16px;" id="order-seats">...</b>
+            </div>
+          </div>
+
+          <h3 style="font-size: 16px; color: var(--navy-dark); margin-bottom: 12px; font-weight: 700;">CHỌN CỔNG THANH TOÁN GIẢ LẬP</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Hệ thống mô phỏng 3 cổng thanh toán điện tử phổ biến tại Việt Nam. Không cần tài khoản thật.
+          </p>
+
+          <div class="wallet-grid">
+            <button class="btn-wallet momo" onclick="payWithMethod('MOMO')">
+              <span>Ví MoMo</span>
+              <span class="wallet-desc">Quét QR & Tokenize</span>
+            </button>
+            <button class="btn-wallet zalopay" onclick="payWithMethod('ZALOPAY')">
+              <span>Ví ZaloPay</span>
+              <span class="wallet-desc">Cổng thanh toán Zalo</span>
+            </button>
+            <button class="btn-wallet vnpay" onclick="payWithMethod('VNPAY')">
+              <span>Cổng VNPay</span>
+              <span class="wallet-desc">QR Pay / Thẻ ATM & QT</span>
+            </button>
+          </div>
+
+          <div style="margin-top: 20px; padding: 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-sm); font-size: 13px; color: #92400E;">
+            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="terms-agree" checked style="margin-top: 3px;">
+              <span>Tôi đồng ý với <b>Điều khoản đặt vé</b> của Beta Cinemas và hiểu rằng vé đã thanh toán sẽ không được hoàn trả trực tiếp tại quầy trừ trường hợp đối soát lỗi giao dịch.</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột phải: Tóm tắt chi phí & Hướng dẫn -->
+      <div>
+        <div class="card">
+          <h3 class="card-title">CHI TIẾT THANH TOÁN</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+            <span style="color: var(--text-muted);">Giá vé (<span id="seat-count">0</span> ghế):</span>
+            <span id="seat-subtotal">0đ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+            <span style="color: var(--text-muted);">Phí tiện ích cổng:</span>
+            <span style="color: var(--color-success); font-weight: 600;">Miễn phí (0đ)</span>
+          </div>
+          <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <b style="font-size: 16px;">Tổng tiền cần trả:</b>
+            <b style="font-size: 26px; font-weight: 900; color: var(--color-danger);" id="order-total-amount">0đ</b>
+          </div>
+
+          <div style="background: #F1F5F9; border-radius: var(--radius-sm); padding: 14px; font-size: 12.5px; color: #475569; line-height: 1.6;">
+            <b>💡 Lưu ý kiểm thử môn Phân tích nghiệp vụ:</b>
+            <ul style="padding-left: 18px; margin-top: 6px;">
+              <li>Sau khi bấm chọn cổng, đơn hàng sẽ chuyển sang trạng thái <code>AWAITING_PAYMENT</code>.</li>
+              <li>Bạn có thể chọn 1 trong 5 kịch bản tại cổng giả để thử nghiệm luồng <b>As-is (giao dịch treo)</b> hoặc <b>To-be (tự động đối soát/hoàn tiền)</b>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    const orderId = getQueryParam('orderId');
+    let orderData = null;
+    let timerInterval = null;
+
+    if (!orderId) {
+      alert('Không tìm thấy mã đơn hàng!');
+      location.href = '/';
+    }
+
+    async function loadOrder() {
+      try {
+        const res = await api(`/api/order/${orderId}`);
+        orderData = res.order;
+
+        if (orderData.status !== 'HOLDING' && orderData.status !== 'AWAITING_PAYMENT') {
+          // Nếu đơn đã thanh toán hoặc đã rớt, chuyển sang trang xem kết quả
+          location.href = `/result?orderId=${orderId}`;
+          return;
+        }
+
+        document.getElementById('order-id').textContent = orderData.orderId;
+        document.getElementById('order-movie').textContent = orderData.movieTitle;
+        document.getElementById('order-cinema-room').textContent = `${orderData.cinema} • ${orderData.room}`;
+        document.getElementById('order-showtime').textContent = orderData.showtime;
+        document.getElementById('order-seats').textContent = orderData.seats.join(', ');
+        document.getElementById('seat-count').textContent = orderData.seats.length;
+        document.getElementById('seat-subtotal').textContent = formatVND(orderData.amount);
+        document.getElementById('order-total-amount').textContent = formatVND(orderData.amount);
+
+        startHoldCountdown(orderData.holdExpiresAt);
+      } catch (e) {
+        showToast(e.message, 'error');
+        setTimeout(() => location.href = '/', 1500);
+      }
+    }
+
+    function startHoldCountdown(expiresAtIso) {
+      if (timerInterval) clearInterval(timerInterval);
+      const targetTime = new Date(expiresAtIso).getTime();
+
+      const updateTimer = () => {
+        const now = Date.now();
+        const diffSec = Math.floor((targetTime - now) / 1000);
+
+        if (diffSec <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('countdown-text').textContent = 'HẾT HẠN';
+          document.getElementById('hold-timer-pill').style.background = '#FEE2E2';
+          document.getElementById('hold-timer-pill').style.color = '#991B1B';
+          showToast('Thời gian giữ ghế đã hết hạn! Vui lòng chọn lại vé.', 'error');
+          setTimeout(() => location.href = `/result?orderId=${orderId}`, 2000);
+          return;
+        }
+
+        document.getElementById('countdown-text').textContent = formatCountdown(diffSec);
+      };
+
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    async function payWithMethod(method) {
+      const agree = document.getElementById('terms-agree').checked;
+      if (!agree) {
+        showToast('Vui lòng đồng ý với điều khoản đặt vé trước khi thanh toán!', 'warning');
+        return;
+      }
+
+      // Tạo header Idempotency-Key chuẩn
+      let idempKey = sessionStorage.getItem(`idemp_${orderId}_${method}`);
+      if (!idempKey) {
+        idempKey = `KEY_${orderId}_${method}_${Date.now()}`;
+        sessionStorage.setItem(`idemp_${orderId}_${method}`, idempKey);
+      }
+
+      try {
+        const res = await api('/api/pay', {
+          headers: {
+            'Idempotency-Key': idempKey
+          },
+          body: {
+            orderId,
+            method,
+            idempotencyKey: idempKey
+          }
+        });
+
+        if (res.ok && res.payUrl) {
+          location.href = res.payUrl;
+        } else {
+          throw new Error('Không nhận được đường dẫn thanh toán từ cổng.');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    initCustomerNav();
+    loadOrder();
+  </script>
+</body>
+</html>

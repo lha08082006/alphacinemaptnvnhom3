@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo cáo Kế toán Đối soát - Beta Cinemas Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/orders">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" class="active" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <h1 style="font-size: 24px; color: #111827; font-weight: 800;">BÁO CÁO ĐỐI SOÁT DOANH THU & CHÊNH LỆCH KẾ TOÁN</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          Báo cáo phục vụ quyết toán dòng tiền, đối chiếu cổng thanh toán và quản trị rủi ro giao dịch treo.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-navy" onclick="loadReport()">🔄 Cập nhật số liệu</button>
+        <button class="btn btn-success" onclick="exportCsv()">📥 Xuất báo cáo CSV (Excel)</button>
+      </div>
+    </div>
+
+    <!-- 6 THẺ SỐ LIỆU TÀI CHÍNH TỔNG QUAN -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:700;">TỔNG TIỀN CỔNG GHI NHẬN</div>
+        <div style="font-size:22px; font-weight:900; color:var(--navy-dark); margin-top:6px;" id="rpt-gateway-total">0đ</div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:700;">TỔNG TIỀN VÉ THỰC THU</div>
+        <div style="font-size:22px; font-weight:900; color:var(--color-success); margin-top:6px;" id="rpt-website-total">0đ</div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:700;">CHÊNH LỆCH (CỔNG - VÉ)</div>
+        <div style="font-size:22px; font-weight:900; color:var(--primary-orange); margin-top:6px;" id="rpt-discrepancy">0đ</div>
+      </div>
+      <div class="card" style="margin-bottom:0; background:#FFF1F2;">
+        <div style="font-size:12px; color:#991B1B; font-weight:700;">TIỀN GIAO DỊCH TREO (AS-IS)</div>
+        <div style="font-size:22px; font-weight:900; color:var(--color-danger); margin-top:6px;" id="rpt-hanging-amount">0đ</div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:700;">TIỀN ĐÃ HOÀN TRẢ KHÁCH</div>
+        <div style="font-size:22px; font-weight:900; color:#7C3AED; margin-top:6px;" id="rpt-refunded-amount">0đ</div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:700;">TIỀN ĐANG CHỜ HOÀN</div>
+        <div style="font-size:22px; font-weight:900; color:#D97706; margin-top:6px;" id="rpt-pending-refund-amount">0đ</div>
+      </div>
+    </div>
+
+    <!-- HƯỚNG DẪN NGHIỆP VỤ KẾ TOÁN -->
+    <div class="card" style="background: #F8FAFC; border-left: 4px solid var(--primary-navy);">
+      <h3 style="font-size: 15px; color: var(--navy-dark); font-weight: 700; margin-bottom: 6px;">💡 Phân tích Nghiệp vụ dành cho Kế toán:</h3>
+      <p style="font-size: 13px; color: #475569; line-height: 1.6;">
+        - <b>Chênh lệch dương</b> thể hiện cổng đã trừ tiền khách hàng nhưng hệ thống website chưa ghi nhận vé (do rớt IPN hoặc timeout As-is).<br>
+        - <b>Khi bật cơ chế To-be</b>, hệ thống sẽ tự động hoàn tiền hoặc cấp vé bù, đưa chênh lệch chưa giải quyết về mức <b>0 VNĐ</b>.<br>
+        - File CSV xuất ra chứa <b>BOM UTF-8 (\uFEFF)</b> nên mở trực tiếp bằng Microsoft Excel mà không bị lỗi font tiếng Việt.
+      </p>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    async function loadReport() {
+      await initAdminNav('reports');
+
+      try {
+        const res = await api('/api/admin/reports/reconciliation');
+        const r = res.report;
+
+        document.getElementById('rpt-gateway-total').textContent = formatVND(r.gatewayTotal);
+        document.getElementById('rpt-website-total').textContent = formatVND(r.websiteTotal);
+        document.getElementById('rpt-discrepancy').textContent = formatVND(r.discrepancy);
+        document.getElementById('rpt-hanging-amount').textContent = formatVND(r.hangingAmount);
+        document.getElementById('rpt-refunded-amount').textContent = formatVND(r.refundedAmount);
+        document.getElementById('rpt-pending-refund-amount').textContent = formatVND(r.pendingRefundAmount);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function exportCsv() {
+      window.location.href = '/api/admin/reports/reconciliation?format=csv';
+    }
+
+    loadReport();
+  </script>
+</body>
+</html>

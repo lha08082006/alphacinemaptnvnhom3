@@ -1,64 +1,143 @@
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chọn ghế - Beta Cinemas DEMO</title><link rel="stylesheet" href="/style.css"></head><body>
-<header><b>BETA CINEMAS <small>(DEMO)</small></b><nav><a href="/">Đặt vé</a><a href="/admin" target="_blank">Quản trị / Đối soát</a></nav></header>
-<main>
-  <div class="card"><h1 id="title">...</h1><div class="muted" id="info"></div></div>
-  <div class="card">
-    <div class="screen">MÀN HÌNH CHIẾU</div>
-    <div class="seatmap" id="map"></div>
-    <div class="legend">
-      <span><i style="background:#cfd8dc"></i>Ghế trống</span><span><i style="background:#1B5FAE"></i>Đang chọn</span>
-      <span><i style="background:#ffd54f"></i>Đang giữ</span><span><i style="background:#e57373"></i>Đã bán</span>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beta Cinemas - Đặt vé xem phim trực tuyến (Demo Nghiệp vụ)</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Header Khách hàng -->
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/" class="active">Phim</a></li>
+        <li><a href="#showtimes">Lịch chiếu</a></li>
+        <li><a href="#pricing">Giá vé</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user">
+        <!-- Render bởi common.js -->
+      </div>
     </div>
-  </div>
-  <div class="card bar">
-    <div><div class="muted">Ghế: <b id="picked">chưa chọn</b></div><div class="big" id="total">0đ</div></div>
-    <div>
-      <label class="muted">Thời gian giữ ghế (giây):
-        <input type="number" id="hold" min="10" max="3600" style="width:80px;padding:6px"></label>
-      <button class="btn ghost sm" onclick="saveHold()">Lưu</button>
+  </header>
+
+  <main class="main-wrapper">
+    <!-- Banner Giới thiệu -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h1>TRẢI NGHIỆM ĐIỆN ẢNH ĐỈNH CAO</h1>
+        <p>Hệ thống rạp chiếu phim hiện đại chuẩn quốc tế với giá vé hợp lý. Đặt vé trực tuyến nhanh chóng, thanh toán an toàn qua MoMo, ZaloPay, VNPay.</p>
+        <div style="margin-top: 18px; display: flex; gap: 12px;">
+          <a href="#movies" class="btn btn-primary btn-lg">Xem phim đang chiếu</a>
+          <a href="/support" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.4)">Tra cứu giao dịch lỗi</a>
+        </div>
+      </div>
     </div>
-    <button class="btn" id="pay" onclick="pay()">THANH TOÁN</button>
-  </div>
-  <div id="err"></div>
-</main>
-<script src="/common.js"></script>
-<script>
-let state=null, sel=new Set();
-async function load(first){
-  state=await api('/api/state');
-  if(first){document.getElementById('title').textContent=state.movie.title;
-    document.getElementById('info').textContent=`${state.movie.cinema} - ${state.movie.room} - Suất ${state.movie.showtime} - ${money(state.movie.price)}/ghế`;
-    document.getElementById('hold').value=state.config.holdSeconds;}
-  render();
-}
-function render(){
-  const map=document.getElementById('map'); map.innerHTML='';
-  for(const r of state.rows){
-    const row=document.createElement('div'); row.className='row';
-    row.innerHTML=`<span class="lbl">${r}</span>`;
-    for(let c=1;c<=state.cols;c++){
-      const id=r+c, s=state.seats[id]; const b=document.createElement('button'); b.className='seat'; b.textContent=id;
-      if(s.state==='SOLD'){b.classList.add('sold');b.disabled=true;}
-      else if(s.state==='HELD'){b.classList.add('held');b.disabled=true;sel.delete(id);}
-      else{ if(sel.has(id)) b.classList.add('sel'); b.onclick=()=>{sel.has(id)?sel.delete(id):sel.add(id);render();}; }
-      row.appendChild(b);
+
+    <!-- Danh sách phim -->
+    <div id="movies" style="margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 22px; color: var(--navy-dark); font-weight: 800; border-left: 4px solid var(--primary-orange); padding-left: 12px;">PHIM ĐANG CHIẾU</h2>
+        <span class="timer-pill" style="font-size: 13px;">Đồng giá: 75.000đ / vé</span>
+      </div>
+
+      <div class="movie-grid" id="movie-list">
+        <!-- Tải động từ API -->
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          Đang tải danh sách phim...
+        </div>
+      </div>
+    </div>
+
+    <!-- Thông tin Lịch chiếu & Giá vé -->
+    <div id="showtimes" class="card" style="margin-top: 40px;">
+      <h3 class="card-title">LỊCH CHIẾU HÔM NAY TẠI BETA CINEMAS THANH XUÂN</h3>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Tất cả các phòng chiếu được trang bị hệ thống âm thanh Dolby 7.1 và máy chiếu laser sắc nét.</p>
+      <div id="showtime-list" style="display: grid; gap: 12px;"></div>
+    </div>
+  </main>
+
+  <footer style="background: #111827; color: #9CA3AF; padding: 30px 20px; font-size: 13px; text-align: center; margin-top: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <div>
+        <b style="color: #fff;">BETA CINEMAS DEMO</b> &copy; 2026 - Đề án Phân tích nghiệp vụ Cổng thanh toán & Đối soát tự động.
+      </div>
+      <div>
+        Khách mẫu: <code style="color:#FBBF24">khach@demo.vn / 123456</code> | Quản trị: <a href="/admin/login" target="_blank" style="color: var(--primary-orange); text-decoration: none; font-weight: 700;">Đăng nhập Cổng Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/common.js"></script>
+  <script>
+    async function initHome() {
+      await initCustomerNav();
+
+      try {
+        const data = await api('/api/movies');
+        const listEl = document.getElementById('movie-list');
+        const showtimeEl = document.getElementById('showtime-list');
+        listEl.innerHTML = '';
+        showtimeEl.innerHTML = '';
+
+        data.movies.forEach(movie => {
+          const st = data.showtimes.find(s => s.movieId === movie.id) || data.showtimes[0];
+
+          // Card phim
+          const card = document.createElement('div');
+          card.className = 'movie-card';
+          card.innerHTML = `
+            <div class="movie-poster-wrap">
+              <img src="${movie.poster}" alt="${movie.title}" class="movie-poster" onerror="this.src='https://placehold.co/400x600?text=Beta+Cinemas'">
+              <span class="age-badge">${movie.ageRating}</span>
+            </div>
+            <div class="movie-details">
+              <h3 class="movie-title">${movie.title}</h3>
+              <div class="movie-meta">
+                <span>⏱️ ${movie.duration} phút</span>
+                <span>🏷️ ${movie.genres.join(', ')}</span>
+              </div>
+              <p class="movie-synopsis">${movie.synopsis}</p>
+              <div class="showtime-badge">
+                <span>${st.room}</span>
+                <span><b>${st.time}</b> (${st.date})</span>
+              </div>
+              <a href="/seats?showtimeId=${st.id}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                🎟️ Đặt vé ngay
+              </a>
+            </div>
+          `;
+          listEl.appendChild(card);
+
+          // Dòng lịch chiếu
+          const stRow = document.createElement('div');
+          stRow.style = 'display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:12px 18px; border-radius:8px; border:1px solid #E2E8F0;';
+          stRow.innerHTML = `
+            <div>
+              <b style="color:var(--navy-dark); font-size:15px;">${movie.title}</b>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${st.cinema} - ${st.room}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <span class="timer-pill" style="background:#E0E7FF; color:#3730A3; border-color:#C7D2FE;">${st.time} - ${st.date}</span>
+              <a href="/seats?showtimeId=${st.id}" class="btn btn-navy btn-sm">Chọn suất này</a>
+            </div>
+          `;
+          showtimeEl.appendChild(stRow);
+        });
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     }
-    map.appendChild(row);
-  }
-  const list=[...sel].sort();
-  document.getElementById('picked').textContent=list.join(', ')||'chưa chọn';
-  document.getElementById('total').textContent=money(list.length*state.movie.price);
-}
-async function pay(){
-  const err=document.getElementById('err'); err.innerHTML='';
-  try{ const o=await api('/api/orders',{body:{seats:[...sel]}}); location.href='/pay/'+o.code; }
-  catch(e){ err.innerHTML=`<div class="msg err">${e.message}</div>`; load(); }
-}
-async function saveHold(){
-  const err=document.getElementById('err');
-  try{ await api('/api/config',{body:{holdSeconds:document.getElementById('hold').value}}); err.innerHTML='<div class="msg ok">Đã lưu thời gian giữ ghế</div>'; }
-  catch(e){ err.innerHTML=`<div class="msg err">${e.message}</div>`; }
-}
-load(true); setInterval(()=>load(false),3000);
-</script></body></html>
+
+    initHome();
+  </script>
+</body>
+</html>

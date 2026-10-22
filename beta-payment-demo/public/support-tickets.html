@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theo dõi phiếu khiếu nại - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper" style="max-width: 900px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 24px; color: var(--navy-dark); font-weight: 800;">PHIẾU KHIẾU NẠI CỦA BẠN</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Theo dõi tiến độ xử lý và phản hồi từ bộ phận CSKH Beta Cinemas.</p>
+      </div>
+      <a href="/support" class="btn btn-outline">← Gửi phiếu mới</a>
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+      <form id="filter-form" onsubmit="loadTickets(event)" style="display: flex; gap: 12px; align-items: center;">
+        <input type="text" id="contact-input" required placeholder="Nhập Email hoặc SĐT đã dùng gửi khiếu nại..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 6px;">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+      </form>
+    </div>
+
+    <div id="tickets-container">
+      <div class="card" style="text-align: center; color: var(--text-muted); padding: 40px;">
+        Vui lòng nhập Email hoặc Số điện thoại để tra cứu các phiếu khiếu nại đã gửi.
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    const urlContact = getQueryParam('contact');
+    if (urlContact) {
+      document.getElementById('contact-input').value = urlContact;
+      fetchTickets(urlContact);
+    }
+
+    function loadTickets(e) {
+      if (e) e.preventDefault();
+      const contact = document.getElementById('contact-input').value.trim();
+      if (!contact) return;
+      fetchTickets(contact);
+    }
+
+    async function fetchTickets(contact) {
+      const container = document.getElementById('tickets-container');
+      container.innerHTML = '<div class="card" style="text-align:center;padding:30px;">Đang tải danh sách khiếu nại...</div>';
+
+      try {
+        const res = await api(`/api/support/tickets?contact=${encodeURIComponent(contact)}`);
+        const tickets = res.tickets || [];
+
+        if (tickets.length === 0) {
+          container.innerHTML = `
+            <div class="card" style="text-align:center;padding:40px;color:var(--text-muted);">
+              Không tìm thấy phiếu khiếu nại nào cho thông tin liên hệ: <b>${contact}</b>.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+        tickets.forEach(ticket => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.style.marginBottom = '18px';
+
+          let statusClass = 'status-HOLDING';
+          let statusText = 'Mới tiếp nhận';
+          if (ticket.status === 'REVIEWING') { statusClass = 'status-AWAITING_PAYMENT'; statusText = 'Đang xem xét'; }
+          if (ticket.status === 'WAITING_REFUND') { statusClass = 'status-REFUND_PENDING'; statusText = 'Chờ hoàn tiền'; }
+          if (ticket.status === 'RESOLVED') { statusClass = 'status-PAID'; statusText = 'Đã giải quyết'; }
+          if (ticket.status === 'REJECTED') { statusClass = 'status-FAILED'; statusText = 'Từ chối'; }
+
+          let notesHtml = '';
+          if (ticket.notes && ticket.notes.length > 0) {
+            notesHtml = `
+              <div style="margin-top:14px; background:#F8FAFC; border-radius:6px; padding:12px; font-size:13px; border:1px solid #E2E8F0;">
+                <b style="color:var(--navy-dark)">Nhật ký xử lý:</b>
+                ${ticket.notes.map(n => `
+                  <div style="margin-top:6px; padding-bottom:6px; border-bottom:1px dashed #E2E8F0;">
+                    <span style="color:#64748B">[${formatDateTime(n.at)}] <b>${n.actor}:</b></span> ${n.text}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
+
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div>
+                <b style="font-size:16px; color:var(--primary-navy)">Phiếu #${ticket.ticketId}</b>
+                <span style="font-size:13px; color:var(--text-muted); margin-left:8px;">(${ticket.type})</span>
+              </div>
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+
+            <div style="font-size:13.5px; margin-bottom:10px;">
+              <b>Nội dung sự cố:</b> ${ticket.description}
+            </div>
+
+            <div style="font-size:12.5px; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap;">
+              <span>Đơn liên quan: <b>${ticket.orderId || 'Không có'}</b></span>
+              <span>Mã GD ví: <b>${ticket.txnRef || 'Không có'}</b></span>
+              <span>Thời gian gửi: ${formatDateTime(ticket.createdAt)}</span>
+              <span>Hạn xử lý SLA: <b style="color:${ticket.slaBreached ? 'var(--color-danger)' : 'var(--navy-dark)'}">${formatDateTime(ticket.slaDeadline)}</b></span>
+            </div>
+
+            ${notesHtml}
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<div class="card" style="color:var(--color-danger);text-align:center;padding:30px;">${err.message}</div>`;
+      }
+    }
+
+    initCustomerNav();
+  </script>
+</body>
+</html>

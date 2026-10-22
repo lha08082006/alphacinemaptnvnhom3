@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng điều khiển Quản trị - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin" class="active">Dashboard</a>
+          <a href="/admin/orders">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 24px; color: #111827; font-weight: 800;">TỔNG QUAN VẬN HÀNH & ĐỐI SOÁT</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Giám sát luồng doanh thu, giao dịch treo và chất lượng dịch vụ khách hàng.</p>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <span style="font-size: 13px; color: var(--text-muted);">Chế độ hệ thống:</span>
+        <span class="status-badge" id="mode-badge" style="font-size: 13px; padding: 6px 14px;">...</span>
+      </div>
+    </div>
+
+    <!-- 4 THẺ CHỈ SỐ KPI CHÍNH -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 28px;">
+      <!-- Doanh thu -->
+      <div class="card" style="margin-bottom:0; border-left: 5px solid var(--color-success);">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Doanh thu vé thực nhận</div>
+        <div style="font-size: 28px; font-weight: 900; color: #111827; margin: 8px 0;" id="kpi-revenue">0đ</div>
+        <div style="font-size: 12.5px; color: var(--color-success);">Đã xuất: <b id="kpi-paid-count">0</b> vé xem phim</div>
+      </div>
+
+      <!-- Giao dịch treo (Cảnh báo đỏ) -->
+      <div class="card" style="margin-bottom:0; border-left: 5px solid var(--color-danger); background: #FFF5F5;">
+        <div style="font-size: 12.5px; font-weight: 700; color: #991B1B; text-transform: uppercase;">⚠️ GIAO DỊCH TREO (KHÁCH MẤT TIỀN)</div>
+        <div style="font-size: 28px; font-weight: 900; color: var(--color-danger); margin: 8px 0;" id="kpi-hanging-count">0</div>
+        <div style="font-size: 12.5px; color: #7F1D1D;">Cần chạy đối soát để hoàn tiền hoặc cấp vé</div>
+      </div>
+
+      <!-- Ticket khiếu nại -->
+      <div class="card" style="margin-bottom:0; border-left: 5px solid var(--color-warning);">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Khiếu nại khách hàng mở</div>
+        <div style="font-size: 28px; font-weight: 900; color: #111827; margin: 8px 0;" id="kpi-open-tickets">0</div>
+        <div style="font-size: 12.5px; color: var(--color-warning);">Yêu cầu phản hồi trong cam kết SLA 24h</div>
+      </div>
+
+      <!-- Lệnh hoàn tiền chờ duyệt -->
+      <div class="card" style="margin-bottom:0; border-left: 5px solid #8B5CF6;">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Lệnh hoàn tiền chờ xử lý</div>
+        <div style="font-size: 28px; font-weight: 900; color: #111827; margin: 8px 0;" id="kpi-pending-refunds">0</div>
+        <div style="font-size: 12.5px; color: #6D28D9;">Đang hoàn qua MoMo / ZaloPay / VNPay</div>
+      </div>
+    </div>
+
+    <!-- CÁC LỐI TẮT VẬN HÀNH NHANH -->
+    <div class="card">
+      <h3 class="card-title">LỐI TẮT ĐIỀU HÀNH & KỊCH BẢN THUYẾT TRÌNH</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: #F8FAFC;">
+          <b style="color: var(--primary-navy); font-size: 15px;">📊 Giám sát 3 bảng cạnh nhau</b>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 12px;">Xem thời gian thực Đơn website, Giao dịch ví cổng và Nhật ký hệ thống tự refresh 3s.</p>
+          <a href="/admin/orders" class="btn btn-navy btn-sm">Mở bảng giám sát →</a>
+        </div>
+
+        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: #F8FAFC;">
+          <b style="color: var(--primary-orange); font-size: 15px;">⚡ Chạy đối soát & Đổi cơ chế</b>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 12px;">Bật tắt công tắc As-is / To-be, kích hoạt công cụ tự động phát hiện giao dịch treo và xử lý.</p>
+          <a href="/admin/reconcile" class="btn btn-primary btn-sm">Vào trung tâm Đối soát →</a>
+        </div>
+
+        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: #F8FAFC;">
+          <b style="color: #059669; font-size: 15px;">📑 Báo cáo Kế toán & Xuất CSV</b>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 12px;">So sánh đối chiếu tiền cổng thu và tiền vé thực, xuất file Excel CSV có UTF-8 BOM.</p>
+          <a href="/admin/reports" class="btn btn-outline btn-sm">Xem & Xuất báo cáo →</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    async function loadDashboard() {
+      await initAdminNav('dashboard');
+
+      try {
+        const res = await api('/api/admin/dashboard');
+        const s = res.stats;
+
+        document.getElementById('kpi-revenue').textContent = formatVND(s.revenue);
+        document.getElementById('kpi-paid-count').textContent = s.paidCount;
+        document.getElementById('kpi-hanging-count').textContent = s.hangingCount;
+        document.getElementById('kpi-open-tickets').textContent = s.openTickets;
+        document.getElementById('kpi-pending-refunds').textContent = s.pendingRefunds;
+
+        const badge = document.getElementById('mode-badge');
+        badge.textContent = s.configMode === 'TOBE' ? '🛡️ TO-BE (Tự động bảo vệ)' : '⚠️ AS-IS (Cơ chế lỗi rớt đơn)';
+        badge.className = `status-badge ${s.configMode === 'TOBE' ? 'status-PAID' : 'status-FAILED'}`;
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadDashboard();
+    // Tự làm mới chỉ số mỗi 3 giây
+    setInterval(loadDashboard, 3000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập thành viên - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body style="justify-content: center; align-items: center; background: linear-gradient(135deg, #083266 0%, #0B4C9B 100%);">
+
+  <div class="card" style="width: 100%; max-width: 440px; padding: 36px 30px; box-shadow: var(--shadow-lg); border-radius: var(--radius-lg);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <a href="/" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <span class="logo-badge">β</span>
+        <span style="font-size: 22px; font-weight: 800; color: var(--navy-dark);">Beta Cinemas</span>
+      </a>
+      <h2 style="font-size: 18px; color: var(--text-main); margin-top: 14px; font-weight: 700;">ĐĂNG NHẬP KHÁCH HÀNG</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Đăng nhập để đặt vé xem phim và quản lý đơn hàng</p>
+    </div>
+
+    <form onsubmit="handleCustomerLogin(event)">
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Email thành viên:</label>
+        <input type="email" id="email" required value="khach@demo.vn" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;">
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Mật khẩu:</label>
+        <input type="password" id="password" required value="123" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" id="btn-login" style="width: 100%;">
+        Đăng nhập
+      </button>
+
+      <!-- Nút 1-click Quick Login cho bài thuyết trình -->
+      <div style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-color); text-align: center;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Tiện ích dành cho Demo Thuyết trình:</div>
+        <button type="button" class="btn btn-outline btn-sm" style="width: 100%; background: #F8FAFC;" onclick="quickLogin()">
+          ⚡ Điền nhanh & Đăng nhập (khach@demo.vn)
+        </button>
+      </div>
+
+      <div style="text-align: center; margin-top: 18px;">
+        <a href="/" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">← Quay lại Trang chủ</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="/common.js"></script>
+  <script>
+    const redirectUrl = getQueryParam('redirect') || '/';
+
+    async function handleCustomerLogin(e) {
+      if (e) e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const btn = document.getElementById('btn-login');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang đăng nhập...';
+
+      try {
+        const res = await api('/api/auth/login', {
+          body: { email, password }
+        });
+
+        showToast(`Xin chào ${res.user.name}!`, 'success');
+        setTimeout(() => {
+          location.href = redirectUrl;
+        }, 600);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Đăng nhập';
+      }
+    }
+
+    function quickLogin() {
+      document.getElementById('email').value = 'khach@demo.vn';
+      document.getElementById('password').value = '123';
+      handleCustomerLogin();
+    }
+  </script>
+</body>
+</html>

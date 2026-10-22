@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hàng chờ Khiếu nại CSKH - Beta Cinemas Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/orders">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" class="active" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 24px; color: #111827; font-weight: 800;">QUẢN LÝ PHIẾU KHIẾU NẠI (CSKH TICKETS)</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">
+          Tiếp nhận, xử lý khiếu nại giao dịch lỗi từ khách hàng và ghi chú nhật ký giải quyết.
+        </p>
+      </div>
+      <button class="btn btn-navy" onclick="loadTickets()">🔄 Làm mới danh sách</button>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mã Phiếu</th>
+              <th>Khách liên hệ</th>
+              <th>Đơn / Mã GD</th>
+              <th>Loại sự cố</th>
+              <th>Mô tả sự cố</th>
+              <th>Hạn xử lý SLA</th>
+              <th>Trạng thái</th>
+              <th style="text-align: right;">Cập nhật</th>
+            </tr>
+          </thead>
+          <tbody id="tickets-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                Đang tải danh sách khiếu nại...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Panel cập nhật Ticket nhanh -->
+    <div id="update-modal" class="card" style="display:none; border: 2px solid var(--primary-navy); background: #F8FAFC;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 class="card-title" style="margin-bottom:0;" id="modal-title">CẬP NHẬT PHIẾU KHIẾU NẠI</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Đóng</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Chuyển trạng thái:</label>
+          <select id="modal-status" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:#fff;">
+            <option value="NEW">Mới tiếp nhận (NEW)</option>
+            <option value="REVIEWING">Đang xem xét (REVIEWING)</option>
+            <option value="WAITING_REFUND">Chờ hoàn tiền (WAITING_REFUND)</option>
+            <option value="RESOLVED">Đã giải quyết thành công (RESOLVED)</option>
+            <option value="REJECTED">Từ chối giải quyết (REJECTED)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Ghi chú phản hồi / xử lý của nhân viên:</label>
+          <input type="text" id="modal-note" placeholder="VD: Đã đối chiếu sao kê và duyệt lệnh hoàn tiền..." style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color);">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitTicketUpdate()">
+        Lưu cập nhật
+      </button>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    let activeTicketId = null;
+
+    async function loadTickets() {
+      await initAdminNav('tickets');
+
+      try {
+        const res = await api('/api/admin/tickets');
+        const tickets = res.tickets || [];
+        const tbody = document.getElementById('tickets-tbody');
+        tbody.innerHTML = '';
+
+        if (tickets.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Hiện không có phiếu khiếu nại nào từ khách hàng.</td></tr>';
+          return;
+        }
+
+        tickets.forEach(t => {
+          const tr = document.createElement('tr');
+          if (t.slaBreached) tr.style.background = '#FFF1F2';
+
+          let slaBadge = `<span style="font-size:12px;">${formatDateTime(t.slaDeadline)}</span>`;
+          if (t.slaBreached) {
+            slaBadge = `<b style="color:var(--color-danger);font-size:12px;">⚠️ QUÁ HẠN 24H</b><br>${slaBadge}`;
+          }
+
+          tr.innerHTML = `
+            <td><b style="color:var(--primary-navy)">${t.ticketId}</b></td>
+            <td><b>${t.contact}</b></td>
+            <td>
+              <div>Đơn: <b>${t.orderId || '--'}</b></div>
+              <div style="font-size:11px;color:var(--text-muted)">GD: ${t.txnRef || '--'}</div>
+            </td>
+            <td><span class="status-badge status-HOLDING" style="font-size:11px;">${t.type}</span></td>
+            <td style="max-width:240px; font-size:12.5px;">${t.description}</td>
+            <td>${slaBadge}</td>
+            <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+            <td style="text-align: right;">
+              <button class="btn btn-navy btn-sm" onclick="openModal('${t.ticketId}', '${t.status}')">Xử lý</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function openModal(ticketId, currentStatus) {
+      activeTicketId = ticketId;
+      document.getElementById('modal-title').textContent = `CẬP NHẬT PHIẾU KHIẾU NẠI #${ticketId}`;
+      document.getElementById('modal-status').value = currentStatus;
+      document.getElementById('modal-note').value = '';
+      document.getElementById('update-modal').style.display = 'block';
+      document.getElementById('update-modal').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeModal() {
+      document.getElementById('update-modal').style.display = 'none';
+      activeTicketId = null;
+    }
+
+    async function submitTicketUpdate() {
+      if (!activeTicketId) return;
+      const status = document.getElementById('modal-status').value;
+      const note = document.getElementById('modal-note').value.trim();
+
+      try {
+        await api(`/api/admin/tickets/${activeTicketId}/update`, {
+          body: { status, note }
+        });
+        showToast(`Đã cập nhật phiếu #${activeTicketId} thành công!`, 'success');
+        closeModal();
+        loadTickets();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadTickets();
+  </script>
+</body>
+</html>

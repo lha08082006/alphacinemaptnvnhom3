@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập Cổng Quản trị - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body style="justify-content: center; align-items: center; background: #0F172A;">
+
+  <div class="card" style="width: 100%; max-width: 480px; padding: 36px 30px; box-shadow: var(--shadow-lg); border-radius: var(--radius-lg); border-color: #334155;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: inline-flex; align-items: center; gap: 8px;">
+        <span class="logo-badge" style="background: #DC2626;">ADMIN</span>
+        <span style="font-size: 22px; font-weight: 800; color: #0F172A;">Beta Cinemas Ops</span>
+      </div>
+      <h2 style="font-size: 17px; color: #475569; margin-top: 10px; font-weight: 700;">HỆ THỐNG QUẢN TRỊ & ĐỐI SOÁT NỘI BỘ</h2>
+      <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">Cổng dành riêng cho nhân sự có thẩm quyền (Zero-trust RBAC)</p>
+    </div>
+
+    <form onsubmit="handleAdminLogin(event)">
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Email tài khoản nội bộ:</label>
+        <input type="email" id="admin-email" required value="manager@demo.vn" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;">
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Mật khẩu bảo mật:</label>
+        <input type="password" id="admin-password" required value="123456" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;">
+      </div>
+
+      <button type="submit" class="btn btn-navy btn-lg" id="btn-admin-login" style="width: 100%; background: #1E293B;">
+        Đăng nhập vào Hệ thống Quản trị
+      </button>
+
+      <!-- Chọn nhanh các vai trò phục vụ thuyết trình -->
+      <div style="margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--border-color);">
+        <div style="font-size: 12px; font-weight: 700; color: #64748B; margin-bottom: 10px; text-transform: uppercase;">
+          ⚡ Chọn nhanh vai trò thử nghiệm RBAC:
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="pickRole('manager@demo.vn', 'MANAGER')">
+            👑 Quản lý (Full quyền)
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="pickRole('ketoan@demo.vn', 'ACCOUNTANT')">
+            💼 Kế toán (Đối soát/Hoàn tiền)
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="pickRole('cskh@demo.vn', 'CSKH')">
+            🎧 CSKH (Đơn / Ticket)
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="pickRole('it@demo.vn', 'IT')">
+            ⚙️ IT (Cấu hình / Audit Log)
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="/common.js"></script>
+  <script>
+    function pickRole(email, role) {
+      document.getElementById('admin-email').value = email;
+      document.getElementById('admin-password').value = '123456';
+      handleAdminLogin();
+    }
+
+    async function handleAdminLogin(e) {
+      if (e) e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+      const btn = document.getElementById('btn-admin-login');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang xác thực quyền...';
+
+      try {
+        const res = await api('/api/admin/auth/login', {
+          body: { email, password }
+        });
+
+        showToast(`Đăng nhập thành công với vai trò [${res.user.role}]!`, 'success');
+        setTimeout(() => {
+          location.href = '/admin';
+        }, 600);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Đăng nhập vào Hệ thống Quản trị';
+      }
+    }
+  </script>
+</body>
+</html>

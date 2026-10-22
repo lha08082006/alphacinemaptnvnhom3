@@ -1,21 +1,127 @@
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vé điện tử - Beta Cinemas DEMO</title><link rel="stylesheet" href="/style.css"></head><body>
-<header><b>BETA CINEMAS <small>(DEMO)</small></b><nav><a href="/">Đặt vé</a><a href="/admin" target="_blank">Quản trị / Đối soát</a></nav></header>
-<main><div id="out"></div></main>
-<script src="/common.js"></script>
-<script>
-(async()=>{
-  const out=document.getElementById('out');
-  try{ const o=await api('/api/orders/'+codeFromPath());
-    if(o.status!=='PAID'){ out.innerHTML=`<div class="card center"><div class="msg warn">Đơn ${o.code} chưa có vé (trạng thái: ${o.status}).</div><a class="btn" href="/pay/${o.code}">Về trang thanh toán</a></div>`; return; }
-    out.innerHTML=`<div class="ticket"><div class="top"><h2 style="color:#fff;margin:0">VÉ ĐIỆN TỬ</h2><div>BETA CINEMAS DEMO</div></div>
-      <div class="body"><h3 class="center">${o.movie.title}</h3>
-        <div class="kv"><span>Rạp</span><b>${o.movie.cinema} - ${o.movie.room}</b></div>
-        <div class="kv"><span>Suất chiếu</span><b>${o.movie.showtime}</b></div>
-        <div class="kv"><span>Ghế</span><b style="color:#F26A1E;font-size:18px">${o.seats.join(', ')}</b></div>
-        <div class="kv"><span>Mã đơn</span><b>${o.code}</b></div>
-        <div class="kv"><span>Tổng tiền</span><b>${money(o.amount)}</b></div></div>
-      <div class="center" style="padding:20px"><div class="muted">Trình mã này cho nhân viên soát vé</div>${fakeQR(o.ticket,170)}<div><b style="letter-spacing:2px;font-size:18px">${o.ticket}</b></div></div></div>`;
-  }catch(e){ out.innerHTML=`<div class="msg err">${e.message}</div>`; }
-})();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vé xem phim điện tử - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    @media print {
+      body { background: #fff; }
+      header, .no-print { display: none !important; }
+      .ticket-wrapper { box-shadow: none; border: 1px solid #333; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div class="ticket-wrapper">
+      <div class="ticket-top">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9;">VÉ XEM PHIM ĐIỆN TỬ (E-TICKET)</div>
+        <div class="ticket-code" id="tk-code">TK--------</div>
+        <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Đưa mã vé hoặc quét QR tại quầy soát vé Beta Cinemas</div>
+      </div>
+
+      <div class="ticket-body">
+        <div class="ticket-punch-hole punch-left"></div>
+        <div class="ticket-punch-hole punch-right"></div>
+
+        <div class="ticket-row">
+          <span class="ticket-row-label">Tên phim:</span>
+          <span class="ticket-row-val" id="tk-movie" style="color:var(--navy-dark); font-size:16px;">...</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Cụm rạp:</span>
+          <span class="ticket-row-val" id="tk-cinema">...</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Phòng chiếu:</span>
+          <span class="ticket-row-val" id="tk-room">...</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Suất chiếu:</span>
+          <span class="ticket-row-val" id="tk-showtime" style="color:var(--primary-orange);">...</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Ghế ngồi:</span>
+          <span class="ticket-row-val" id="tk-seats" style="font-size:18px; color:var(--primary-navy);">...</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Tổng thanh toán:</span>
+          <span class="ticket-row-val" id="tk-amount" style="color:var(--color-danger); font-size:16px;">0đ</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-row-label">Mã đơn hàng:</span>
+          <span class="ticket-row-val" id="tk-order-id">...</span>
+        </div>
+
+        <div class="ticket-qr-center">
+          <div id="tk-qr-svg" style="display:inline-block; border:1px solid #E2E8F0; padding:10px; border-radius:8px; background:#fff;"></div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Quét mã QR tại cửa soát vé</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-print" style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+      <button class="btn btn-navy" onclick="window.print()">🖨️ In vé điện tử</button>
+      <a href="/orders" class="btn btn-outline">Xem lịch sử đơn</a>
+      <a href="/" class="btn btn-primary">Đặt thêm vé khác</a>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    // Lấy orderId từ đường dẫn /ticket/:orderId
+    const pathParts = location.pathname.split('/');
+    const orderId = pathParts[pathParts.length - 1];
+
+    async function loadTicket() {
+      try {
+        const res = await api(`/api/order/${orderId}`);
+        const order = res.order;
+
+        if (order.status !== 'PAID') {
+          showToast(`Đơn hàng đang ở trạng thái [${order.status}], chưa xuất vé!`, 'warning');
+          setTimeout(() => location.href = `/result?orderId=${orderId}`, 1500);
+          return;
+        }
+
+        const ticketCode = order.ticketCode || ('TK' + order.orderId.replace(/\D/g, '') + '88');
+        document.getElementById('tk-code').textContent = ticketCode;
+        document.getElementById('tk-movie').textContent = order.movieTitle;
+        document.getElementById('tk-cinema').textContent = order.cinema;
+        document.getElementById('tk-room').textContent = order.room;
+        document.getElementById('tk-showtime').textContent = order.showtime;
+        document.getElementById('tk-seats').textContent = order.seats.join(', ');
+        document.getElementById('tk-amount').textContent = formatVND(order.amount);
+        document.getElementById('tk-order-id').textContent = order.orderId;
+
+        // Render QR
+        document.getElementById('tk-qr-svg').innerHTML = renderFakeQR(`BETA_TICKET:${ticketCode}:${order.orderId}`, 180);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    initCustomerNav();
+    loadTicket();
+  </script>
+</body>
+</html>

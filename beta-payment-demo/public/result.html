@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kết quả đơn hàng - Beta Cinemas</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-client">
+    <div class="header-container">
+      <a href="/" class="logo-brand">
+        <span class="logo-badge">β</span>
+        <span class="logo-text">Beta Cinemas</span>
+        <span class="logo-sub">Demo</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Phim</a></li>
+        <li><a href="/orders">Đơn của tôi</a></li>
+        <li><a href="/notifications">Thông báo</a></li>
+        <li><a href="/support" class="nav-support-highlight">🎧 HỖ TRỢ</a></li>
+      </ul>
+      <div class="nav-user" id="client-nav-user"></div>
+    </div>
+  </header>
+
+  <main class="main-wrapper" style="max-width: 800px;">
+    <div class="card" style="text-align: center; padding: 36px 24px;">
+      <!-- Biểu tượng & Trạng thái hiện tại -->
+      <div id="status-icon" style="font-size: 54px; margin-bottom: 12px;">⏳</div>
+      <h2 id="status-headline" style="font-size: 24px; color: var(--navy-dark); font-weight: 800;">Đang kiểm tra giao dịch...</h2>
+      <div id="status-badge-wrap" style="margin: 10px 0;">
+        <span class="status-badge" id="status-badge">ĐANG TẢI</span>
+      </div>
+      <p id="status-description" style="color: var(--text-muted); font-size: 14.5px; max-width: 580px; margin: 0 auto 24px; line-height: 1.6;">
+        Hệ thống đang kết nối với cổng thanh toán để đồng bộ kết quả mới nhất.
+      </p>
+
+      <!-- Nút hành động chính theo trạng thái -->
+      <div id="action-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <!-- Nút hiển thị linh hoạt -->
+      </div>
+    </div>
+
+    <!-- Chi tiết đơn hàng -->
+    <div class="card">
+      <h3 class="card-title">THÔNG TIN ĐƠN HÀNG</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 14px;">
+        <div><span style="color:var(--text-muted)">Mã đơn hàng:</span> <b id="dt-order-id" style="color:var(--primary-navy)">...</b></div>
+        <div><span style="color:var(--text-muted)">Phim:</span> <b id="dt-movie">...</b></div>
+        <div><span style="color:var(--text-muted)">Rạp:</span> <span id="dt-cinema">...</span></div>
+        <div><span style="color:var(--text-muted)">Suất chiếu:</span> <span id="dt-showtime">...</span></div>
+        <div><span style="color:var(--text-muted)">Ghế:</span> <b id="dt-seats" style="color:var(--primary-orange)">...</b></div>
+        <div><span style="color:var(--text-muted)">Tổng tiền:</span> <b id="dt-amount" style="color:var(--color-danger)">0đ</b></div>
+      </div>
+    </div>
+
+    <!-- Timeline các bước xử lý -->
+    <div class="card">
+      <h3 class="card-title">TIẾN TRÌNH XỬ LÝ (LỊCH SỬ CHUYỂN TRẠNG THÁI)</h3>
+      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
+        Minh họa máy trạng thái (State Machine) và các sự kiện diễn ra trong quá trình đặt vé.
+      </p>
+      <div class="timeline" id="status-timeline">
+        <!-- Render history -->
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    const orderId = getQueryParam('orderId');
+    let pollInterval = null;
+    let redirected = false;
+
+    if (!orderId) {
+      alert('Không tìm thấy mã đơn hàng!');
+      location.href = '/';
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await api(`/api/order/${orderId}/status`);
+        renderResult(res);
+      } catch (err) {
+        console.error('Lỗi polling:', err.message);
+      }
+    }
+
+    function renderResult(data) {
+      const iconEl = document.getElementById('status-icon');
+      const headlineEl = document.getElementById('status-headline');
+      const badgeEl = document.getElementById('status-badge');
+      const descEl = document.getElementById('status-description');
+      const actionsEl = document.getElementById('action-buttons');
+
+      document.getElementById('dt-order-id').textContent = orderId;
+      document.getElementById('dt-movie').textContent = data.movieTitle;
+      document.getElementById('dt-cinema').textContent = data.cinema;
+      document.getElementById('dt-showtime').textContent = data.showtime;
+      document.getElementById('dt-seats').textContent = (data.seats || []).join(', ');
+      document.getElementById('dt-amount').textContent = formatVND(data.amount);
+
+      badgeEl.className = `status-badge status-${data.status}`;
+      badgeEl.textContent = data.status;
+
+      actionsEl.innerHTML = '';
+
+      switch (data.status) {
+        case 'PAID':
+          iconEl.textContent = '🎉';
+          headlineEl.textContent = 'THANH TOÁN THÀNH CÔNG!';
+          headlineEl.style.color = 'var(--color-success)';
+          descEl.innerHTML = `Chúc mừng bạn! Vé xem phim điện tử đã được phát hành thành công. Mã vé của bạn là: <b style="color:var(--primary-orange);font-size:17px;">${data.ticketCode}</b>.`;
+          actionsEl.innerHTML = `
+            <a href="/ticket/${orderId}" class="btn btn-primary btn-lg">🎟️ Xem vé điện tử ngay</a>
+            <a href="/" class="btn btn-outline">Về trang chủ</a>
+          `;
+          // Tự động chuyển trang sau 2.5 giây nếu người dùng không bấm
+          if (!redirected) {
+            redirected = true;
+            setTimeout(() => { location.href = `/ticket/${orderId}`; }, 2500);
+          }
+          break;
+
+        case 'AWAITING_PAYMENT':
+          iconEl.textContent = '⏳';
+          headlineEl.textContent = 'ĐANG CHỜ THANH TOÁN...';
+          headlineEl.style.color = 'var(--primary-navy)';
+          descEl.textContent = 'Đơn hàng đang chờ phản hồi từ cổng thanh toán. Nếu bạn đã hoàn tất trên ví, hệ thống sẽ tự động cập nhật trong giây lát.';
+          actionsEl.innerHTML = `
+            <button class="btn btn-navy" onclick="pollStatus()">🔄 Kiểm tra lại ngay</button>
+            <a href="/orders" class="btn btn-outline">Xem danh sách đơn</a>
+          `;
+          break;
+
+        case 'PENDING_VERIFY':
+          iconEl.textContent = '🛡️';
+          headlineEl.textContent = 'ĐANG XÁC MINH THANH TOÁN (TO-BE)';
+          headlineEl.style.color = '#0284C7';
+          descEl.innerHTML = 'Giao dịch vượt quá thời gian phản hồi nhưng <b>cơ chế To-be đang bảo vệ đơn hàng</b>. Ghế của bạn đang được gia hạn giữ chỗ thêm 15 phút để chờ hệ thống đối soát tự động xử lý và cấp vé.';
+          actionsEl.innerHTML = `
+            <button class="btn btn-navy" onclick="pollStatus()">🔄 Cập nhật đối soát</button>
+            <a href="/support" class="btn btn-outline">Trung tâm hỗ trợ</a>
+          `;
+          break;
+
+        case 'FAILED':
+          iconEl.textContent = '⚠️';
+          headlineEl.textContent = 'GIAO DỊCH THẤT BẠI HOẶC QUÁ HẠN';
+          headlineEl.style.color = 'var(--color-danger)';
+          descEl.innerHTML = `Đơn hàng đã bị hủy (Timeout hoặc cổng từ chối). <b>Nếu tài khoản ngân hàng/ví của bạn đã bị trừ tiền</b> (Trường hợp lỗi As-is rớt mạng), vui lòng bấm nút bên dưới để tra cứu và được hoàn tiền!`;
+          actionsEl.innerHTML = `
+            <a href="/support?code=${orderId}" class="btn btn-primary">🎧 Báo lỗi thanh toán & Khiếu nại</a>
+            <a href="/" class="btn btn-outline">Đặt lại vé khác</a>
+          `;
+          break;
+
+        case 'EXPIRED':
+          iconEl.textContent = '⏰';
+          headlineEl.textContent = 'ĐƠN HÀNG ĐÃ HẾT HẠN';
+          headlineEl.style.color = 'var(--text-muted)';
+          descEl.textContent = 'Hết thời gian giữ chỗ 5 phút mà chưa hoàn tất thủ tục thanh toán. Ghế đã được nhả cho khách hàng khác.';
+          actionsEl.innerHTML = `
+            <a href="/" class="btn btn-primary">Đặt lại vé mới</a>
+            <a href="/support?code=${orderId}" class="btn btn-outline">Báo lỗi nếu đã bị trừ tiền</a>
+          `;
+          break;
+
+        case 'REFUND_PENDING':
+          iconEl.textContent = '💸';
+          headlineEl.textContent = 'ĐANG TIẾN HÀNH HOÀN TIỀN';
+          headlineEl.style.color = '#7C3AED';
+          descEl.innerHTML = `Hệ thống ghi nhận bạn đã bị trừ tiền nhưng ghế đã bị bán hoặc có lỗi phát sinh. <b>Lệnh hoàn tiền tự động đã được kích hoạt</b> và số tiền ${formatVND(data.amount)} đang được chuyển trả về ví của bạn.`;
+          actionsEl.innerHTML = `
+            <button class="btn btn-navy" onclick="pollStatus()">🔄 Cập nhật trạng thái hoàn tiền</button>
+            <a href="/orders" class="btn btn-outline">Xem lịch sử đơn</a>
+          `;
+          break;
+
+        case 'REFUNDED':
+          iconEl.textContent = '✅';
+          headlineEl.textContent = 'HOÀN TIỀN THÀNH CÔNG';
+          headlineEl.style.color = 'var(--color-success)';
+          descEl.innerHTML = `Toàn bộ số tiền <b>${formatVND(data.amount)}</b> đã được hoàn trả thành công về tài khoản/ví thanh toán của bạn. Xin lỗi bạn vì sự cố gián đoạn!`;
+          actionsEl.innerHTML = `
+            <a href="/" class="btn btn-primary">Đặt vé phim khác</a>
+            <a href="/orders" class="btn btn-outline">Xem đơn của tôi</a>
+          `;
+          break;
+
+        case 'NEEDS_REVIEW':
+          iconEl.textContent = '🔍';
+          headlineEl.textContent = 'ĐƠN HÀNG CẦN RÀ SOÁT THỦ CÔNG';
+          headlineEl.style.color = 'var(--color-warning)';
+          descEl.textContent = 'Phát hiện sự sai lệch về số tiền thanh toán từ cổng. Nhân viên quản trị đang rà soát và sẽ hỗ trợ liên hệ xử lý ngay cho bạn.';
+          actionsEl.innerHTML = `
+            <a href="/support?code=${orderId}" class="btn btn-primary">Gửi thông tin cho CSKH</a>
+            <a href="/orders" class="btn btn-outline">Xem đơn hàng</a>
+          `;
+          break;
+
+        default:
+          descEl.textContent = `Trạng thái hiện tại: ${data.status}`;
+      }
+
+      // Render timeline
+      const timelineEl = document.getElementById('status-timeline');
+      timelineEl.innerHTML = '';
+
+      if (data.history && data.history.length > 0) {
+        data.history.forEach((step, idx) => {
+          const isLatest = (idx === data.history.length - 1);
+          const stepEl = document.createElement('div');
+          stepEl.className = `timeline-step ${isLatest ? 'active' : ''}`;
+
+          let dotClass = '';
+          if (step.to === 'PAID' || step.to === 'REFUNDED') dotClass = 'success';
+          if (step.to === 'FAILED') dotClass = 'danger';
+
+          stepEl.innerHTML = `
+            <div class="timeline-dot ${dotClass}"></div>
+            <div class="timeline-title">${step.from} ➔ <span class="status-badge status-${step.to}">${step.to}</span></div>
+            <div class="timeline-desc">
+              <b>Lý do:</b> ${step.reason} • <b>Tác tử:</b> ${step.actor} • <span style="color:#94A3B8">${formatDateTime(step.at)}</span>
+            </div>
+          `;
+          timelineEl.appendChild(stepEl);
+        });
+      }
+    }
+
+    initCustomerNav();
+    pollStatus();
+    // Polling tự động mỗi 2 giây theo yêu cầu đề bài
+    pollInterval = setInterval(pollStatus, 2000);
+  </script>
+</body>
+</html>

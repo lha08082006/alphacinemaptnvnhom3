@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giám sát 3 Bảng trực tiếp - Beta Cinemas Ops</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header-admin">
+    <div class="admin-header-container">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin" class="admin-brand">
+          <span class="admin-brand-badge">ADMIN OPS</span>
+          <span>Beta Cinemas Internal</span>
+          <span class="admin-role-tag" id="admin-header-role">...</span>
+        </a>
+        <nav class="admin-nav">
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/orders" class="active">Giám sát 3 Bảng</a>
+          <a href="/admin/reconcile" data-role="ACCOUNTANT,IT">Đối soát</a>
+          <a href="/admin/refunds" data-role="ACCOUNTANT,CSKH">Hoàn tiền</a>
+          <a href="/admin/tickets" data-role="CSKH">Ticket CSKH</a>
+          <a href="/admin/reports" data-role="ACCOUNTANT">Báo cáo</a>
+          <a href="/admin/settings" data-role="IT">Cấu hình & IT</a>
+        </nav>
+      </div>
+      <div id="admin-header-user"></div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <!-- Thanh công cụ tìm kiếm & thông tin refresh -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h1 style="font-size: 20px; color: #111827; font-weight: 800; margin: 0;">GIÁM SÁT 3 BẢNG THỜI GIAN THỰC</h1>
+        <span class="timer-pill" style="font-size: 11px; padding: 3px 8px;">🔄 Tự làm mới: 3s</span>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" id="panel-search" placeholder="Tìm theo Mã đơn, Email, SĐT, Mã GD..." oninput="triggerSearch()" style="padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; width: 300px;">
+        <button class="btn btn-navy btn-sm" onclick="loadPanels()">Làm mới ngay</button>
+      </div>
+    </div>
+
+    <!-- 3 BẢNG CẠNH NHAU -->
+    <div class="admin-3cols">
+      <!-- CỘT 1: ĐƠN HÀNG WEBSITE -->
+      <div class="col-panel">
+        <div class="col-panel-header">
+          <span>📦 ĐƠN HÀNG WEBSITE (<span id="cnt-orders">0</span>)</span>
+        </div>
+        <div class="col-panel-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>Ghế</th>
+                  <th>Tiền</th>
+                  <th>Khách hàng</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-orders">
+                <!-- Data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỘT 2: GIAO DỊCH PHÍA CỔNG -->
+      <div class="col-panel">
+        <div class="col-panel-header">
+          <span>💳 GIAO DỊCH PHÍA CỔNG (<span id="cnt-txns">0</span>)</span>
+        </div>
+        <div class="col-panel-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã GD Cổng</th>
+                  <th>Mã Đơn</th>
+                  <th>Ví</th>
+                  <th>Số tiền</th>
+                  <th>Trừ tiền</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-txns">
+                <!-- Data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỘT 3: NHẬT KÝ HỆ THỐNG -->
+      <div class="col-panel">
+        <div class="col-panel-header">
+          <span>📜 NHẬT KÝ AUDIT LOG (<span id="cnt-logs">0</span>)</span>
+          <button class="btn btn-outline btn-sm" style="font-size:11px;padding:2px 8px;" onclick="clearLogView()">Xóa nhìn</button>
+        </div>
+        <div class="col-panel-body" style="font-family: Consolas, monospace; font-size: 12px; line-height: 1.6;" id="box-logs">
+          <!-- Logs -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    let searchTimeout = null;
+
+    function triggerSearch() {
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadPanels, 300);
+    }
+
+    async function loadPanels() {
+      const search = document.getElementById('panel-search').value.trim();
+
+      try {
+        const res = await api(`/api/admin/orders-panel?search=${encodeURIComponent(search)}`);
+
+        // 1. Render Orders
+        document.getElementById('cnt-orders').textContent = res.orders.length;
+        const tbodyOrders = document.getElementById('tbody-orders');
+        tbodyOrders.innerHTML = '';
+
+        if (res.orders.length === 0) {
+          tbodyOrders.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có đơn hàng nào</td></tr>';
+        } else {
+          res.orders.forEach(o => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><b style="color:var(--primary-navy)">${o.orderId}</b></td>
+              <td>${(o.seats || []).join(',')}</td>
+              <td><b>${formatVND(o.amount)}</b></td>
+              <td>
+                <div style="font-size:11.5px;">${o.customerName || 'Khách'}</div>
+                <div style="font-size:10.5px;color:var(--text-muted);">${o.customerEmail || ''}</div>
+              </td>
+              <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+            `;
+            tbodyOrders.appendChild(tr);
+          });
+        }
+
+        // 2. Render Gateway Txns
+        document.getElementById('cnt-txns').textContent = res.gatewayTxns.length;
+        const tbodyTxns = document.getElementById('tbody-txns');
+        tbodyTxns.innerHTML = '';
+
+        if (res.gatewayTxns.length === 0) {
+          tbodyTxns.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Chưa có giao dịch cổng nào</td></tr>';
+        } else {
+          res.gatewayTxns.forEach(t => {
+            const tr = document.createElement('tr');
+            const debitedBadge = t.debited
+              ? '<span style="color:var(--color-danger);font-weight:700;">ĐÃ TRỪ</span>'
+              : '<span style="color:#94A3B8;">Chưa</span>';
+
+            tr.innerHTML = `
+              <td><b style="color:var(--navy-dark)">${t.txnRef}</b></td>
+              <td>${t.orderId}</td>
+              <td><b>${t.method}</b></td>
+              <td>${formatVND(t.amount)}</td>
+              <td>${debitedBadge}</td>
+              <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+            `;
+            tbodyTxns.appendChild(tr);
+          });
+        }
+
+        // 3. Render Logs
+        document.getElementById('cnt-logs').textContent = res.logs.length;
+        const boxLogs = document.getElementById('box-logs');
+        boxLogs.innerHTML = '';
+
+        if (res.logs.length === 0) {
+          boxLogs.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">Chưa có bản ghi log nào</div>';
+        } else {
+          res.logs.forEach(l => {
+            const row = document.createElement('div');
+            row.style.marginBottom = '6px';
+            row.style.borderBottom = '1px solid #F1F5F9';
+            row.style.paddingBottom = '4px';
+
+            let tagColor = 'var(--primary-navy)';
+            if (l.level === 'warn') tagColor = 'var(--color-warning)';
+            if (l.level === 'error') tagColor = 'var(--color-danger)';
+            if (l.level === 'ok') tagColor = 'var(--color-success)';
+
+            row.innerHTML = `
+              <span style="color:#94A3B8;">[${formatDateTime(l.at).split(' ')[0]}]</span>
+              <b style="color:${tagColor}">${l.tag}</b>:
+              <span style="color:#334155;">${l.message}</span>
+            `;
+            boxLogs.appendChild(row);
+          });
+        }
+
+      } catch (err) {
+        console.error('Lỗi tải 3 bảng:', err.message);
+      }
+    }
+
+    function clearLogView() {
+      document.getElementById('box-logs').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">Đã xóa giao diện nhật ký tạm thời</div>';
+    }
+
+    initAdminNav('orders');
+    loadPanels();
+    // Tự động làm mới mỗi 3 giây theo yêu cầu đề bài
+    setInterval(loadPanels, 3000);
+  </script>
+</body>
+</html>
