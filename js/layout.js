@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="flag-icon" title="English" style="width: 22px; height: 14px; display: inline-block; background: url('https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg') no-repeat center/cover; cursor: pointer;"></span>
             </div>
         </div>
-        <header id="site-header" style="background: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000;">
+        <header id="site-header" style="background: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease; will-change: transform;">
             <!-- Căn giữa toàn bộ cụm Header bằng justify-content: center và thêm gap -->
             <div class="container-fluid header-main" style="display: flex; align-items: center; justify-content: center; gap: 35px;">
                 
@@ -208,9 +208,52 @@ document.addEventListener('DOMContentLoaded', () => {
         select.value = currentCin;
     }
 
-    // 3. Hiển thị Trạng thái Đăng nhập
+        // 3. Hiển thị Trạng thái Đăng nhập
     updateAuthUI();
+
+    // 4. Khởi tạo Smart Sticky Header
+    initSmartHeader();
 });
+
+function initSmartHeader() {
+    const header = document.getElementById('site-header');
+    if (!header) return;
+
+    let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+    let isHidden = false;
+
+    window.addEventListener('scroll', () => {
+        const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+        const diff = currentScrollY - lastScrollY;
+
+        // Gần đầu trang -> hiện bình thường
+        if (currentScrollY <= 35) {
+            if (isHidden) {
+                header.classList.remove('header-hidden');
+                header.classList.remove('header-visible');
+                isHidden = false;
+            }
+        }
+        // Cuộn xuống -> ẩn đi (không chạy theo)
+        else if (diff > 8 && currentScrollY > 80) {
+            if (!isHidden) {
+                header.classList.add('header-hidden');
+                header.classList.remove('header-visible');
+                isHidden = true;
+            }
+        }
+        // Cuộn ngược trở lại -> trượt xuống hiện lên
+        else if (diff < -8) {
+            if (isHidden) {
+                header.classList.remove('header-hidden');
+                header.classList.add('header-visible');
+                isHidden = false;
+            }
+        }
+
+        lastScrollY = currentScrollY;
+    }, { passive: true });
+}
 
 window.setLoc = function (type, val) {
     if (type === 'cinema') {

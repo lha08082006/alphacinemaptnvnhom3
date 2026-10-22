@@ -1694,7 +1694,7 @@ body {
     </div>
 
     <!-- 3. MAIN HEADER -->
-    <header id="site-header" style="background: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 38px; z-index: 1000;">
+    <header id="site-header" style="background: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease; will-change: transform;">
         <div class="container-fluid header-main" style="display: flex; align-items: center; justify-content: center; gap: 35px;">
             <!-- Logo -->
             <a href="#home" onclick="window.spaNavigate('home')" class="logo-box" style="flex-shrink: 0;">
@@ -3892,6 +3892,49 @@ body {
             }
         });
 
+                // ===================================================
+        // SMART STICKY HEADER (Ẩn khi cuộn xuống, hiện khi cuộn ngược lên)
+        // ===================================================
+        function initSmartHeader() {
+            const header = document.getElementById('site-header');
+            if (!header) return;
+
+            let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+            let isHidden = false;
+
+            window.addEventListener('scroll', () => {
+                const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+                const diff = currentScrollY - lastScrollY;
+
+                // 1. Khi ở gần đầu trang (<= 35px) -> hiển thị bình thường ở vị trí ban đầu
+                if (currentScrollY <= 35) {
+                    if (isHidden) {
+                        header.classList.remove('header-hidden');
+                        header.classList.remove('header-visible');
+                        isHidden = false;
+                    }
+                }
+                // 2. Khi lướt xuống (diff > 8) và đã cuộn qua hơn 80px -> ẩn thanh công cụ
+                else if (diff > 8 && currentScrollY > 80) {
+                    if (!isHidden) {
+                        header.classList.add('header-hidden');
+                        header.classList.remove('header-visible');
+                        isHidden = true;
+                    }
+                }
+                // 3. Khi lướt ngược trở lại (diff < -8) -> thanh công cụ trượt xuống hiện lên
+                else if (diff < -8) {
+                    if (isHidden) {
+                        header.classList.remove('header-hidden');
+                        header.classList.add('header-visible');
+                        isHidden = false;
+                    }
+                }
+
+                lastScrollY = currentScrollY;
+            }, { passive: true });
+        }
+
         // Khởi động khi tải xong trang
         document.addEventListener('DOMContentLoaded', () => {
             // Khởi tạo DB seed nếu chưa có
@@ -3899,7 +3942,11 @@ body {
                 DB.seed();
             }
             onHashChange();
+            initSmartHeader();
         });
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            initSmartHeader();
+        }
     </script>
 
     <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ CHUẨN BETA CINEMAS -->

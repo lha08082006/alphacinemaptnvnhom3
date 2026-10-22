@@ -200,3 +200,50 @@ function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(param);
 }
+
+
+// 10. TÍNH NĂNG SMART HEADER: Ẩn khi cuộn xuống, hiện khi cuộn ngược lên
+function setupSmartHeader() {
+  const header = document.querySelector('.header-client, .header-admin');
+  if (!header) return;
+
+  let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+  let isHidden = false;
+
+  window.addEventListener('scroll', () => {
+    const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+    const diff = currentScrollY - lastScrollY;
+
+    // Gần đầu trang -> hiện bình thường
+    if (currentScrollY <= 30) {
+      if (isHidden) {
+        header.classList.remove('header-hidden');
+        header.classList.remove('header-visible');
+        isHidden = false;
+      }
+    }
+    // Cuộn xuống -> ẩn đi (không chạy theo)
+    else if (diff > 8 && currentScrollY > 80) {
+      if (!isHidden) {
+        header.classList.add('header-hidden');
+        header.classList.remove('header-visible');
+        isHidden = true;
+      }
+    }
+    // Cuộn ngược trở lại -> trượt xuống hiện lên
+    else if (diff < -8) {
+      if (isHidden) {
+        header.classList.remove('header-hidden');
+        header.classList.add('header-visible');
+        isHidden = false;
+      }
+    }
+
+    lastScrollY = currentScrollY;
+  }, { passive: true });
+}
+
+document.addEventListener('DOMContentLoaded', setupSmartHeader);
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+  setupSmartHeader();
+}
