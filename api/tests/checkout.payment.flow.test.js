@@ -35,13 +35,24 @@ describe('Checkout & Payment Flow (Timer consistency, methods enum, terms accept
     const showtime = await knex('showtimes').where({ status: 'OPEN' }).first();
     testShowtimeId = showtime.id;
 
-    const seat = await knex('seats')
+    let seat = await knex('seats')
       .where({ room_id: showtime.room_id })
       .whereNotIn(
         'id',
         knex('showtime_seats').where({ showtime_id: testShowtimeId }).select('seat_id')
       )
       .first();
+
+    if (!seat) {
+      await knex('showtime_seats').where({ showtime_id: testShowtimeId, state: 'HELD' }).del();
+      seat = await knex('seats')
+        .where({ room_id: showtime.room_id })
+        .whereNotIn(
+          'id',
+          knex('showtime_seats').where({ showtime_id: testShowtimeId }).select('seat_id')
+        )
+        .first();
+    }
     testSeatId = seat.id;
   });
 

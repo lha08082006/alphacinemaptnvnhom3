@@ -193,6 +193,12 @@ describe('Customer & Staff Authentication Separation (BE Auth Separation)', () =
       expect(sixthRes.status).toBe(429);
       expect(sixthRes.body.error.code).toBe('RATE_LIMITED');
       expect(sixthRes.body.error.message).toContain('tạm khóa');
+
+      // Khôi phục mở khóa lại tài khoản it@betacinemas.vn để các test suite sau dùng được
+      await knex('users').where({ email: targetEmail }).update({
+        failed_login_attempts: 0,
+        locked_until: null,
+      });
     });
 
     it('Đăng nhập thành công ghi nhận STAFF_LOGIN_SUCCESS và reset failed_attempts', async () => {

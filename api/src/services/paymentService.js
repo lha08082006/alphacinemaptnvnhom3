@@ -623,8 +623,11 @@ async function applySepayIpn({ payload, headers = {}, rawBody }) {
     const eventId = `SEPAY:${orderInvoiceNumber}:${transNo || '0'}:${isSuccess ? 'SUCCESS' : 'FAILED'}`;
     const nowIso = new Date().toISOString();
 
-    // 1. Chống trùng lặp (Idempotency của webhook)
-    const existingEvent = await trx('webhook_events').where({ event_id: eventId }).first();
+    // 1. Chống trùng lặp (Idempotency của webhook): chỉ xác nhận nếu sự kiện trước đã thành công
+    const existingEvent = await trx('webhook_events')
+      .where({ event_id: eventId })
+      .whereIn('result', ['APPLIED', 'LATE_APPLIED', 'DUPLICATE'])
+      .first();
     if (existingEvent) {
       return { success: true, message: 'Order already confirmed', duplicate: true };
     }

@@ -55,11 +55,13 @@ describe('Step 10C: Admin Reports, Refunds, Recon & Settings', () => {
     managerCookie = resMgr.headers['set-cookie'];
 
     // 2. Tạo đơn và refund mẫu để test approve
+    const demoUser = await knex('users').where({ role: 'CUSTOMER' }).first();
+    const demoShowtime = await knex('showtimes').first();
     const nowIso = clock.nowIso();
     await knex('orders').insert({
       order_id: testOrderId,
-      user_id: 1,
-      showtime_id: 1,
+      user_id: demoUser ? demoUser.id : 1,
+      showtime_id: demoShowtime ? demoShowtime.id : 1,
       status: 'REFUND_PENDING',
       amount_tickets: 50000,
       amount_combos: 0,
