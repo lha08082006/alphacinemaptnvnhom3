@@ -1,0 +1,80 @@
+[
+  {
+    "id": "faq_01",
+    "question": "Vé và combo bắp nước đã thanh toán có thể hủy hoặc đổi trả được không?",
+    "keywords": ["hủy vé", "đổi vé", "hoàn tiền", "đổi trả", "trả vé", "hủy đơn"],
+    "answer": "Theo Điều 2 trong Điều khoản thanh toán của Beta Cinemas, vé xem phim và combo hàng hóa đã thanh toán thành công KHÔNG thể hủy, đổi trả hoặc hoàn tiền dưới bất kỳ hình thức nào. Beta Cinemas chỉ hỗ trợ xử lý hoàn tiền trong trường hợp tài khoản của bạn đã bị trừ tiền nhưng hệ thống Beta không ghi nhận đơn hàng và bạn không nhận được mã vé."
+  },
+  {
+    "id": "faq_02",
+    "question": "Trường hợp nào khách hàng được hoàn tiền?",
+    "keywords": ["khi nào hoàn tiền", "điều kiện hoàn tiền", "trừ tiền không có vé", "suất chiếu bị hủy"],
+    "answer": "Beta Cinemas chỉ thực hiện hoàn tiền trong 2 trường hợp: (1) Thẻ/tài khoản của bạn đã bị trừ tiền nhưng hệ thống không ghi nhận đặt vé thành công và không nhận được vé; hoặc (2) Suất chiếu bị hủy do sự cố kỹ thuật bất khả kháng theo thông báo từ ban quản lý rạp."
+  },
+  {
+    "id": "faq_03",
+    "question": "Thời hạn khiếu nại về giao dịch hoặc sự cố thanh toán là bao lâu?",
+    "keywords": ["thời hạn khiếu nại", "hạn khiếu nại", "60 phút", "bao lâu khiếu nại"],
+    "answer": "Theo Điều 3 Điều khoản thanh toán, quý khách vui lòng gửi phản hồi/khiếu nại trong vòng 60 phút kể từ khi thanh toán thành công. Sau khoảng thời gian 60 phút trên, Beta Cinemas không chấp nhận giải quyết bất kỳ khiếu nại nào."
+  },
+  {
+    "id": "faq_04",
+    "question": "Thời gian hoàn tiền về tài khoản mất bao lâu?",
+    "keywords": ["thời gian hoàn tiền", "bao lâu nhận lại tiền", "hoàn tiền bao ngày", "thẻ quốc tế", "thẻ atm", "ví điện tử"],
+    "answer": "Thời gian hoàn tiền tùy thuộc vào phương thức thanh toán của bạn: (1) Thẻ quốc tế (Visa, MasterCard, JCB): trong vòng 30 ngày làm việc; (2) Thẻ nội địa (ATM): trong vòng 7 ngày làm việc; (3) Ví điện tử (MoMo, ZaloPay, VNPay): 7-14 ngày làm việc."
+  },
+  {
+    "id": "faq_05",
+    "question": "Những loại thẻ và phương thức nào được chấp nhận thanh toán trực tuyến?",
+    "keywords": ["phương thức thanh toán", "thẻ chấp nhận", "visa", "mastercard", "atm", "vnpay"],
+    "answer": "Beta Cinemas chấp nhận: (1) Thẻ quốc tế: Visa, MasterCard, JCB, American Express, UnionPay; (2) Thẻ nội địa ATM của hầu hết các ngân hàng tại Việt Nam (Vietcombank, BIDV, Vietinbank, Agribank, Techcombank, MB, VPBank, ACB, NCB...); (3) Cổng VNPay, VNPay-QR và các ví điện tử liên kết."
+  },
+  {
+    "id": "faq_06",
+    "question": "Tại sao giao dịch thanh toán vé của tôi không thành công?",
+    "keywords": ["thanh toán thất bại", "giao dịch không thành công", "lỗi thanh toán", "tại sao không thanh toán được"],
+    "answer": "Các nguyên nhân phổ biến: (1) Nhập sai thông tin thẻ hoặc mã OTP; (2) Số dư tài khoản hoặc hạn mức tín dụng không đủ; (3) Thẻ chưa kích hoạt thanh toán trực tuyến (Internet Banking/E-commerce); (4) Ngân hàng phát hành từ chối cấp phép giao dịch; (5) Hết thời gian giữ ghế (10 phút)."
+  },
+  {
+    "id": "faq_07",
+    "question": "Tài khoản ngân hàng đã bị trừ tiền nhưng trên web chưa có vé thì xử lý thế nào?",
+    "keywords": ["bị trừ tiền", "trừ tiền chưa có vé", "treo tiền", "không thấy vé"],
+    "answer": "Quý khách vui lòng không thực hiện thanh toán lặp lại. Hệ thống Beta Cinemas có cơ chế đối soát tự động sẽ kiểm tra và cấp vé nếu còn ghế trống, hoặc tạo lệnh hoàn tiền nếu giao dịch bị gián đoạn. Bạn có thể cung cấp mã đơn hàng hoặc mã giao dịch cùng Email/SĐT để tôi kiểm tra ngay trên hệ thống."
+  },
+  {
+    "id": "faq_08",
+    "question": "Tôi cần mang theo giấy tờ gì khi đến rạp nhận vé xem phim?",
+    "keywords": ["nhận vé", "giấy tờ tùy thân", "lấy vé tại quầy", "cccd", "thẻ học sinh"],
+    "answer": "Khi đến nhận vé tại Quầy vé Beta Cinemas, bạn cần cung cấp mã đặt vé (hoặc mã QR vé điện tử) và mang theo giấy tờ tùy thân như Căn cước công dân (CCCD), Thẻ học sinh/sinh viên hoặc Bằng lái xe để nhân viên đối chiếu và xác định độ tuổi xem phim theo quy định."
+  },
+  {
+    "id": "faq_09",
+    "question": "Quy định về độ tuổi xem phim và khung giờ chiếu cho trẻ em như thế nào?",
+    "keywords": ["độ tuổi xem phim", "c13", "c16", "c18", "trẻ em", "khung giờ chiếu"],
+    "answer": "Phim được phân loại độ tuổi theo quy định của Cục Điện Ảnh: P (Mọi lứa tuổi), K (Dưới 13 tuổi có người bảo trợ), T13/C13 (Từ đủ 13 tuổi), T16/C16 (Từ đủ 16 tuổi), T18/C18 (Từ đủ 18 tuổi). Căn cứ Nghị định 131/2022/NĐ-CP: suất chiếu cho trẻ em dưới 13 tuổi kết thúc trước 22:00, trẻ dưới 16 tuổi kết thúc trước 23:00. Ban Quản Lý có quyền từ chối nếu khách hàng không đủ độ tuổi quy định."
+  },
+  {
+    "id": "faq_10",
+    "question": "Tôi nhập sai email hoặc số điện thoại khi mua vé thì làm sao?",
+    "keywords": ["sai email", "sai sđt", "sai số điện thoại", "không nhận được mail"],
+    "answer": "Beta Cinemas không chịu trách nhiệm nếu thông tin email/SĐT nhập sai dẫn đến không nhận được mã vé. Tuy nhiên, nếu bạn nhớ chính xác mã đơn hàng và thông tin thanh toán, hãy liên hệ nhân viên CSKH qua hotline 1900 636807 hoặc gửi ticket hỗ trợ để được xác minh đối soát thủ công."
+  },
+  {
+    "id": "faq_11",
+    "question": "Thời hạn nhận hàng bắp nước đặt trên Beta Store là bao lâu?",
+    "keywords": ["beta store", "thời gian nhận bắp nước", "hạn nhận hàng"],
+    "answer": "Thời gian nhận hàng tối đa là 7 ngày kể từ ngày thực hiện giao dịch mua trên Beta Store. Sau khi thanh toán, bạn đến quầy Concession của đúng cụm rạp đã chọn để nhận hàng."
+  },
+  {
+    "id": "faq_12",
+    "question": "Suất chiếu bị hủy do sự cố kỹ thuật thì tiền vé được hoàn như thế nào?",
+    "keywords": ["suất chiếu bị hủy", "sự cố kỹ thuật", "hủy suất chiếu", "hoàn tiền suất hủy"],
+    "answer": "Nếu suất chiếu bị hủy vì sự cố kỹ thuật bất khả kháng, Beta Cinemas sẽ tự động thực hiện hoàn trả 100% số tiền giao dịch về đúng tài khoản hoặc thẻ mà quý khách đã thanh toán, đồng thời liên hệ thông báo cho quý khách qua số điện thoại/email đăng ký."
+  },
+  {
+    "id": "faq_13",
+    "question": "Kênh liên hệ hỗ trợ chính thức của Beta Cinemas gồm những gì?",
+    "keywords": ["hotline", "liên hệ", "cskh", "số điện thoại hỗ trợ", "fanpage"],
+    "answer": "Quý khách có thể liên hệ Tổng đài CSKH: 1900 636807, Email hỗ trợ: cskh@betacinemas.vn (Thời gian làm việc: 8:00 - 22:00 hàng ngày), hoặc Fanpage chính thức: facebook.com/betacinemas."
+  }
+]

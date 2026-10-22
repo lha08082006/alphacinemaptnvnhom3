@@ -25,11 +25,19 @@ exports.seed = async function (knex) {
   
   // Tắt FK tạm thời để dọn dẹp sạch sẽ khi re-seed
   await knex.raw('PRAGMA foreign_keys = OFF');
+  await knex('audit_log').del();
+  await knex('notifications').del();
+  await knex('support_ticket_notes').del();
+  await knex('support_tickets').del();
+  await knex('refunds').del();
+  await knex('recon_items').del();
+  await knex('recon_runs').del();
+  await knex('webhook_events').del();
+  await knex('payment_attempts').del();
   await knex('tickets').del();
   await knex('order_status_history').del();
   await knex('order_combos').del();
   await knex('order_seats').del();
-  await knex('payment_attempts').del();
   await knex('orders').del();
   await knex('showtime_seats').del();
   await knex('showtimes').del();

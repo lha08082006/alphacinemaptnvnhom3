@@ -11,3 +11,4 @@ npm-debug.log*
 test.py
 *.pyc
 __pycache__/
+.agents/teamwork/

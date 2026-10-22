@@ -15,6 +15,7 @@
 
     <!-- Project Stylesheet (Consolidated) -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/account.css">
 
     <style>
         /* =================================================== */
@@ -1252,23 +1253,72 @@ body {
         .bg-email { background: #E91E63; }
         .bg-sms { background: #4CAF50; }
 
-/* === Style from support.html (support) === */
-.support-container { max-width: 800px; margin: 40px auto; display: flex; gap: 30px; }
-        .support-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1; }
-        .chat-box { flex: 1; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; }
-        .chat-header { background: var(--beta-blue); color: white; padding: 15px; font-weight: bold; border-radius: 8px 8px 0 0; }
-        .chat-body { padding: 15px; flex: 1; min-height: 250px; font-size: 14px; overflow-y: auto; }
-        .chat-msg { margin-bottom: 15px; padding: 10px; border-radius: 8px; max-width: 85%; }
-        .chat-msg.bot { background: #e3f2fd; align-self: flex-start; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
-        
-        .alert-box { padding: 15px; border-radius: 4px; margin-top: 20px; font-weight: bold; display: none; line-height: 1.5; }
-        .alert-info { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
-        .alert-success { background: #e8f5e9; color: #388e3c; border: 1px solid #c8e6c9; }
-        .alert-warning { background: #fff3e0; color: #f57c00; border: 1px solid #ffe0b2; }
+/* === Style from support.html (support) - NÂNG CẤP CHATBOT AI AGENT === */
+:root {
+  --beta-blue: #0B4C9B;
+  --beta-orange: #F26A1E;
+}
+.support-container { max-width: 1050px; margin: 35px auto; display: flex; gap: 28px; align-items: stretch; }
+@media (max-width: 768px) {
+  .support-container { flex-direction: column; padding: 0 15px; }
+}
+.support-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.chat-box { flex: 1.25; background: #ffffff; border-radius: 10px; border: 1px solid #D5E2EE; box-shadow: 0 6px 24px rgba(11,76,155,0.08); display: flex; flex-direction: column; height: 580px; overflow: hidden; }
+.chat-header { background: #0B4C9B !important; color: #ffffff !important; padding: 14px 18px; font-weight: 700; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; font-size: 15px; border-bottom: 2px solid #083873; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.chat-header-title { display: flex; align-items: center; gap: 8px; color: #ffffff; }
+.chat-header-dot { display: inline-block; width: 9px; height: 9px; background: #22C55E; border-radius: 50%; box-shadow: 0 0 6px #22C55E; }
+.chat-header-badge { font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.18); color: #ffffff; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.3px; }
+.chat-body { padding: 16px; flex: 1; min-height: 250px; font-size: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #F8FAFC; }
+.chat-msg { padding: 11px 15px; border-radius: 12px; max-width: 86%; word-break: break-word; line-height: 1.55; font-size: 14px; position: relative; animation: fadeInMsg 0.25s ease-out; }
+@keyframes fadeInMsg { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.chat-msg.bot { background: #EBF3FC; color: #14284B; border: 1px solid #D0E4FA; align-self: flex-start; border-bottom-left-radius: 3px; }
+.chat-msg.bot .msg-sender { color: #0B4C9B; font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+.chat-msg.user { background: #F26A1E; color: #ffffff; align-self: flex-end; border-bottom-right-radius: 3px; box-shadow: 0 2px 8px rgba(242, 106, 30, 0.28); }
+.chat-msg.user .msg-sender { color: rgba(255, 255, 255, 0.85); font-size: 11px; font-weight: 600; margin-bottom: 2px; text-align: right; }
+.chat-msg.user .msg-content { color: #ffffff; }
+.chat-inline-code { background: rgba(11,76,155,0.08); color: #0B4C9B; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+.chat-bullet { margin-top: 4px; padding-left: 4px; }
+.chat-divider { border: none; border-top: 1px dashed #CBD5E1; margin: 10px 0; }
+.chat-ticket-card { margin-top: 10px; background: #ffffff; border: 1.5px solid #0B4C9B; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(11, 76, 155, 0.12); }
+.ticket-card-header { background: #0B4C9B; color: #ffffff; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; }
+.ticket-badge { color: #ffffff; letter-spacing: 0.3px; }
+.ticket-status-pill { background: #22C55E; color: #ffffff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.ticket-status-pill.rejected { background: #EF4444; }
+.ticket-card-body { padding: 10px 14px; font-size: 13px; display: flex; flex-direction: column; gap: 7px; }
+.ticket-card-row { display: flex; justify-content: space-between; align-items: center; }
+.ticket-label { color: #64748B; font-size: 12px; }
+.ticket-val-code { font-family: monospace; font-size: 14px; font-weight: 700; color: #F26A1E; background: #FFF5EE; border: 1px dashed #FCD3B6; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.ticket-val-code:hover { background: #F26A1E; color: #ffffff; }
+.ticket-val-text { font-weight: 600; color: #1E293B; }
+.ticket-val-sla { font-weight: 700; color: #0B4C9B; }
+.ticket-card-footer { background: #F8FAFC; padding: 7px 12px; border-top: 1px solid #E2E8F0; font-size: 11px; color: #64748B; font-style: italic; }
+.chat-quick-actions { display: flex; gap: 8px; padding: 8px 14px; background: #ffffff; border-top: 1px solid #EDF2F7; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.chat-quick-actions::-webkit-scrollbar { display: none; }
+.chat-quick-btn { background: #FFF5EE; color: #F26A1E; border: 1px solid #FCD3B6; border-radius: 16px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.chat-quick-btn:hover { background: #F26A1E; color: #ffffff; border-color: #F26A1E; transform: translateY(-1px); }
+.chat-footer { padding: 10px 14px; border-top: 1px solid #E2E8F0; background: #ffffff; border-radius: 0 0 10px 10px; }
+.chat-input-wrapper { display: flex; gap: 8px; align-items: center; }
+.chat-input { flex: 1; padding: 10px 14px; border: 1px solid #CBD5E1; border-radius: 20px; font-size: 14px; outline: none; transition: all 0.2s; background: #ffffff; }
+.chat-input:focus { border-color: #F26A1E; box-shadow: 0 0 0 2px rgba(242, 106, 30, 0.15); }
+.chat-send-btn { background: #F26A1E; color: #ffffff; border: none; border-radius: 20px; padding: 9px 18px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 6px rgba(242, 106, 30, 0.25); }
+.chat-send-btn:hover:not(:disabled) { background: #D9560E; transform: translateY(-1px); }
+.chat-send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.chat-msg.typing .typing-indicator { display: inline-flex; align-items: center; gap: 5px; padding: 4px 0; }
+.chat-msg.typing .typing-indicator span:not(.typing-text) { display: inline-block; width: 7px; height: 7px; background: #0B4C9B; border-radius: 50%; animation: typingBounce 1.2s infinite ease-in-out; }
+.chat-msg.typing .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.chat-msg.typing .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.chat-msg.typing .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+.typing-text { margin-left: 6px; font-style: italic; color: #64748B; font-size: 13px; }
+@keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-5px); opacity: 1; } }
+.chat-msg.error-state { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+.chat-hotline-box { margin-top: 8px; padding: 8px 12px; background: #ffffff; border-radius: 6px; border: 1px solid #FECACA; font-size: 13px; line-height: 1.6; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+.form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+.alert-box { padding: 15px; border-radius: 4px; margin-top: 20px; font-weight: bold; display: none; line-height: 1.5; }
+.alert-info { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+.alert-success { background: #e8f5e9; color: #388e3c; border: 1px solid #c8e6c9; }
+.alert-warning { background: #fff3e0; color: #f57c00; border: 1px solid #ffe0b2; }
 
 /* === Style from promotion-detail.html (promo-t3) === */
 .promo-layout {
@@ -1681,16 +1731,35 @@ body {
                 <a href="javascript:void(0)" onclick="window.openAuthModal('register')">Đăng ký</a>
             </span>
             
-            <span id="nav-user-info" style="display:none; align-items: center; gap: 8px;">
-                Xin chào: <span id="nav-username" style="color: white; font-weight: 600;">—</span> <span style="font-size: 10px; margin-left: -4px;">▾</span>
-                <a href="#my-orders" onclick="window.spaNavigate('my-orders')" style="color: #ffd166; margin-left: 10px; text-decoration: none; font-weight: 500;">📦 Đơn hàng</a>
-                <a href="#inbox" onclick="window.spaNavigate('inbox')" style="color: #ffd166; margin-left: 10px; text-decoration: none; font-weight: 500;">🔔 Thông báo</a>
-                <a href="javascript:void(0)" onclick="window.logout(event)" style="color: #ff9800; margin-left: 12px; text-decoration: none; font-weight: 600;">[Đăng xuất]</a>
-            </span>
+            <div id="nav-user-info" class="topbar-user-container" style="display:none;">
+                <div class="topbar-user-trigger">
+                    <span>Xin chào:</span>
+                    <b id="nav-username" style="color: #ffd166;">—</b>
+                    <span id="nav-user-points-badge" class="topbar-user-points" style="display:none;">50 điểm</span>
+                    <span style="font-size: 10px; margin-left: 2px;">▾</span>
+                </div>
+                <div class="topbar-dropdown-menu">
+                    <a href="#account" onclick="window.spaNavigate('account', 'tab=profile');">
+                        <span>👤</span> Thông tin tài khoản
+                    </a>
+                    <a href="#account" onclick="window.spaNavigate('account', 'tab=orders');">
+                        <span>🎟️</span> Lịch sử giao dịch
+                    </a>
+                    <a href="#account" onclick="window.spaNavigate('account', 'tab=password');">
+                        <span>🔑</span> Đổi mật khẩu
+                    </a>
+                    <a href="#inbox" onclick="window.spaNavigate('inbox');">
+                        <span>🔔</span> Thông báo
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="javascript:void(0)" onclick="window.logout(event)" class="logout-link">
+                        <span>🚪</span> Đăng xuất
+                    </a>
+                </div>
+            </div>
             
             <span class="flag-icon" title="English" style="width: 22px; height: 14px; display: inline-block; background: url('https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg') no-repeat center/cover; cursor: pointer;"></span>
         </div>
-    </div>
     </div>
 
     <!-- 3. MAIN HEADER -->
@@ -1721,6 +1790,7 @@ body {
                     <li><a href="#cinema" onclick="window.spaNavigate('cinema')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">RẠP</a></li>
                     <li><a href="#gia-ve" onclick="window.spaNavigate('gia-ve')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">GIÁ VÉ</a></li>
                     <li><a href="#promo-combo" onclick="window.spaNavigate('promo-combo')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">TIN MỚI VÀ ƯU ĐÃI</a></li>
+                    <li><a href="#account" onclick="window.spaNavigate('account')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">THÀNH VIÊN</a></li>
                     <li class="nav-dropdown" style="position: relative;" onmouseenter="const m=this.querySelector('.dropdown-menu-support'); if(m) m.style.display='block';" onmouseleave="const m=this.querySelector('.dropdown-menu-support'); if(m) m.style.display='none';">
                         <a href="support.html" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy); display: flex; align-items: center; gap: 4px;">
                             HỖ TRỢ <span style="font-size: 10px;">▾</span>
@@ -2411,14 +2481,34 @@ body {
                 </div>
                 
                 <div style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Chọn phương thức qua Cổng VNPAY</span>
-                    <span style="font-size: 12.5px; color: #03599d; font-weight: 700;">⚡ VNPAY Sandbox (Mã: RBUMP0RO)</span>
+                    <span>Chọn phương thức qua Cổng VNPAY hoặc SePay</span>
+                    <span style="font-size: 12.5px; color: #03599d; font-weight: 700;">⚡ VNPAY & SePay Sandbox</span>
                 </div>
                 
                 <div class="payment-grid" id="payment-methods-grid">
+                    <!-- 0. SePay - Quét mã QR Chuyển khoản (Sandbox) -->
+                    <label class="payment-option sepay-option" style="border: 2px solid #00b14f;">
+                        <input type="radio" name="payment_method" value="SEPAY" checked>
+                        <div class="pay-icon-box" style="border-color: #00b14f; background: #f0fdf4;">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00b14f" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <circle cx="17.5" cy="17.5" r="3.5" fill="#00b14f"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #00b14f; display: flex; align-items: center; gap: 6px;">
+                                <span>SePay QR Ngân Hàng</span>
+                                <span style="background: #00b14f; color: white; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;">Sandbox</span>
+                            </div>
+                            <div style="font-size: 11px; color: #555;">SePay - Quét mã QR Chuyển khoản (Sandbox)</div>
+                        </div>
+                    </label>
+
                     <!-- 1. Cổng VNPAY tổng hợp -->
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="VNPAY" checked>
+                        <input type="radio" name="payment_method" value="VNPAY">
                         <div class="pay-icon-box" style="border-color: #03599d;">
                             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#03599d" stroke-width="2">
                                 <rect x="2" y="4" width="20" height="16" rx="2"></rect>
@@ -2795,59 +2885,317 @@ body {
     <!-- ========================================== -->
     <!-- VIEW: login (Đăng Nhập / Đăng Ký Thành Viên) -->
     <!-- ========================================== -->
-    <section id="view-login" class="spa-view" data-view-id="login" style="display: none;">
-
-    <div class="container auth-container">
-        <div class="card">
-            <div class="card-header" style="text-align: center; font-size: 22px; color: var(--beta-blue); padding: 20px;">
-                BETA CINEMAS DEMO
-            </div>
-            <div class="card-body">
-                <div class="tabs" style="margin-bottom: 25px; display: flex; justify-content: center;">
-                    <div class="tab-item active" style="flex:1; text-align:center;">ĐĂNG NHẬP</div>
-                    <div class="tab-item" style="flex:1; text-align:center; color:#ccc;" onclick="alert('Demo hiện chỉ hỗ trợ đăng nhập bằng tài khoản mẫu. Tính năng đăng ký nằm ngoài phạm vi!')">ĐĂNG KÝ</div>
+    
+    <!-- ========================================== -->
+    <!-- VIEW: account (Tài Khoản & Thành Viên Beta Cinemas) -->
+    <!-- ========================================== -->
+    <section id="view-account" class="spa-view" data-view-id="account" style="display: none;">
+        <div class="account-wrapper">
+            
+            <!-- Trạng thái: Chưa đăng nhập -->
+            <div id="account-not-logged" style="display: none; text-align: center; padding: 70px 20px; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); max-width: 600px; margin: 40px auto; border: 1px solid #e2e8f0;">
+                <div style="font-size: 48px; margin-bottom: 15px;">🔒</div>
+                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 800; color: #005198; margin-bottom: 10px;">Vui lòng đăng nhập tài khoản</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Quý khách vui lòng đăng nhập tài khoản thành viên Beta Cinemas để tra cứu thông tin cá nhân và lịch sử đặt vé.</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button type="button" class="btn-save-profile" onclick="window.openAuthModal('login')">
+                        ĐĂNG NHẬP NGAY
+                    </button>
+                    <button type="button" class="btn-save-profile" style="background: #e2e8f0; color: #334155;" onclick="window.openAuthModal('register')">
+                        ĐĂNG KÝ TÀI KHOẢN
+                    </button>
                 </div>
+            </div>
+
+            <!-- Trạng thái: Đã đăng nhập (Layout 2 cột) -->
+            <div id="account-main-content" class="account-grid">
                 
-                <form id="login-form">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="email" class="form-control" value="khachhang@gmail.com" required placeholder="Nhập email...">
-                        <div class="invalid-feedback">Vui lòng nhập định dạng email hợp lệ.</div>
+                <!-- CỘT TRÁI: Thẻ Thành Viên & Menu Sidebar -->
+                <aside class="account-sidebar">
+                    <!-- Thẻ thành viên Beta Member Card -->
+                    <div class="beta-member-card">
+                        <div class="card-top">
+                            <div class="card-logo-text">
+                                BETA CINEMAS
+                                <span class="card-logo-sub">MEMBER PASS</span>
+                            </div>
+                            <span class="card-tier-badge" id="card-tier-text">BETA STAR</span>
+                        </div>
+                        <div class="card-chip"></div>
+                        <div class="card-number" id="card-number-display">BC-001-089</div>
+                        <div class="card-holder-name" id="card-holder-name">NGUYỄN VĂN A</div>
+                        <div class="card-stats-row">
+                            <div class="card-stat-item">
+                                <span class="card-stat-label">Điểm tích lũy</span>
+                                <span class="card-stat-val" id="card-points-display">50 điểm</span>
+                            </div>
+                            <div class="card-stat-item" style="text-align: right;">
+                                <span class="card-stat-label">Tổng chi tiêu 2026</span>
+                                <span class="card-stat-val" id="card-spend-display">50.000 ₫</span>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Mật khẩu</label>
-                        <!-- GHI CHÚ QUAN TRỌNG: Ở môi trường thật, Backend sẽ dùng Bcrypt/Argon2 mã hoá mật khẩu. Client không gửi plain-text password hoặc DB không bao giờ lưu plain-text -->
-                        <input type="password" id="password" class="form-control" value="123" required placeholder="Nhập mật khẩu...">
-                        <div class="invalid-feedback">Vui lòng nhập mật khẩu.</div>
+
+                    <!-- Menu điều hướng Sidebar -->
+                    <div class="account-menu-box">
+                        <ul class="account-menu-list">
+                            <li class="account-menu-item">
+                                <a href="javascript:void(0)" class="account-menu-link active" data-tab="profile" onclick="window.switchAccountTab('profile')">
+                                    <span class="account-menu-icon">👤</span>
+                                    <span>Thông tin tài khoản</span>
+                                </a>
+                            </li>
+                            <li class="account-menu-item">
+                                <a href="javascript:void(0)" class="account-menu-link" data-tab="orders" onclick="window.switchAccountTab('orders')">
+                                    <span class="account-menu-icon">🎟️</span>
+                                    <span>Lịch sử giao dịch</span>
+                                </a>
+                            </li>
+                            <li class="account-menu-item">
+                                <a href="javascript:void(0)" class="account-menu-link" data-tab="password" onclick="window.switchAccountTab('password')">
+                                    <span class="account-menu-icon">🔑</span>
+                                    <span>Đổi mật khẩu</span>
+                                </a>
+                            </li>
+                            <li class="account-menu-item">
+                                <a href="javascript:void(0)" class="account-menu-link" onclick="window.logout(event)" style="color: #dc2626;">
+                                    <span class="account-menu-icon">🚪</span>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
+                </aside>
+
+                <!-- CỘT PHẢI: Nội dung chi tiết các tab -->
+                <main class="account-content-card">
                     
-                    <div id="login-error" style="color: var(--danger); font-size: 13px; margin-bottom: 15px; display: none; background:#ffebeb; padding:10px; border-radius:4px;">
-                        Sai email hoặc mật khẩu.
+                    <!-- TAB 1: THÔNG TIN TÀI KHOẢN -->
+                    <section id="panel-profile" class="account-panel">
+                        <div class="account-panel-header">
+                            <h3 class="account-panel-title">THÔNG TIN TÀI KHOẢN</h3>
+                        </div>
+
+                        <div id="acc-profile-alert-success" class="acc-alert success"></div>
+                        <div id="acc-profile-alert-error" class="acc-alert error"></div>
+
+                        <form id="acc-profile-form">
+                            <div class="account-form-grid">
+                                <div class="form-group">
+                                    <label class="acc-label">Họ và tên *</label>
+                                    <input type="text" id="acc-name" class="acc-input" required placeholder="Nhập họ và tên">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="acc-label">Địa chỉ Email</label>
+                                    <div class="input-with-badge">
+                                        <input type="email" id="acc-email" class="acc-input" readonly placeholder="email@domain.com">
+                                        <span class="input-verified-badge">✓ Đã xác thực</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="acc-label">Số điện thoại *</label>
+                                    <input type="tel" id="acc-phone" class="acc-input" required placeholder="0912 345 678" pattern="[0-9]{10,11}">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="acc-label">Ngày sinh</label>
+                                    <input type="date" id="acc-dob" class="acc-input" value="2000-01-01">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="acc-label">Giới tính</label>
+                                    <select id="acc-gender" class="acc-select">
+                                        <option value="MALE">Nam</option>
+                                        <option value="FEMALE">Nữ</option>
+                                        <option value="OTHER">Khác</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="acc-label">Rạp Beta yêu thích</label>
+                                    <select id="acc-cinema" class="acc-select">
+                                        <option value="Beta Thanh Xuân">Beta Thanh Xuân (Hà Nội)</option>
+                                        <option value="Beta Giải Phóng">Beta Giải Phóng (Hà Nội)</option>
+                                        <option value="Beta Mỹ Đình">Beta Mỹ Đình (Hà Nội)</option>
+                                        <option value="Beta Quang Trung">Beta Quang Trung (TP.HCM)</option>
+                                        <option value="Beta Ung Văn Khiêm">Beta Ung Văn Khiêm (TP.HCM)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group-full" style="margin-top: 15px;">
+                                    <button type="submit" id="btn-save-profile" class="btn-save-profile">
+                                        LƯU THAY ĐỔI
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- TAB 2: LỊCH SỬ GIAO DỊCH (HÀNH TRÌNH ĐIỆN ẢNH) -->
+                    <section id="panel-orders" class="account-panel" style="display: none;">
+                        <div class="account-panel-header">
+                            <h3 class="account-panel-title">HÀNH TRÌNH ĐIỆN ẢNH & LỊCH SỬ GIAO DỊCH</h3>
+                        </div>
+
+                        <!-- Bộ lọc giao dịch -->
+                        <div class="orders-filter-bar">
+                            <div class="filter-group">
+                                <span class="filter-label">Thời gian:</span>
+                                <select id="order-filter-period" class="filter-select" onchange="window.applyOrdersFilter()">
+                                    <option value="ALL">Tất cả thời gian</option>
+                                    <option value="30D">30 ngày gần đây</option>
+                                    <option value="90D">3 tháng gần đây</option>
+                                    <option value="2026">Năm 2026</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <span class="filter-label">Trạng thái:</span>
+                                <select id="order-filter-status" class="filter-select" onchange="window.applyOrdersFilter()">
+                                    <option value="ALL">Tất cả trạng thái</option>
+                                    <option value="PAID">Đã thanh toán (Thành công)</option>
+                                    <option value="PENDING_VERIFY">Đang xử lý / Chờ đối soát</option>
+                                    <option value="REFUNDED">Đã hoàn tiền</option>
+                                    <option value="FAILED">Thất bại / Hết hạn</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-search-box">
+                                <input type="text" id="order-filter-search" class="filter-search-input" placeholder="Tìm theo mã đơn, phim..." oninput="window.applyOrdersFilter()">
+                                <span class="filter-search-icon">🔍</span>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách đơn hàng -->
+                        <div id="orders-list-container" class="orders-container">
+                            <!-- Render bằng account.js -->
+                        </div>
+                    </section>
+
+                    <!-- TAB 3: ĐỔI MẬT KHẨU -->
+                    <section id="panel-password" class="account-panel" style="display: none;">
+                        <div class="account-panel-header">
+                            <h3 class="account-panel-title">ĐỔI MẬT KHẨU TÀI KHOẢN</h3>
+                        </div>
+
+                        <div id="acc-pw-alert-success" class="acc-alert success"></div>
+                        <div id="acc-pw-alert-error" class="acc-alert error"></div>
+
+                        <form id="acc-password-form" style="max-width: 480px;">
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <label class="acc-label">Mật khẩu hiện tại *</label>
+                                <input type="password" id="acc-old-pw" class="acc-input" required placeholder="Nhập mật khẩu hiện tại...">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <label class="acc-label">Mật khẩu mới *</label>
+                                <input type="password" id="acc-new-pw" class="acc-input" required placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)...">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 22px;">
+                                <label class="acc-label">Xác nhận mật khẩu mới *</label>
+                                <input type="password" id="acc-confirm-pw" class="acc-input" required placeholder="Nhập lại mật khẩu mới...">
+                            </div>
+
+                            <button type="submit" id="btn-change-password" class="btn-save-profile">
+                                CẬP NHẬT MẬT KHẨU
+                            </button>
+                        </form>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-login" class="spa-view" data-view-id="login" style="display: none;">
+    <div class="container auth-container" style="max-width: 480px; margin: 40px auto 60px;">
+        <div class="card" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: #005198; color: white; text-align: center; padding: 22px 20px;">
+                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 800; margin: 0; letter-spacing: 1px;">BETA CINEMAS</h3>
+                <div style="font-size: 12px; color: #bfdbfe; margin-top: 4px; letter-spacing: 1px;">CỔNG THÀNH VIÊN ĐIỆN ẢNH</div>
+            </div>
+            
+            <div class="card-body" style="padding: 26px;">
+                <!-- Tabs -->
+                <div style="display: flex; border-bottom: 2px solid #f1f5f9; margin-bottom: 22px;">
+                    <button type="button" id="view-login-tab-btn" class="active" onclick="window.switchViewLoginTab('login')" style="flex: 1; padding: 12px; background: none; border: none; border-bottom: 3px solid #005198; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px; color: #005198; cursor: pointer;">
+                        ĐĂNG NHẬP
+                    </button>
+                    <button type="button" id="view-reg-tab-btn" onclick="window.switchViewLoginTab('register')" style="flex: 1; padding: 12px; background: none; border: none; border-bottom: 3px solid transparent; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 14px; color: #94a3b8; cursor: pointer;">
+                        ĐĂNG KÝ
+                    </button>
+                </div>
+
+                <!-- Panel Đăng nhập -->
+                <div id="view-login-panel-login">
+                    <form id="view-login-form">
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="acc-label">Email tài khoản *</label>
+                            <input type="email" id="view-login-email" class="acc-input" value="khachhang@gmail.com" required placeholder="Nhập địa chỉ email...">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="acc-label">Mật khẩu *</label>
+                            <input type="password" id="view-login-password" class="acc-input" value="Password@123" required placeholder="Nhập mật khẩu...">
+                        </div>
+
+                        <div id="view-login-error" class="acc-alert error" style="display: none;"></div>
+
+                        <button type="submit" id="btn-view-login-submit" class="btn-save-profile" style="width: 100%; margin-top: 10px;">
+                            ĐĂNG NHẬP
+                        </button>
+
+                        <button type="button" class="btn-loginfacebook" onclick="window.demoSocialLogin('Facebook')" style="width: 100%; border: none; border-radius: 10px; color: white; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            ĐĂNG NHẬP BẰNG FACEBOOK
+                        </button>
+                    </form>
+
+                    <div style="margin-top: 22px; padding: 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #475569; line-height: 1.6;">
+                        <strong style="color: #f26b38;">Tài khoản Khách Hàng Demo (Pass: Password@123):</strong><br>
+                        • Khách hàng: <b>khachhang@gmail.com</b> (Có 100 điểm thưởng)<br>
+                        • Khách hàng 2: <b>khachhang2@gmail.com</b>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 12px;">ĐĂNG NHẬP</button>
-                </form>
-                
-                <div style="margin-top: 25px; font-size: 13px; color: #555; text-align: center; padding: 15px; background: #f9f9f9; border-radius: 4px;">
-                    <strong style="color: var(--beta-orange);">Tài khoản Demo có sẵn:</strong><br><br>
-                    1. Khách Hàng: <b>khachhang@gmail.com</b> / Pass: <b>123</b><br>
-                    2. Quản trị viên: <b>admin@betacinemas.vn</b> / Pass: <b>admin</b>
+                </div>
+
+                <!-- Panel Đăng ký -->
+                <div id="view-login-panel-reg" style="display: none;">
+                    <form id="view-reg-form">
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="acc-label">Họ và tên *</label>
+                            <input type="text" id="view-reg-name" class="acc-input" required placeholder="Nguyễn Văn A">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="acc-label">Email *</label>
+                            <input type="email" id="view-reg-email" class="acc-input" required placeholder="example@email.com">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="acc-label">Số điện thoại *</label>
+                            <input type="tel" id="view-reg-phone" class="acc-input" required placeholder="0912 345 678">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="acc-label">Mật khẩu *</label>
+                            <input type="password" id="view-reg-password" class="acc-input" required placeholder="Ít nhất 6 ký tự">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="acc-label">Xác nhận mật khẩu *</label>
+                            <input type="password" id="view-reg-confirm-pw" class="acc-input" required placeholder="Nhập lại mật khẩu">
+                        </div>
+
+                        <div id="view-reg-error" class="acc-alert error" style="display: none;"></div>
+
+                        <button type="submit" id="btn-view-reg-submit" class="btn-save-profile" style="width: 100%; margin-top: 10px;">
+                            ĐĂNG KÝ TÀI KHOẢN
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Scripts Core -->
-    
-    
-    
-    
-    
-    
-    
-
-    </section>
+</section>
 
     <!-- ========================================== -->
     <!-- VIEW: my-orders (Lịch Sử Đơn Hàng) -->
@@ -2980,15 +3328,38 @@ body {
             </div>
             
             <div class="chat-box">
-                <div class="chat-header">🎧 Chat Hỗ Trợ Tự Động</div>
-                <div class="chat-body" style="display: flex; flex-direction: column;">
+                <div class="chat-header">
+                    <div class="chat-header-title">
+                        <span class="chat-header-dot"></span>
+                        <span>🎧 Chat Hỗ Trợ Tự Động</span>
+                    </div>
+                    <span class="chat-header-badge">Beta Bot 24/7</span>
+                </div>
+                <div class="chat-body" id="support-chat-body">
                     <div class="chat-msg bot">
-                        <strong>Beta Bot:</strong> Xin chào, tôi có thể giúp gì cho bạn?<br><br>
-                        Nếu bạn thanh toán bị lỗi, hãy điền form bên trái nhé!
+                        <div class="msg-sender">🤖 Beta Bot</div>
+                        <div class="msg-content">
+                            Xin chào Quý khách! Em là <strong>Beta Bot</strong> - Trợ lý CSKH tự động của Beta Cinemas.<br><br>
+                            Em có thể hỗ trợ Quý khách tra cứu đơn hàng, kiểm tra tiến độ hoàn tiền hoặc tiếp nhận phiếu khiếu nại (ticket) khi gặp sự cố trừ tiền chưa có vé.<br><br>
+                            Quý khách có thể chọn nhanh các gợi ý bên dưới hoặc nhắn trực tiếp cho em nhé!
+                        </div>
                     </div>
                 </div>
-                <div style="padding: 10px; border-top: 1px solid #ddd; background: white; border-radius: 0 0 8px 8px;">
-                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." disabled style="background: #eee;">
+                <!-- 3 nút gợi ý nhanh -->
+                <div class="chat-quick-actions" id="chat-quick-actions">
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickMessage('Tôi bị trừ tiền chưa có vé')">⚡ Tôi bị trừ tiền chưa có vé</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickMessage('Kiểm tra hoàn tiền')">⚡ Kiểm tra hoàn tiền</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickMessage('Theo dõi khiếu nại')">⚡ Theo dõi khiếu nại</button>
+                </div>
+                <!-- Khung nhập tin nhắn -->
+                <div class="chat-footer">
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="support-chat-input" class="chat-input" placeholder="Nhập tin nhắn hỗ trợ (nhấn Enter để gửi)..." maxlength="500" autocomplete="off">
+                        <button type="button" id="support-chat-send-btn" class="chat-send-btn" onclick="handleSupportChatSend()">
+                            <span>Gửi</span>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3546,7 +3917,7 @@ body {
     <!-- 7. SPA ROUTER & VIEW CONTROLLER -->
     <script>
         // Danh sách view hợp lệ
-        const SPA_VIEWS = ['home', 'schedule', 'cinema', 'movie', 'gia-ve', 'price', 'booking', 'seats', 'checkout', 'gateway', 'result', 'ticket', 'login', 'my-orders', 'order', 'inbox', 'support', 'promo-t3', 'promo-hssv', 'promo-combo', 'admin', 'admin-reconcile', 'admin-refunds', 'admin-cskh', 'admin-report'];
+        const SPA_VIEWS = ['account', 'thong-tin-tai-khoan', 'home', 'schedule', 'cinema', 'movie', 'gia-ve', 'price', 'booking', 'seats', 'checkout', 'gateway', 'result', 'ticket', 'login', 'my-orders', 'order', 'inbox', 'support', 'promo-t3', 'promo-hssv', 'promo-combo', 'admin', 'admin-reconcile', 'admin-refunds', 'admin-cskh', 'admin-report'];
 
         // Hàm điều hướng chính của SPA
         window.spaNavigate = function(viewId, queryString) {
@@ -3957,6 +4328,66 @@ body {
     </script>
 
     <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ CHUẨN BETA CINEMAS -->
+    
+    <!-- ========================================== -->
+    <!-- MODAL VÉ ĐIỆN TỬ E-TICKET QR CODE CHUẨN BETA CINEMAS -->
+    <!-- ========================================== -->
+    <div id="eticket-modal" class="eticket-modal-backdrop">
+        <div class="eticket-paper">
+            <div class="eticket-header">
+                <button type="button" class="eticket-close-btn" onclick="window.closeETicketModal()">✕</button>
+                <div class="eticket-header-title">BETA CINEMAS</div>
+                <div class="eticket-header-sub">VÉ XEM PHIM ĐIỆN TỬ (E-TICKET)</div>
+            </div>
+            
+            <div class="eticket-body">
+                <h3 id="eticket-movie-title" class="eticket-movie-title">TÊN BỘ PHIM</h3>
+                
+                <div class="eticket-details-list">
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Mã vé / Đơn hàng:</span>
+                        <span id="eticket-order-id" class="eticket-detail-value" style="color: #005198;">BC26100123</span>
+                    </div>
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Rạp chiếu:</span>
+                        <span id="eticket-cinema" class="eticket-detail-value">Beta Thanh Xuân</span>
+                    </div>
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Phòng chiếu:</span>
+                        <span id="eticket-room" class="eticket-detail-value">Phòng 01 (2D)</span>
+                    </div>
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Suất chiếu:</span>
+                        <span id="eticket-time" class="eticket-detail-value">20:00 - 22/10/2026</span>
+                    </div>
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Ghế ngồi:</span>
+                        <span id="eticket-seats" class="eticket-detail-value" style="color: #d97706;">E05, E06 (VIP)</span>
+                    </div>
+                    <div class="eticket-detail-row">
+                        <span class="eticket-detail-label">Tổng thanh toán:</span>
+                        <span id="eticket-total" class="eticket-detail-value" style="color: #059669;">160.000 ₫</span>
+                    </div>
+                </div>
+
+                <div class="eticket-qr-section">
+                    <div id="eticket-qrcode-container" class="eticket-qrcode-canvas"></div>
+                    <div class="eticket-barcode-mock">||||| ||| ||||||| |||| ||</div>
+                    <div class="eticket-qr-hint">Vui lòng xuất trình mã QR này cho nhân viên soát vé tại cửa rạp</div>
+                </div>
+            </div>
+
+            <div class="eticket-footer">
+                <button type="button" class="btn-save-profile" style="height: 38px; padding: 0 20px; font-size: 13px;" onclick="window.print()">
+                    🖨️ IN VÉ
+                </button>
+                <button type="button" class="btn-save-profile" style="height: 38px; padding: 0 20px; font-size: 13px; background: #64748b;" onclick="window.closeETicketModal()">
+                    ĐÓNG LẠI
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="auth-modal" class="auth-modal-backdrop">
         <div class="auth-modal-box">
             <button type="button" class="auth-modal-close" onclick="window.closeAuthModal()" title="Đóng">&times;</button>
@@ -4105,6 +4536,7 @@ body {
         </div>
     </div>
     <script src="js/auth-modal.js"></script>
+    <script src="js/account.js"></script>
 
 
     <!-- ============================================================== -->
@@ -4363,5 +4795,6 @@ body {
     };
     </script>
 
+    <script src="js/support-chat.js"></script>
 </body>
 </html>

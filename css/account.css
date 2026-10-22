@@ -1,0 +1,913 @@
+/* ==========================================================================
+   Beta Cinemas - Account & Member Dashboard CSS (Chuẩn Web Chính Thức)
+   ========================================================================== */
+
+/* 1. TOPBAR USER DROPDOWN */
+.topbar-user-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.topbar-user-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+    user-select: none;
+}
+
+.topbar-user-trigger:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.topbar-user-points {
+    background: #ff9800;
+    color: #ffffff;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+.topbar-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 230px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    padding: 8px 0;
+    z-index: 1050;
+    border: 1px solid #e2e8f0;
+    margin-top: 5px;
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+.topbar-user-container:hover .topbar-dropdown-menu,
+.topbar-user-container:focus-within .topbar-dropdown-menu {
+    display: block;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.topbar-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    color: #334155;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.topbar-dropdown-menu a:hover {
+    background: #f1f5f9;
+    color: #005198;
+    padding-left: 20px;
+}
+
+.topbar-dropdown-menu .dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 6px 0;
+}
+
+.topbar-dropdown-menu a.logout-link {
+    color: #dc2626;
+}
+
+.topbar-dropdown-menu a.logout-link:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* 2. ACCOUNT MAIN LAYOUT (2 CỘT) */
+.account-wrapper {
+    max-width: 1200px;
+    margin: 35px auto 60px;
+    padding: 0 20px;
+    font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+@media (max-width: 991px) {
+    .account-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 3. CỘT TRÁI: THẺ THÀNH VIÊN BETA & SIDEBAR MENU */
+.account-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Thẻ Thành Viên Điện Tử Chuẩn Beta */
+.beta-member-card {
+    background: linear-gradient(135deg, #023e7d 0%, #005198 55%, #0077b6 100%);
+    border-radius: 16px;
+    padding: 22px;
+    color: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 81, 152, 0.35);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.beta-member-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(0, 81, 152, 0.45);
+}
+
+.beta-member-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+.beta-member-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    left: -30px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.card-logo-text {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 17px;
+    letter-spacing: 1px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-logo-sub {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #93c5fd;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.card-tier-badge {
+    background: linear-gradient(45deg, #ffd700, #ffae00);
+    color: #1e3a8a;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.card-chip {
+    width: 36px;
+    height: 26px;
+    background: linear-gradient(135deg, #fce075, #dfa32b);
+    border-radius: 5px;
+    margin-bottom: 16px;
+    position: relative;
+    border: 1px solid #b8860b;
+}
+
+.card-number {
+    font-family: 'Courier New', monospace, sans-serif;
+    font-size: 17px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    color: #e0f2fe;
+    margin-bottom: 14px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.card-holder-name {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-top: 10px;
+    margin-top: 8px;
+    font-size: 11.5px;
+}
+
+.card-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-stat-label {
+    color: #bfdbfe;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.card-stat-val {
+    font-weight: 800;
+    font-size: 14px;
+    color: #ffd700;
+}
+
+/* Sidebar Menu Navigation */
+.account-menu-box {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.account-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.account-menu-item {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.account-menu-item:last-child {
+    border-bottom: none;
+}
+
+.account-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.account-menu-link:hover {
+    background: #f8fafc;
+    color: #005198;
+    padding-left: 24px;
+}
+
+.account-menu-link.active {
+    background: #e0f2fe;
+    color: #005198;
+    border-left: 4px solid #005198;
+    font-weight: 700;
+}
+
+.account-menu-icon {
+    font-size: 18px;
+    width: 22px;
+    text-align: center;
+}
+
+/* 4. CỘT PHẢI: NỘI DUNG CHÍNH (CONTENT PANELS) */
+.account-content-card {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    padding: 30px;
+    min-height: 520px;
+}
+
+.account-panel-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.account-panel-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #005198;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.account-panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 22px;
+    background: #f26b38;
+    border-radius: 3px;
+}
+
+/* Form Styles */
+.account-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 640px) {
+    .account-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.acc-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.acc-input, .acc-select {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.acc-input:focus, .acc-select:focus {
+    border-color: #005198;
+    box-shadow: 0 0 0 3px rgba(0, 81, 152, 0.15);
+}
+
+.acc-input[readonly], .acc-input:disabled {
+    background: #f8fafc;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.input-with-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-verified-badge {
+    position: absolute;
+    right: 12px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Nút Submit chuẩn Beta Cinemas */
+.btn-save-profile {
+    border-radius: 10px !important;
+    background-color: #005198;
+    color: #ffffff;
+    padding: 12px 35px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 44px;
+    border: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-save-profile:hover {
+    background-color: #3db1f3;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(61, 177, 243, 0.35);
+}
+
+.btn-save-profile:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* Alert Boxes */
+.acc-alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.acc-alert.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.acc-alert.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* 5. TAB LỊCH SỬ GIAO DỊCH (HÀNH TRÌNH ĐIỆN ẢNH) */
+.orders-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 25px;
+    background: #f8fafc;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.filter-select {
+    height: 38px;
+    padding: 6px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #ffffff;
+    color: #1e293b;
+    outline: none;
+}
+
+.filter-search-box {
+    margin-left: auto;
+    position: relative;
+    min-width: 220px;
+}
+
+@media (max-width: 768px) {
+    .filter-search-box {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+.filter-search-input {
+    width: 100%;
+    height: 38px;
+    padding: 6px 34px 6px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.filter-search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+/* Order History Cards */
+.orders-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.order-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.order-card:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 6px 16px rgba(0, 81, 152, 0.08);
+}
+
+.order-card-header {
+    background: #f8fafc;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.order-card-id {
+    font-weight: 700;
+    color: #005198;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.order-card-date {
+    color: #64748b;
+    font-size: 12.5px;
+}
+
+.order-badge-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-refunded {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.status-failed, .status-expired {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.order-card-body {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 20px;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .order-card-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.order-movie-poster {
+    width: 80px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #e2e8f0;
+}
+
+.order-movie-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-movie-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.order-meta-row {
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.order-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.order-seats-tag {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12.5px;
+    border: 1px solid #bfdbfe;
+    display: inline-block;
+}
+
+.order-combos-text {
+    font-size: 12.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.order-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+@media (max-width: 640px) {
+    .order-card-right {
+        align-items: flex-start;
+    }
+}
+
+.order-total-price {
+    font-size: 18px;
+    font-weight: 800;
+    color: #005198;
+}
+
+.order-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-view-ticket {
+    background: #005198;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.btn-view-ticket:hover {
+    background: #3db1f3;
+    color: #ffffff;
+}
+
+.btn-report-ticket {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-report-ticket:hover {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+/* 6. MODAL VÉ ĐIỆN TỬ E-TICKET QR CODE */
+.eticket-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(4px);
+}
+
+.eticket-modal-backdrop.show {
+    display: flex;
+}
+
+.eticket-paper {
+    background: #ffffff;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    position: relative;
+    animation: zoomIn 0.25s ease-out;
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.eticket-header {
+    background: #005198;
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.eticket-header-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.eticket-header-sub {
+    font-size: 11px;
+    color: #93c5fd;
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
+
+.eticket-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.eticket-close-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.eticket-body {
+    padding: 24px;
+}
+
+.eticket-movie-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+}
+
+.eticket-details-list {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+}
+
+.eticket-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.eticket-detail-label {
+    color: #64748b;
+}
+
+.eticket-detail-value {
+    font-weight: 700;
+    color: #1e293b;
+    text-align: right;
+}
+
+/* Vùng QR Code */
+.eticket-qr-section {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.eticket-qrcode-canvas {
+    display: inline-block;
+    padding: 12px;
+    background: #ffffff;
+    border: 2px solid #005198;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 81, 152, 0.12);
+}
+
+.eticket-qr-hint {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 10px;
+}
+
+.eticket-barcode-mock {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    letter-spacing: 5px;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 4px;
+}
+
+.eticket-footer {
+    background: #f1f5f9;
+    padding: 14px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    border-top: 1px solid #e2e8f0;
+}

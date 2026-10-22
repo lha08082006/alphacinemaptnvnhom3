@@ -15,9 +15,11 @@
         "db:rollback": "knex migrate:rollback",
         "db:seed": "knex seed:run",
         "db:reset": "npm run db:rollback --all && npm run db:migrate && npm run db:seed",
-        "db:check": "node src/scripts/dbCheck.js"
+        "db:check": "node src/scripts/dbCheck.js",
+        "chat-test": "node src/scripts/chatTest.js"
     },
     "dependencies": {
+        "@google/genai": "^2.30.0",
         "bcryptjs": "^3.0.3",
         "better-sqlite3": "^11.7.0",
         "cookie-parser": "^1.4.7",
@@ -27,6 +29,7 @@
         "helmet": "^8.0.0",
         "jsonwebtoken": "^9.0.3",
         "knex": "^3.1.0",
+        "sepay-pg-node": "^1.0.0",
         "zod": "^3.24.1"
     },
     "devDependencies": {

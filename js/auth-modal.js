@@ -145,13 +145,20 @@
         const guestSpan = document.getElementById('nav-user-guest');
         const infoSpan = document.getElementById('nav-user-info');
         const usernameSpan = document.getElementById('nav-username');
+        const pointsBadge = document.getElementById('nav-user-points-badge');
 
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
                 if (guestSpan) guestSpan.style.display = 'none';
                 if (infoSpan) infoSpan.style.display = 'inline-flex';
-                if (usernameSpan) usernameSpan.innerText = user.name || user.email || 'Thành viên';
+                const displayName = user.full_name || user.name || (user.email ? user.email.split('@')[0] : 'Thành viên');
+                if (usernameSpan) usernameSpan.innerText = displayName;
+                if (pointsBadge) {
+                    const pts = user.points !== undefined ? user.points : 50;
+                    pointsBadge.innerText = `${pts} điểm`;
+                    pointsBadge.style.display = 'inline-block';
+                }
                 return;
             } catch (e) {}
         }
@@ -169,6 +176,9 @@
         } catch (_err) {}
         localStorage.removeItem('currentUser');
         window.updateAuthUI();
+        if (window.location.hash.includes('account') || window.location.hash.includes('my-orders')) {
+            if (window.spaNavigate) window.spaNavigate('home');
+        }
         alert('Đã đăng xuất tài khoản thành công.');
     };
 

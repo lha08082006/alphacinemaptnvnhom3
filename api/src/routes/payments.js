@@ -17,8 +17,8 @@ const router = express.Router();
 
 const createPaymentSchema = z.object({
   orderId: z.string().min(1, 'Mã đơn hàng không được để trống'),
-  method: z.enum(['QR', 'ATM', 'INTL_CARD', 'WALLET'], {
-    errorMap: () => ({ message: 'Phương thức thanh toán phải là QR, ATM hoặc INTL_CARD' }),
+  method: z.enum(['QR', 'ATM', 'INTL_CARD', 'WALLET', 'BANK_TRANSFER', 'SEPAY'], {
+    errorMap: () => ({ message: 'Phương thức thanh toán phải là QR, ATM, INTL_CARD, WALLET hoặc BANK_TRANSFER' }),
   }),
   bankCode: z.string().optional(),
   termsAccepted: z
@@ -29,11 +29,32 @@ const createPaymentSchema = z.object({
       message: 'Bắt buộc đồng ý với điều khoản thanh toán để tiếp tục',
     }),
   termsVersion: z.string().optional(),
+  successUrl: z.string().url().optional(),
+  errorUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+});
+
+const createSepaySchema = z.object({
+  orderId: z.string().min(1, 'Mã đơn hàng không được để trống'),
+  method: z.enum(['BANK_TRANSFER', 'NAPAS_BANK_TRANSFER', 'SEPAY']).optional().default('BANK_TRANSFER'),
+  paymentMethod: z.enum(['BANK_TRANSFER', 'NAPAS_BANK_TRANSFER', 'SEPAY']).optional().default('BANK_TRANSFER'),
+  termsAccepted: z
+    .boolean()
+    .optional()
+    .default(true)
+    .refine((v) => v === true, {
+      message: 'Bắt buộc đồng ý với điều khoản thanh toán để tiếp tục',
+    }),
+  termsVersion: z.string().optional(),
+  successUrl: z.string().url().optional(),
+  errorUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+  customData: z.string().optional(),
 });
 
 /**
  * POST /payments
- * Khởi tạo giao dịch thanh toán VNPay cho đơn hàng.
+ * Khởi tạo giao dịch thanh toán (VNPay hoặc SePay) cho đơn hàng.
  * Header bắt buộc: Idempotency-Key (theo IDEMPOTENCY.KEY_PATTERN)
  */
 router.post(
@@ -50,8 +71,22 @@ router.post(
       );
     }
 
-    const { orderId, method, bankCode, termsVersion } = req.valid.body;
+    const { orderId, method, bankCode, termsVersion, successUrl, errorUrl, cancelUrl } = req.valid.body;
     const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    if (method === 'BANK_TRANSFER' || method === 'SEPAY') {
+      const result = await paymentService.createSepayPayment({
+        userId: req.user.id,
+        orderId,
+        paymentMethod: 'BANK_TRANSFER',
+        termsVersion,
+        idempotencyKey,
+        successUrl,
+        errorUrl,
+        cancelUrl,
+      });
+      return sendOk(res, result);
+    }
 
     const result = await paymentService.createPayment({
       userId: req.user.id,
@@ -66,6 +101,86 @@ router.post(
     sendOk(res, result);
   })
 );
+
+/**
+ * POST /payments/sepay & POST /payments/sepay/checkout
+ * Khởi tạo phiên thanh toán SePay cho đơn hàng đang ở trạng thái HOLD (HOLDING).
+ */
+router.post(
+  ['/sepay', '/sepay/checkout'],
+  requireAuth,
+  validate({ body: createSepaySchema }),
+  asyncHandler(async (req, res) => {
+    const rawIdemp = req.header(IDEMPOTENCY.HEADER) || req.header('idempotency-key');
+    let idempotencyKey = rawIdemp;
+    if (rawIdemp && !IDEMPOTENCY.KEY_PATTERN.test(rawIdemp)) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        400,
+        `Header ${IDEMPOTENCY.HEADER} không hợp lệ (cần từ 8-64 ký tự chữ, số, gạch ngang, gạch dưới).`
+      );
+    }
+    if (!idempotencyKey) {
+      idempotencyKey = 'IDEMP_SEPAY_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+    }
+
+    const { orderId, paymentMethod, method, termsVersion, successUrl, errorUrl, cancelUrl, customData } = req.valid.body;
+
+    const result = await paymentService.createSepayPayment({
+      userId: req.user.id,
+      orderId,
+      paymentMethod: paymentMethod || method || 'BANK_TRANSFER',
+      termsVersion,
+      idempotencyKey,
+      successUrl,
+      errorUrl,
+      cancelUrl,
+      customData,
+    });
+
+    sendOk(res, result);
+  })
+);
+
+/**
+ * POST /payments/sepay/ipn & POST /payments/sepay/webhook
+ * Cổng thanh toán SePay gọi IPN webhook (server-to-server).
+ * Phản hồi chuẩn { success: true, message: '...' }.
+ */
+router.post(['/sepay/ipn', '/sepay/webhook', '/sepay_ipn'], async (req, res) => {
+  try {
+    const result = await paymentService.applySepayIpn({
+      payload: req.body,
+      headers: req.headers,
+      rawBody: req.body,
+    });
+
+    if (result.success === false && result.message === 'Invalid signature') {
+      return res.status(401).json(result);
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    logger.error('sepay_ipn_error', { cause: err && err.message, stack: err && err.stack });
+    return res.status(500).json({ success: false, error: err && err.message });
+  }
+});
+
+/**
+ * GET /payments/sepay/return & GET /payments/sepay_return
+ * Khách hàng được chuyển hướng về sau khi thanh toán trên SePay Sandbox.
+ */
+router.get(['/sepay/return', '/sepay_return'], async (req, res) => {
+  try {
+    const orderId = req.query.order_invoice_number || req.query.orderId || req.query.order_id || '';
+    const status = req.query.status || 'success';
+    const redirectUrl = `/result.html?orderId=${encodeURIComponent(orderId)}&gateway=sepay&status=${encodeURIComponent(status)}`;
+    return res.redirect(redirectUrl);
+  } catch (err) {
+    logger.error('sepay_return_error', { cause: err && err.message });
+    return res.redirect('/result.html?error=internal');
+  }
+});
 
 /**
  * GET /payments/vnpay/ipn & GET /payments/vnpay_ipn

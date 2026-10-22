@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs'); // Thuần JS, tương thích Windows
 require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
 
 exports.seed = async function (knex) {
+  await knex.raw('PRAGMA foreign_keys = OFF');
   await knex('users').del();
   
   const defaultPass = process.env.SEED_DEFAULT_PASSWORD || 'Password@123';
@@ -105,4 +106,5 @@ exports.seed = async function (knex) {
   ];
 
   await knex('users').insert(users);
+  await knex.raw('PRAGMA foreign_keys = ON');
 };

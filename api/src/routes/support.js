@@ -9,6 +9,7 @@ const { AppError } = require('../lib/errors');
 const ids = require('../lib/ids');
 const clock = require('../lib/clock');
 const { REFUND_ESTIMATED_TIMES } = require('../config/constants');
+const supportBotService = require('../services/supportBotService');
 
 const router = express.Router();
 
@@ -41,6 +42,37 @@ function checkLookupRateLimit(req, res, next) {
 
 function _resetLookupRateLimits() {
   lookupAttemptsByIp.clear();
+}
+
+// Bộ nhớ đệm quản lý giới hạn chat theo IP
+const chatAttemptsByIp = new Map();
+const MAX_CHAT_ATTEMPTS = 20; // 20 tin nhắn mỗi phút
+const CHAT_WINDOW_MS = 60 * 1000;
+
+function checkChatRateLimit(req, res, next) {
+  if (process.env.NODE_ENV === 'test' && req.headers['x-bypass-rate-limit'] === 'true') {
+    return next();
+  }
+  const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+  const now = Date.now();
+  let record = chatAttemptsByIp.get(ip);
+
+  if (!record || now > record.resetAt) {
+    record = { count: 1, resetAt: now + CHAT_WINDOW_MS };
+    chatAttemptsByIp.set(ip, record);
+    return next();
+  }
+
+  record.count += 1;
+  if (record.count > MAX_CHAT_ATTEMPTS) {
+    return next(new AppError('RATE_LIMITED', 429, 'Tần suất gửi tin nhắn quá nhanh. Vui lòng thử lại sau 1 phút.'));
+  }
+
+  next();
+}
+
+function _resetChatRateLimits() {
+  chatAttemptsByIp.clear();
 }
 
 // Chuẩn hoá loại sự cố
@@ -570,6 +602,44 @@ router.get(
   })
 );
 
+const chatSchema = z.object({
+  session_id: z.string().optional(),
+  sessionId: z.string().optional(),
+  message: z
+    .string({ required_error: 'Vui lòng nhập nội dung tin nhắn' })
+    .min(1, 'Nội dung tin nhắn không được để trống')
+    .max(500, 'Tin nhắn không được vượt quá 500 ký tự'),
+});
+
+/**
+ * POST /support/chat
+ * Chatbot hỗ trợ dạng AI agent dùng function calling (Gemini @google/genai).
+ * - Nhận: { session_id, message }
+ * - Trả: { reply, ticket? }
+ */
+router.post(
+  '/chat',
+  checkChatRateLimit,
+  validate({ body: chatSchema }),
+  asyncHandler(async (req, res) => {
+    const sessionId = req.body.session_id || req.body.sessionId;
+    const message = req.body.message.trim();
+
+    const result = await supportBotService.processUserMessage(sessionId, message);
+
+    res.status(200).json({
+      ok: true,
+      reply: result.reply,
+      ticket: result.ticket || null,
+      data: {
+        reply: result.reply,
+        ticket: result.ticket || null,
+      },
+    });
+  })
+);
+
 router._resetLookupRateLimits = _resetLookupRateLimits;
+router._resetChatRateLimits = _resetChatRateLimits;
 
 module.exports = router;

@@ -52,6 +52,7 @@ window.API = {
   request: apiRequest,
   get: (endpoint, headers) => apiRequest(endpoint, { method: 'GET', headers }),
   post: (endpoint, body, headers) => apiRequest(endpoint, { method: 'POST', body, headers }),
+  put: (endpoint, body, headers) => apiRequest(endpoint, { method: 'PUT', body, headers }),
   patch: (endpoint, body, headers) => apiRequest(endpoint, { method: 'PATCH', body, headers }),
   delete: (endpoint, headers) => apiRequest(endpoint, { method: 'DELETE', headers }),
 };

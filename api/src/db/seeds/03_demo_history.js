@@ -58,7 +58,7 @@ exports.seed = async function (knex) {
     // Fix random seed by re-using a deterministic sequence? 
     // For simplicity, just generate a mix of cases.
     
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 36; i++) {
       const user = users[i % users.length];
       const showtime = showtimes[i % showtimes.length];
       const roomSeats = seats.filter(s => s.room_id === showtime.room_id);
@@ -171,6 +171,137 @@ exports.seed = async function (knex) {
           status: 'VALID',
           issued_at: now.toISOString(),
         });
+      }
+    }
+
+    // ==============================================================
+    // 4 ĐƠN HÀNG MẪU CỐ ĐỊNH PHỤC VỤ TEST & DEMO CHATBOT CSKH
+    // ==============================================================
+    const demoUser = users[0] || { id: 1, full_name: 'Khách Hàng Demo', email: 'khach@demo.vn', phone: '0912345678' };
+    const demoShowtime = showtimes[0];
+    const demoSeats = seats.filter(s => s.room_id === demoShowtime.room_id).slice(0, 2);
+    const demoCombo = combos[0];
+    const demoAmount = (demoSeats.length * demoShowtime.price_standard) + (demoCombo ? demoCombo.price : 0);
+
+    const nowCurrent = clock.now();
+    const min15Ago = new Date(nowCurrent.getTime() - 15 * 60000).toISOString();
+    const min5Ago = new Date(nowCurrent.getTime() - 5 * 60000).toISOString();
+    const day1Ago = new Date(nowCurrent.getTime() - 24 * 3600000).toISOString();
+
+    const sampleOrders = [
+      {
+        order_id: 'BC-DEMO-PAID-01',
+        status: 'PAID',
+        method: 'ATM',
+        created_at: day1Ago,
+        paid_at: day1Ago,
+        hasTicket: true,
+        hasRefund: false,
+      },
+      {
+        order_id: 'BC-DEMO-VERIFY-02',
+        status: 'PENDING_VERIFY',
+        method: 'VNPAY',
+        created_at: min5Ago,
+        paid_at: null,
+        hasTicket: false,
+        hasRefund: false,
+      },
+      {
+        order_id: 'BC-DEMO-HANGING-03', // Bị trừ tiền nhưng chưa có vé (trong hạn 60 phút)
+        status: 'AWAITING_PAYMENT',
+        method: 'ATM',
+        created_at: min15Ago,
+        paid_at: null,
+        hasTicket: false,
+        hasRefund: false,
+        gatewayDebited: true, // đã trừ tiền trên cổng
+      },
+      {
+        order_id: 'BC-DEMO-REFUNDED-04',
+        status: 'REFUNDED',
+        method: 'ATM',
+        created_at: day1Ago,
+        paid_at: day1Ago,
+        hasTicket: false,
+        hasRefund: true,
+      },
+    ];
+
+    for (const sample of sampleOrders) {
+      await knex('orders').insert({
+        order_id: sample.order_id,
+        user_id: demoUser.id,
+        showtime_id: demoShowtime.id,
+        status: sample.status,
+        amount_tickets: demoSeats.length * demoShowtime.price_standard,
+        amount_combos: demoCombo ? demoCombo.price : 0,
+        amount_total: demoAmount,
+        customer_name: demoUser.full_name,
+        customer_phone: '0912345678',
+        customer_email: 'khach@demo.vn',
+        payment_method: sample.method,
+        hold_expires_at: new Date(nowCurrent.getTime() + 600000).toISOString(),
+        current_attempt_id: 'ATT-' + sample.order_id,
+        created_at: sample.created_at,
+        updated_at: sample.created_at,
+        paid_at: sample.paid_at,
+        callback_at: sample.paid_at,
+      }).onConflict('order_id').merge();
+
+      const txnId = 'GW-' + sample.order_id;
+      await knex('payment_attempts').insert({
+        attempt_id: 'ATT-' + sample.order_id,
+        order_id: sample.order_id,
+        gateway_txn_id: txnId,
+        method: sample.method,
+        amount: demoAmount,
+        status: sample.status === 'PAID' ? 'SUCCESS' : (sample.status === 'FAILED' ? 'FAILED' : 'REDIRECTED'),
+        idempotency_key: 'idemp_' + sample.order_id,
+        created_at: sample.created_at,
+        callback_at: sample.paid_at,
+      }).onConflict('attempt_id').merge();
+
+      await gwKnex('txns').insert({
+        txn_id: txnId,
+        merchant_id: 1,
+        merchant_order_ref: 'ATT-' + sample.order_id,
+        method: sample.method,
+        amount: demoAmount,
+        status: (sample.status === 'PAID' || sample.gatewayDebited) ? 'SUCCESS' : 'PENDING',
+        debited: (sample.status === 'PAID' || sample.gatewayDebited) ? 1 : 0,
+        scenario: 'S1',
+        created_at: sample.created_at,
+        paid_at: (sample.status === 'PAID' || sample.gatewayDebited) ? sample.created_at : null,
+        expires_at: new Date(nowCurrent.getTime() + 600000).toISOString(),
+        return_url: 'http://localhost:4000/api/v1/demo/return',
+      }).onConflict('txn_id').merge();
+
+      if (sample.hasTicket) {
+        await knex('tickets').insert({
+          ticket_id: 'TK-' + sample.order_id,
+          order_id: sample.order_id,
+          qr_payload: crypto.randomBytes(16).toString('hex'),
+          status: 'VALID',
+          issued_at: sample.paid_at,
+        }).onConflict('ticket_id').merge();
+      }
+
+      if (sample.hasRefund) {
+        await knex('refunds').insert({
+          refund_id: 'RF-' + sample.order_id,
+          order_id: sample.order_id,
+          gateway_txn_id: txnId,
+          amount: demoAmount,
+          type: 'AUTO',
+          status: 'COMPLETED',
+          detected_at: sample.created_at,
+          send_due_at: sample.created_at,
+          sent_at: sample.created_at,
+          completed_at: sample.created_at,
+          checks_json: JSON.stringify({ reason: 'Hoàn tiền tự động qua đối soát' }),
+          sla_breached: false,
+        }).onConflict('refund_id').merge();
       }
     }
   } finally {

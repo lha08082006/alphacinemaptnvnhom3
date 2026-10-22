@@ -11,6 +11,8 @@
         WALLET: '7-14 ngày làm việc',
         QR: '7-14 ngày làm việc',
         VNPAYQR: '7-14 ngày làm việc',
+        BANK_TRANSFER: '24-48 giờ làm việc',
+        SEPAY: '24-48 giờ làm việc',
         DEFAULT: '7-14 ngày làm việc'
     });
 
@@ -60,6 +62,7 @@
     function getMethodDisplay(method) {
         if (!method) return 'VNPAY';
         const m = method.toUpperCase();
+        if (m === 'SEPAY' || m === 'BANK_TRANSFER' || m === 'SEPAY_BANK_TRANSFER') return 'SePay - Quét mã QR Chuyển khoản (Sandbox)';
         if (m === 'ATM' || m === 'VNBANK') return 'Thẻ ATM nội địa (Napas/NCB)';
         if (m === 'INTL_CARD' || m === 'CC' || m === 'INTCARD') return 'Thẻ quốc tế (Visa/Master/JCB)';
         if (m === 'QR' || m === 'WALLET' || m === 'VNPAYQR') return 'VNPAY-QR (App Ngân hàng & Ví)';

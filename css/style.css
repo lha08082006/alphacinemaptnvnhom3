@@ -2425,3 +2425,40 @@ a:hover { color: var(--navy); }
         width: calc(100vw - 32px);
     }
 }
+
+
+/* Beta Cinemas Brand Buttons & Official Styles */
+.btn-ok {
+    border-radius: 10px !important;
+    background-color: #005198;
+    color: white;
+    padding: 12px 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    height: 42px;
+    border: 0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-ok:hover {
+    background-color: #3db1f3;
+    border-color: #005bb5;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-loginfacebook {
+    background-color: #F595A6 !important;
+    color: white !important;
+    border-radius: 10px !important;
+    transition: background-color 0.3s ease;
+}
+
+.btn-loginfacebook:hover {
+    background-color: #e67388 !important;
+    color: white !important;
+}

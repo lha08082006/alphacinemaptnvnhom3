@@ -10,17 +10,32 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="container-fluid" style="display:flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 13px;">
                 <span id="nav-user-guest" style="display:none;">
                     <a href="dang-nhap.html" id="nav-login">Đăng nhập</a> <span style="margin:0 10px;">|</span>
-                    <a href="dang-nhap.html" id="nav-register">Đăng ký</a>
+                    <a href="dang-nhap.html#register" id="nav-register">Đăng ký</a>
                 </span>
                 
-                <span id="nav-user-info" style="display:inline-flex; align-items: center; gap: 8px;">
-                    Xin chào: <span id="nav-username" style="color: white; font-weight: normal;">— luonghonganh</span> <span style="font-size: 10px; margin-left: -4px;">▾</span>
-                    <a href="my-orders.html" style="color: #ffd166; margin-left: 6px; text-decoration: none; font-weight: 600; font-size: 12.5px;">📋 Đơn hàng</a>
-                    <a href="inbox.html" style="color: #ffd166; margin-left: 6px; text-decoration: none; font-weight: 600; font-size: 12.5px;">🔔 Thông báo</a>
-                    <a href="#" onclick="logout(event)" title="Tài khoản / Đăng xuất" style="color: white; display: inline-flex; align-items: center; margin-left: 5px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    </a>
-                </span>
+                <div id="nav-user-info" class="topbar-user-container" style="display:inline-flex; align-items: center;">
+                    <div class="topbar-user-trigger">
+                        <span>Xin chào:</span>
+                        <b id="nav-username" style="color: #ffd166;">— Thành viên</b>
+                        <span id="nav-user-points-badge" class="topbar-user-points" style="display:none;">50 điểm</span>
+                        <span style="font-size: 10px; margin-left: 2px;">▾</span>
+                    </div>
+                    <div class="topbar-dropdown-menu">
+                        <a href="index.html#account?tab=profile">
+                            <span>👤</span> Thông tin tài khoản
+                        </a>
+                        <a href="index.html#account?tab=orders">
+                            <span>🎟️</span> Lịch sử giao dịch
+                        </a>
+                        <a href="index.html#account?tab=password">
+                            <span>🔑</span> Đổi mật khẩu
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="logout(event)" class="logout-link">
+                            <span>🚪</span> Đăng xuất
+                        </a>
+                    </div>
+                </div>
                 
                 <span class="flag-icon" title="English" style="width: 22px; height: 14px; display: inline-block; background: url('https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg') no-repeat center/cover; cursor: pointer;"></span>
             </div>
@@ -51,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <li><a href="gia-ve.html" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">GIÁ VÉ</a></li>
                         <li><a href="combo.html" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">TIN MỚI VÀ ƯU ĐÃI</a></li>
                         <li><a href="#" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">NHƯỢNG QUYỀN</a></li>
-                        <li><a href="#" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">THÀNH VIÊN</a></li>
+                        <li><a href="index.html#account" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">THÀNH VIÊN</a></li>
                         <li class="nav-dropdown" style="position: relative;">
                             <a href="support.html" class="nav-link-dropdown" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy); display: flex; align-items: center; gap: 4px;">
                                 HỖ TRỢ <span style="font-size: 11px;">▾</span>

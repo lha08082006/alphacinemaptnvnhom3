@@ -37,6 +37,13 @@ const schema = z.object({
   VNPAY_RETURN_URL: z.string(required('VNPAY_RETURN_URL')).url('phải là URL hợp lệ'),
   VNPAY_TRUST_RETURN: z.enum(['true', 'false']).default('false'),
 
+  // Cấu hình cổng thanh toán SePay (Sandbox)
+  SEPAY_MERCHANT_ID: z.string().default('SP-TEST-LH272A54'),
+  SEPAY_SECRET_KEY: z.string().default('spsk_test_QmTCuBKcB4kdQvMX6mNAT3jZ2BWESmML'),
+  SEPAY_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+  SEPAY_RETURN_URL: z.string().url().default('http://localhost:4000/result.html'),
+  SEPAY_CANCEL_URL: z.string().url().default('http://localhost:4000/result.html?error=cancelled'),
+
   // Cấu hình Gemini AI
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-3.8-flash').optional(),

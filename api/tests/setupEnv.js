@@ -13,3 +13,9 @@ process.env.VNPAY_URL = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 process.env.VNPAY_API_URL = 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction';
 process.env.VNPAY_RETURN_URL = 'http://localhost:4000/api/v1/payment/vnpay/return';
 process.env.VNPAY_TRUST_RETURN = 'false';
+
+process.env.SEPAY_MERCHANT_ID = 'SP-TEST-LH272A54';
+process.env.SEPAY_SECRET_KEY = 'spsk_test_QmTCuBKcB4kdQvMX6mNAT3jZ2BWESmML';
+process.env.SEPAY_ENV = 'sandbox';
+process.env.SEPAY_RETURN_URL = 'http://localhost:4000/result.html';
+process.env.SEPAY_CANCEL_URL = 'http://localhost:4000/result.html?error=cancelled';

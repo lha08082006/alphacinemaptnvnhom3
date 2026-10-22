@@ -264,8 +264,12 @@
         const rawMethod = paymentRadio ? paymentRadio.value : 'QR';
         let method = 'QR';
         let bankCode = undefined;
+        let isSepay = false;
 
-        if (rawMethod === 'ATM' || rawMethod === 'VNBANK' || rawMethod === 'NCB') {
+        if (rawMethod === 'SEPAY' || rawMethod === 'BANK_TRANSFER' || rawMethod === 'SEPAY_QR') {
+            isSepay = true;
+            method = 'BANK_TRANSFER';
+        } else if (rawMethod === 'ATM' || rawMethod === 'VNBANK' || rawMethod === 'NCB') {
             method = 'ATM';
             bankCode = rawMethod === 'NCB' ? 'NCB' : 'VNBANK';
         } else if (rawMethod === 'CC' || rawMethod === 'INTL_CARD' || rawMethod === 'INTCARD') {
@@ -305,6 +309,50 @@
                 throw new Error('Module kết nối máy chủ API chưa sẵn sàng. Vui lòng tải lại trang.');
             }
 
+            if (isSepay) {
+                const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+                const res = await API.post(
+                    '/payments/sepay',
+                    {
+                        orderId,
+                        paymentMethod: 'BANK_TRANSFER',
+                        termsAccepted: true,
+                        termsVersion: 'v1.0',
+                        successUrl: `${origin}/result.html?orderId=${encodeURIComponent(orderId)}&gateway=sepay&status=success`,
+                        errorUrl: `${origin}/result.html?orderId=${encodeURIComponent(orderId)}&gateway=sepay&status=error`,
+                        cancelUrl: `${origin}/result.html?orderId=${encodeURIComponent(orderId)}&gateway=sepay&status=cancelled`
+                    },
+                    { 'Idempotency-Key': idempotencyKey }
+                );
+
+                const data = (res && res.data) ? res.data : res;
+                if (data && data.checkoutUrl && data.fields) {
+                    // Tự động tạo form ẩn và submit sang cổng thanh toán SePay Sandbox (One-time payment)
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = data.checkoutUrl;
+                    form.style.display = 'none';
+
+                    for (const [key, val] of Object.entries(data.fields)) {
+                        if (val !== undefined && val !== null) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = val;
+                            form.appendChild(input);
+                        }
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                    return;
+                } else if (data && data.paymentUrl) {
+                    window.location.href = data.paymentUrl;
+                    return;
+                } else {
+                    throw new Error('Không nhận được thông tin phiên thanh toán SePay từ máy chủ.');
+                }
+            }
+
             const payload = {
                 orderId,
                 method,
@@ -325,7 +373,30 @@
                 throw new Error('Không nhận được đường dẫn thanh toán từ máy chủ.');
             }
         } catch (err) {
-            console.warn('API thanh toán không sẵn sàng hoặc xảy ra lỗi mạng, chuyển sang cổng thanh toán mô phỏng (SPA Gateway):', err);
+            console.warn('API thanh toán gặp lỗi:', err);
+            closeTncModal();
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'THANH TOÁN';
+            }
+            if (nextBtn) nextBtn.disabled = false;
+
+            // 1. Nếu lỗi chưa đăng nhập
+            if (err.status === 401 || err.code === 'AUTH_REQUIRED' || (err.message && err.message.includes('401'))) {
+                alert('Quý khách vui lòng đăng nhập tài khoản trước khi tiến hành thanh toán vé!');
+                if (typeof window.openAuthModal === 'function') {
+                    window.openAuthModal('login');
+                }
+                return;
+            }
+
+            // 2. Nếu là SePay: hiển thị thông báo lỗi cụ thể, tuyệt đối không nhảy vào gateway giả lập
+            if (isSepay) {
+                alert('Lỗi khởi tạo cổng thanh toán SePay: ' + (err.message || 'Không thể kết nối đến máy chủ.'));
+                return;
+            }
+
+            // 3. Fallback cổng mô phỏng VNPay nội bộ chỉ chạy khi cổng VNPay sandbox ngoại tuyến
             const txnId = (typeof DB !== 'undefined' && DB.generateId) ? DB.generateId.txn() : 'GW' + Math.random().toString(36).substring(2, 12).toUpperCase();
             if (typeof DB !== 'undefined') {
                 DB.insert('gateway_txns', {
@@ -340,12 +411,6 @@
                 });
                 DB.update('beta_orders', orderId, { txnId: txnId, status: 'AWAITING_PAYMENT' });
             }
-            closeTncModal();
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'THANH TOÁN';
-            }
-            if (nextBtn) nextBtn.disabled = false;
 
             if (window.spaNavigate) {
                 window.spaNavigate('gateway', `txn=${txnId}&orderId=${orderId}`);

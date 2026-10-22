@@ -76,10 +76,35 @@ router.get(
     }
 
     const orderIds = orders.map((o) => o.order_id);
-    const [tickets, refunds, attempts] = await Promise.all([
+    const showtimeIds = [...new Set(orders.map((o) => o.showtime_id).filter(Boolean))];
+
+    const [tickets, refunds, attempts, showtimes, orderSeats, orderCombos] = await Promise.all([
       knex('tickets').whereIn('order_id', orderIds),
       knex('refunds').whereIn('order_id', orderIds).whereNot('status', 'REJECTED'),
       knex('payment_attempts').whereIn('order_id', orderIds).orderBy('created_at', 'desc'),
+      showtimeIds.length > 0
+        ? knex('showtimes as st')
+            .join('movies as m', 'st.movie_id', 'm.id')
+            .join('rooms as r', 'st.room_id', 'r.id')
+            .join('cinemas as c', 'r.cinema_id', 'c.id')
+            .whereIn('st.id', showtimeIds)
+            .select(
+              'st.id as showtime_id',
+              'st.starts_at',
+              'st.ends_at',
+              'm.title as movie_title',
+              'r.name as room_name',
+              'c.name as cinema_name'
+            )
+        : [],
+      knex('order_seats as os')
+        .join('seats as s', 'os.seat_id', 's.id')
+        .whereIn('os.order_id', orderIds)
+        .select('os.order_id', 's.row_label', 's.col_number', 'os.seat_type', 'os.price'),
+      knex('order_combos as oc')
+        .join('combos as cb', 'oc.combo_id', 'cb.id')
+        .whereIn('oc.order_id', orderIds)
+        .select('oc.order_id', 'cb.name as combo_name', 'oc.qty', 'oc.unit_price'),
     ]);
 
     const clock = require('../lib/clock');
@@ -89,6 +114,9 @@ router.get(
       const ticket = tickets.find((t) => t.order_id === o.order_id);
       const refund = refunds.find((r) => r.order_id === o.order_id);
       const attempt = attempts.find((a) => a.order_id === o.order_id);
+      const st = showtimes.find((s) => s.showtime_id === o.showtime_id);
+      const seats = orderSeats.filter((s) => s.order_id === o.order_id);
+      const combos = orderCombos.filter((c) => c.order_id === o.order_id);
 
       const paymentTime = attempt?.created_at || o.created_at;
       const elapsedMs = paymentTime ? nowMs - new Date(paymentTime).getTime() : 0;
@@ -107,6 +135,14 @@ router.get(
         hasRefund: Boolean(refund),
         ticketId: ticket?.ticket_id || null,
         refundStatus: refund?.status || null,
+        movieTitle: st?.movie_title || 'Vé xem phim Beta',
+        moviePoster: st?.movie_poster_url || '',
+        cinemaName: st?.cinema_name || 'Beta Cinemas',
+        roomName: st?.room_name || 'Phòng chiếu',
+        startsAt: st?.starts_at || o.created_at,
+        seats: seats.map((s) => `${s.row_label}${s.col_number}`),
+        seatDetails: seats,
+        combos: combos.map((c) => `${c.qty}x ${c.combo_name}`),
       };
     });
 
