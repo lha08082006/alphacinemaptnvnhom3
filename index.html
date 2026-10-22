@@ -2407,7 +2407,7 @@ body {
                         </svg>
                         PHƯƠNG THỨC THANH TOÁN
                     </h3>
-                    <a href="#support" data-view="support" style="color: #03599d; font-weight: 700; text-decoration: none; font-size: 13.5px;">Hướng dẫn thanh toán</a>
+                    <a href="javascript:void(0)" onclick="window.togglePaymentAgent(true)" style="color: #03599d; font-weight: 700; text-decoration: none; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;"><span style="font-size: 15px;">🤖</span> Hướng dẫn thanh toán & Thẻ test AI</a>
                 </div>
                 
                 <div style="font-size: 15px; margin-bottom: 12px; font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center;">
@@ -2483,24 +2483,19 @@ body {
                     </label>
                 </div>
 
-                <!-- Box thông tin Thẻ Test VNPay Sandbox theo file đính kèm -->
-                <div class="vnpay-test-card" style="margin-top: 5px; margin-bottom: 25px; padding: 14px 18px; background: #f0f7ff; border: 1px solid #b8daff; border-radius: 6px; font-size: 13.5px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-weight: 700; color: #03599d; display: flex; align-items: center; gap: 6px;">
-                            💳 THÔNG TIN THẺ TEST VNPAY SANDBOX (TỪ FILE TÍCH HỢP)
-                        </span>
-                        <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700;">TEST ACCOUNT</span>
+                <!-- Banner Kích hoạt Trợ lý AI (Gọn gàng & hiện đại, liên kết với Floating AI Agent góc màn hình) -->
+                <div class="vnpay-agent-callout" onclick="window.togglePaymentAgent(true)" title="Nhấn để mở Trợ lý AI Hướng dẫn thanh toán & Thẻ test">
+                    <div class="agent-callout-icon">🤖</div>
+                    <div class="agent-callout-text">
+                        <div class="agent-callout-title">
+                            Trợ lý AI Hướng dẫn Thanh toán & Thẻ Test NCB
+                            <span class="agent-callout-badge">Sẵn sàng</span>
+                        </div>
+                        <div class="agent-callout-desc">Bấm vào đây hoặc nút Trợ lý ở góc phải để lấy số thẻ test, mã OTP hoặc xem hướng dẫn từng bước.</div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; font-size: 13px; color: #333;">
-                        <div>Ngân hàng: <strong style="color: #03599d;">NCB (Ngân hàng Quốc Dân)</strong></div>
-                        <div>Số thẻ: <code style="font-family: monospace; font-size: 14px; color: #dc3545; background: #fff; padding: 2px 6px; border-radius: 3px; border: 1px dashed #03599d; cursor: pointer;" onclick="navigator.clipboard.writeText('9704198526191432198'); alert('Đã sao chép số thẻ: 9704198526191432198');" title="Bấm để sao chép">9704198526191432198 📋</code></div>
-                        <div>Tên chủ thẻ: <strong>NGUYEN VAN A</strong></div>
-                        <div>Ngày phát hành: <strong>07/15</strong></div>
-                        <div>Mật khẩu OTP: <strong style="color: #28a745;">123456</strong></div>
-                    </div>
-                    <div style="margin-top: 8px; font-size: 12px; color: #555; border-top: 1px dashed #cce5ff; padding-top: 6px;">
-                        💡 <em>Gợi ý:</em> Sau khi nhấn "THANH TOÁN", hệ thống chuyển sang cổng VNPay Sandbox. Quý khách chọn ngân hàng <strong>NCB</strong> và điền thông tin thẻ trên để hoàn tất kiểm thử.
-                    </div>
+                    <button type="button" class="agent-callout-btn" onclick="event.stopPropagation(); window.togglePaymentAgent(true);">
+                        Mở Trợ lý AI
+                    </button>
                 </div>
                 <!-- Hộp Lưu ý & Đếm ngược 10 phút (Ảnh 3) -->
                 <div class="notice-timer-box">
@@ -3595,6 +3590,18 @@ body {
 
             // 4. Kích hoạt logic riêng của view
             triggerViewLifecycle(viewId, queryParams);
+            // 5. Quản lý hiển thị Trợ lý Thanh toán AI (Chỉ hiện khi ở view 'checkout' hoặc 'gateway')
+            const aiAgentEl = document.getElementById('payment-ai-agent-container');
+            if (aiAgentEl) {
+                if (viewId === 'checkout' || viewId === 'gateway') {
+                    aiAgentEl.style.display = 'block';
+                } else {
+                    aiAgentEl.style.display = 'none';
+                    if (typeof window.togglePaymentAgent === 'function') {
+                        window.togglePaymentAgent(false);
+                    }
+                }
+            }
         }
 
         // Xử lý các vòng đời khởi tạo khi vào từng màn hình
@@ -4098,6 +4105,263 @@ body {
         </div>
     </div>
     <script src="js/auth-modal.js"></script>
+
+
+    <!-- ============================================================== -->
+    <!-- FLOATING AI AGENT: TRỢ LÝ THANH TOÁN VNPAY SANDBOX & HỖ TRỢ    -->
+    <!-- ============================================================== -->
+    <div id="payment-ai-agent-container" class="payment-ai-agent-container" style="display: none;">
+        <!-- Nút Floating Action Button (FAB) ở góc màn hình -->
+        <div id="payment-ai-agent-fab" class="payment-ai-agent-fab" onclick="window.togglePaymentAgent()" title="Mở Trợ lý Thanh toán AI">
+            <div class="fab-avatar-wrapper">
+                <svg class="fab-robot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="4"></rect>
+                    <circle cx="12" cy="5" r="2"></circle>
+                    <path d="M12 7v4"></path>
+                    <line x1="8" y1="16" x2="8.01" y2="16" stroke-width="3" stroke-linecap="round"></line>
+                    <line x1="16" y1="16" x2="16.01" y2="16" stroke-width="3" stroke-linecap="round"></line>
+                    <path d="M9 19h6" stroke-linecap="round"></path>
+                </svg>
+                <span class="fab-status-dot" title="Trợ lý đang trực tuyến"></span>
+            </div>
+            <span class="fab-label">🤖 Trợ lý Thanh toán</span>
+        </div>
+
+        <!-- Khung cửa sổ Trợ lý AI (Window) -->
+        <div id="payment-ai-agent-window" class="payment-ai-agent-window" style="display: none;">
+            <!-- Header -->
+            <div class="agent-window-header">
+                <div class="agent-header-info">
+                    <div class="agent-header-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="22" height="22">
+                            <rect x="3" y="11" width="18" height="10" rx="4"></rect>
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <path d="M12 7v4"></path>
+                            <circle cx="8.5" cy="15.5" r="1.2" fill="#fff"></circle>
+                            <circle cx="15.5" cy="15.5" r="1.2" fill="#fff"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="agent-header-title">Trợ lý Thanh toán AI</div>
+                        <div class="agent-header-subtitle">
+                            <span class="agent-online-indicator"></span> Hướng dẫn VNPAY Sandbox & Thẻ Test
+                        </div>
+                    </div>
+                </div>
+                <div class="agent-header-actions">
+                    <button type="button" class="btn-agent-close" onclick="window.togglePaymentAgent(false)" title="Đóng cửa sổ">&times;</button>
+                </div>
+            </div>
+
+            <!-- Thanh Tabs -->
+            <div class="agent-tabs-nav">
+                <button type="button" class="agent-tab-btn active" id="agent-tab-btn-card" onclick="window.switchAgentTab('card')">
+                    💳 Thẻ Test NCB
+                </button>
+                <button type="button" class="agent-tab-btn" id="agent-tab-btn-steps" onclick="window.switchAgentTab('steps')">
+                    📋 Các bước thanh toán
+                </button>
+                <button type="button" class="agent-tab-btn" id="agent-tab-btn-faq" onclick="window.switchAgentTab('faq')">
+                    💡 Hỏi đáp / CSKH
+                </button>
+            </div>
+
+            <!-- Nội dung Tab 1: Thẻ Test Sandbox NCB -->
+            <div id="agent-tab-content-card" class="agent-tab-pane active">
+                <!-- Mô phỏng thẻ ATM ngân hàng NCB trực quan -->
+                <div class="virtual-card-chip-box">
+                    <div class="virtual-card-head">
+                        <span class="vcard-brand">NCB BANK</span>
+                        <span class="vcard-tag">SANDBOX TEST</span>
+                    </div>
+                    <div class="virtual-card-chip">
+                        <div class="vcard-chip-lines"></div>
+                    </div>
+                    <div class="virtual-card-number" id="vcard-number-display">
+                        9704 1985 2619 1432 198
+                    </div>
+                    <div class="virtual-card-footer">
+                        <div>
+                            <div class="vcard-label">CHỦ THẺ</div>
+                            <div class="vcard-val">NGUYEN VAN A</div>
+                        </div>
+                        <div>
+                            <div class="vcard-label">PHÁT HÀNH</div>
+                            <div class="vcard-val">07/15</div>
+                        </div>
+                        <div>
+                            <div class="vcard-label">MÃ OTP</div>
+                            <div class="vcard-val vcard-otp">123456</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-quick-copy-list">
+                    <div class="copy-item-row">
+                        <span class="copy-label">Số thẻ NCB:</span>
+                        <span class="copy-value">9704198526191432198</span>
+                        <button type="button" class="btn-copy-chip" onclick="window.copyAgentField('9704198526191432198', 'Số thẻ NCB')">Chép</button>
+                    </div>
+                    <div class="copy-item-row">
+                        <span class="copy-label">Tên chủ thẻ:</span>
+                        <span class="copy-value">NGUYEN VAN A</span>
+                        <button type="button" class="btn-copy-chip" onclick="window.copyAgentField('NGUYEN VAN A', 'Tên chủ thẻ')">Chép</button>
+                    </div>
+                    <div class="copy-item-row">
+                        <span class="copy-label">Ngày phát hành:</span>
+                        <span class="copy-value">07/15</span>
+                        <button type="button" class="btn-copy-chip" onclick="window.copyAgentField('07/15', 'Ngày phát hành')">Chép</button>
+                    </div>
+                    <div class="copy-item-row">
+                        <span class="copy-label">Mật khẩu OTP:</span>
+                        <span class="copy-value" style="font-weight: 700; color: #16a34a;">123456</span>
+                        <button type="button" class="btn-copy-chip" onclick="window.copyAgentField('123456', 'Mã OTP')">Chép</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-copy-all-card" onclick="window.copyAllCardDetails()">
+                    📋 Sao chép toàn bộ thông tin thẻ
+                </button>
+                <div id="agent-copy-toast" class="agent-copy-toast"></div>
+            </div>
+
+            <!-- Nội dung Tab 2: Hướng dẫn 4 bước thanh toán -->
+            <div id="agent-tab-content-steps" class="agent-tab-pane">
+                <div class="agent-guide-steps">
+                    <div class="guide-step-item">
+                        <div class="guide-step-num">1</div>
+                        <div class="guide-step-text">
+                            <strong>Chọn phương thức & bấm "THANH TOÁN"</strong>
+                            <p>Chọn Cổng VNPAY hoặc Thẻ nội địa ATM, sau đó nhấn nút thanh toán màu cam bên dưới để chuyển sang VNPAY Sandbox.</p>
+                        </div>
+                    </div>
+                    <div class="guide-step-item">
+                        <div class="guide-step-num">2</div>
+                        <div class="guide-step-text">
+                            <strong>Chọn ngân hàng "NCB"</strong>
+                            <p>Tại màn hình cổng thanh toán VNPAY, chọn biểu tượng ngân hàng NCB (Ngân hàng Quốc Dân).</p>
+                        </div>
+                    </div>
+                    <div class="guide-step-item">
+                        <div class="guide-step-num">3</div>
+                        <div class="guide-step-text">
+                            <strong>Nhập thông tin thẻ Test</strong>
+                            <p>Điền số thẻ: <code>9704198526191432198</code>, Tên: <code>NGUYEN VAN A</code>, Ngày: <code>07/15</code>.</p>
+                        </div>
+                    </div>
+                    <div class="guide-step-item">
+                        <div class="guide-step-num">4</div>
+                        <div class="guide-step-text">
+                            <strong>Nhập OTP & Nhận vé xem phim</strong>
+                            <p>Nhập mã OTP <code>123456</code>. Sau khi xác nhận thành công, hệ thống tự động xuất vé điện tử kèm mã QR.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nội dung Tab 3: Hỏi đáp & Xử lý sự cố -->
+            <div id="agent-tab-content-faq" class="agent-tab-pane">
+                <div class="agent-faq-list">
+                    <div class="faq-item">
+                        <div class="faq-q">❓ Bị trừ tiền nhưng chưa thấy vé xuất hiện?</div>
+                        <div class="faq-a">Beta Cinemas tích hợp hệ thống <strong>đối soát tự động (To-be)</strong>. Trong vòng vài giây tới 10 giây, hệ thống sẽ tự động xác minh với ngân hàng để cấp vé hoặc hoàn tiền 100%.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">❓ Mã QR vé lấy ở đâu sau khi thanh toán?</div>
+                        <div class="faq-a">Sau khi thanh toán thành công, trang kết quả sẽ chuyển tới Vé Điện Tử. Bạn cũng có thể vào mục <strong>Lịch sử đơn hàng</strong> trên menu để xem lại bất cứ lúc nào.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">❓ Cần liên hệ nhân viên hỗ trợ khẩn cấp?</div>
+                        <div class="faq-a">Hotline CSKH: <strong style="color: #03599d;">1800 646 420</strong> (Miễn phí cước gọi) hoặc gửi yêu cầu tại mục <strong>HỖ TRỢ</strong>.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thanh gợi ý nhanh dưới đáy khung chat -->
+            <div class="agent-footer-chips">
+                <button type="button" class="chip-btn" onclick="window.copyAgentField('9704198526191432198', 'Số thẻ NCB')">Chép số thẻ</button>
+                <button type="button" class="chip-btn" onclick="window.copyAgentField('123456', 'Mã OTP')">Chép OTP 123456</button>
+                <button type="button" class="chip-btn" onclick="window.switchAgentTab('steps')">Xem 4 bước</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ==========================================================
+    // TRỢ LÝ THANH TOÁN AI (FLOATING PAYMENT AGENT)
+    // ==========================================================
+    window.togglePaymentAgent = function(forceState) {
+        const windowEl = document.getElementById('payment-ai-agent-window');
+        const fabEl = document.getElementById('payment-ai-agent-fab');
+        if (!windowEl) return;
+
+        let shouldOpen;
+        if (typeof forceState === 'boolean') {
+            shouldOpen = forceState;
+        } else {
+            shouldOpen = (windowEl.style.display === 'none' || !windowEl.style.display);
+        }
+
+        if (shouldOpen) {
+            windowEl.style.display = 'flex';
+            if (fabEl) fabEl.classList.add('fab-active');
+        } else {
+            windowEl.style.display = 'none';
+            if (fabEl) fabEl.classList.remove('fab-active');
+        }
+    };
+
+    window.switchAgentTab = function(tabName) {
+        const panes = ['card', 'steps', 'faq'];
+        panes.forEach(name => {
+            const pane = document.getElementById('agent-tab-content-' + name);
+            const btn = document.getElementById('agent-tab-btn-' + name);
+            if (pane) pane.classList.remove('active');
+            if (btn) btn.classList.remove('active');
+        });
+
+        const activePane = document.getElementById('agent-tab-content-' + tabName);
+        const activeBtn = document.getElementById('agent-tab-btn-' + tabName);
+        if (activePane) activePane.classList.add('active');
+        if (activeBtn) activeBtn.classList.add('active');
+    };
+
+    window.showAgentToast = function(msg) {
+        const toast = document.getElementById('agent-copy-toast');
+        if (!toast) return;
+        toast.innerText = msg;
+        toast.classList.add('show');
+        clearTimeout(window._agentToastTimer);
+        window._agentToastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+    };
+
+    window.copyAgentField = function(val, label) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(val).then(() => {
+                window.showAgentToast('✓ Đã sao chép ' + label + ': ' + val);
+            }).catch(() => {
+                prompt('Sao chép ' + label + ':', val);
+            });
+        } else {
+            prompt('Sao chép ' + label + ':', val);
+        }
+    };
+
+    window.copyAllCardDetails = function() {
+        const text = 'Ngân hàng: NCB\nSố thẻ: 9704198526191432198\nTên chủ thẻ: NGUYEN VAN A\nNgày phát hành: 07/15\nMật khẩu OTP: 123456';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                window.showAgentToast('✓ Đã sao chép toàn bộ thông tin thẻ test NCB!');
+            }).catch(() => {
+                prompt('Sao chép thông tin thẻ:', text);
+            });
+        } else {
+            prompt('Sao chép thông tin thẻ:', text);
+        }
+    };
+    </script>
 
 </body>
 </html>

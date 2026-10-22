@@ -1809,3 +1809,619 @@ a:hover { color: var(--navy); }
     border: 1px solid #bbf7d0;
 }
 
+
+/* ============================================================== */
+/* FLOATING AI PAYMENT AGENT WIDGET (TRỢ LÝ THANH TOÁN VNPAY)     */
+/* ============================================================== */
+
+/* Callout banner inside Checkout page */
+.vnpay-agent-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 5px;
+    margin-bottom: 22px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+    border: 1px solid #b8daff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(3, 89, 157, 0.06);
+}
+
+.vnpay-agent-callout:hover {
+    border-color: #03599d;
+    box-shadow: 0 4px 14px rgba(3, 89, 157, 0.15);
+    transform: translateY(-1px);
+}
+
+.agent-callout-icon {
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.agent-callout-text {
+    flex: 1;
+}
+
+.agent-callout-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #03599d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+
+.agent-callout-badge {
+    background: #16a34a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.agent-callout-desc {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.agent-callout-btn {
+    background: #03599d;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(3, 89, 157, 0.25);
+}
+
+.agent-callout-btn:hover {
+    background: #024478;
+    transform: scale(1.04);
+}
+
+/* Container góc màn hình */
+.payment-ai-agent-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 99999;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Floating Action Button (FAB) */
+.payment-ai-agent-fab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #03599d 0%, #023864 100%);
+    color: #ffffff;
+    padding: 10px 18px 10px 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(3, 89, 157, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.payment-ai-agent-fab:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(3, 89, 157, 0.45);
+    background: linear-gradient(135deg, #024c87 0%, #012847 100%);
+}
+
+.payment-ai-agent-fab.fab-active {
+    background: linear-gradient(135deg, #f26b38 0%, #d84e1b 100%);
+    box-shadow: 0 8px 24px rgba(242, 107, 56, 0.4);
+}
+
+.fab-avatar-wrapper {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fab-robot-icon {
+    width: 22px;
+    height: 22px;
+    color: #ffffff;
+}
+
+.fab-status-dot {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border: 2px solid #03599d;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: aiAgentPulse 2s infinite;
+}
+
+@keyframes aiAgentPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 7px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+.fab-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* Cửa sổ tương tác của AI Agent */
+.payment-ai-agent-window {
+    position: absolute;
+    bottom: 68px;
+    right: 0;
+    width: 390px;
+    max-width: calc(100vw - 32px);
+    max-height: 580px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(3, 89, 157, 0.12);
+    border: 1px solid #cce3f8;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: aiWindowSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes aiWindowSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header cửa sổ */
+.agent-window-header {
+    background: linear-gradient(135deg, #03599d 0%, #023864 100%);
+    color: #ffffff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.agent-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.agent-header-avatar {
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.agent-header-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.agent-header-subtitle {
+    font-size: 11.5px;
+    color: #cfe3ff;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.agent-online-indicator {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background: #22c55e;
+    border-radius: 50%;
+}
+
+.agent-header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-agent-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #ffffff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-agent-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Thanh Tabs trong Agent */
+.agent-tabs-nav {
+    display: flex;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.agent-tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.agent-tab-btn:hover {
+    color: #03599d;
+    background: #f8fafc;
+}
+
+.agent-tab-btn.active {
+    color: #03599d;
+    font-weight: 700;
+    background: #ffffff;
+    border-bottom: 2px solid #03599d;
+}
+
+/* Nội dung Pane */
+.agent-tab-pane {
+    display: none;
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.agent-tab-pane.active {
+    display: block;
+}
+
+/* Thẻ ngân hàng ảo NCB */
+.virtual-card-chip-box {
+    background: linear-gradient(135deg, #0b3d6d 0%, #032342 100%);
+    border-radius: 12px;
+    padding: 16px 18px;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(11, 61, 109, 0.3);
+    margin-bottom: 14px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.virtual-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.vcard-brand {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #60a5fa;
+}
+
+.vcard-tag {
+    font-size: 9.5px;
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid #22c55e;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.virtual-card-chip {
+    width: 36px;
+    height: 26px;
+    background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+    border-radius: 5px;
+    margin-bottom: 12px;
+    position: relative;
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.4);
+}
+
+.vcard-chip-lines {
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(0,0,0,0.3);
+    border-radius: 3px;
+}
+
+.virtual-card-number {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.virtual-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 11px;
+}
+
+.vcard-label {
+    font-size: 9px;
+    color: #93c5fd;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.vcard-val {
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.vcard-val.vcard-otp {
+    color: #4ade80;
+    font-size: 12px;
+}
+
+/* Danh sách trường sao chép nhanh */
+.agent-quick-copy-list {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.copy-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 12.5px;
+}
+
+.copy-item-row:last-child {
+    border-bottom: none;
+}
+
+.copy-label {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.copy-value {
+    font-family: monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.btn-copy-chip {
+    background: #e0f2fe;
+    color: #03599d;
+    border: 1px solid #bae6fd;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-copy-chip:hover {
+    background: #03599d;
+    color: #ffffff;
+}
+
+.btn-copy-all-card {
+    width: 100%;
+    background: #03599d;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    box-shadow: 0 2px 6px rgba(3, 89, 157, 0.2);
+}
+
+.btn-copy-all-card:hover {
+    background: #024478;
+}
+
+/* Toast thông báo sao chép */
+.agent-copy-toast {
+    display: none;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    border-radius: 4px;
+    font-size: 11.5px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.agent-copy-toast.show {
+    display: block;
+    animation: fadeInToast 0.2s ease;
+}
+
+@keyframes fadeInToast {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab 2: Các bước hướng dẫn */
+.agent-guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.guide-step-item {
+    display: flex;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.guide-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #03599d;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.guide-step-text strong {
+    display: block;
+    font-size: 12.5px;
+    color: #03599d;
+    margin-bottom: 3px;
+}
+
+.guide-step-text p {
+    margin: 0;
+    font-size: 11.5px;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.guide-step-text code {
+    background: #e2e8f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 11.5px;
+    color: #d97706;
+}
+
+/* Tab 3: Hỏi đáp */
+.agent-faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.faq-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.faq-q {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.faq-a {
+    font-size: 11.5px;
+    color: #475569;
+    line-height: 1.45;
+}
+
+/* Footer Chips */
+.agent-footer-chips {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.chip-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.chip-btn:hover {
+    background: #03599d;
+    color: #ffffff;
+    border-color: #03599d;
+}
+
+@media (max-width: 600px) {
+    .payment-ai-agent-container {
+        bottom: 16px;
+        right: 16px;
+    }
+    .payment-ai-agent-window {
+        bottom: 60px;
+        width: calc(100vw - 32px);
+    }
+}
