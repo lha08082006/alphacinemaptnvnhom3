@@ -45,7 +45,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
 
     // Dọn dẹp CSDL test
     await knex('support_tickets').whereIn('order_id', testOrders).del();
-    await knex('webhook_events').whereIn('gateway_txn_id', testOrders).del();
+    await knex('webhook_events').whereIn('gateway_txn_id', [...testOrders, 'NON_EXISTENT_ORDER']).orWhere('event_id', 'like', '%NON_EXISTENT_ORDER%').del();
     await knex('tickets').whereIn('order_id', testOrders).del();
     await knex('showtime_seats').whereIn('order_id', testOrders).orWhereIn('seat_id', [1050, 1051, 1052]).del();
     await knex('payment_attempts').whereIn('order_id', testOrders).del();
@@ -132,13 +132,13 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
     });
     await knex('order_seats').insert({
       order_id: orderSepayLate,
-      seat_id: 1001,
+      seat_id: 1051,
       seat_type: 'STANDARD',
       price: 80000,
     });
     await knex('showtime_seats').insert({
       showtime_id: 1,
-      seat_id: 1001,
+      seat_id: 1051,
       state: 'HELD',
       order_id: orderSepayLate,
       held_until: futureExp,
@@ -179,13 +179,13 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
     });
     await knex('order_seats').insert({
       order_id: orderSepayFail,
-      seat_id: 1002,
+      seat_id: 1052,
       seat_type: 'STANDARD',
       price: 95000,
     });
     await knex('showtime_seats').insert({
       showtime_id: 1,
-      seat_id: 1002,
+      seat_id: 1052,
       state: 'HELD',
       order_id: orderSepayFail,
       held_until: futureExp,
@@ -222,7 +222,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
       await knex('support_tickets').whereIn('order_id', testOrders).del();
       await knex('webhook_events').whereIn('gateway_txn_id', testOrders).del();
       await knex('tickets').whereIn('order_id', testOrders).del();
-      await knex('showtime_seats').whereIn('order_id', testOrders).del();
+      await knex('showtime_seats').whereIn('order_id', testOrders).orWhereIn('seat_id', [1050, 1051, 1052]).del();
       await knex('payment_attempts').whereIn('order_id', testOrders).del();
       await knex('order_status_history').whereIn('order_id', testOrders).del();
       await knex('order_seats').whereIn('order_id', testOrders).del();
@@ -422,6 +422,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
     });
 
     it('should reject IPN when order is not found (Order not found)', async () => {
+      await knex('webhook_events').where({ gateway_txn_id: 'NON_EXISTENT_ORDER' }).del();
       const payload = {
         order_invoice_number: 'NON_EXISTENT_ORDER',
         order_amount: 90000,
@@ -558,7 +559,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
 
       // 5. Kiểm tra ghế đã chuyển sang SOLD
       const seat = await knex('showtime_seats')
-        .where({ order_id: orderSepaySuccess, seat_id: 1000 })
+        .where({ order_id: orderSepaySuccess, seat_id: 1050 })
         .first();
       expect(seat).toBeDefined();
       expect(seat.state).toBe('SOLD');
@@ -621,7 +622,7 @@ describe('SePay Gateway Integration (SDK, Payment Session & IPN)', () => {
 
       // Ghế chuyển sang SOLD
       const seat = await knex('showtime_seats')
-        .where({ order_id: orderSepayLate, seat_id: 1001 })
+        .where({ order_id: orderSepayLate, seat_id: 1051 })
         .first();
       expect(seat).toBeDefined();
       expect(seat.state).toBe('SOLD');
