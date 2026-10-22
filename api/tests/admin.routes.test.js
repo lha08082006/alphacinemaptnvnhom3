@@ -35,22 +35,22 @@ describe('Step 10C: Admin Reports, Refunds, Recon & Settings', () => {
     customerCookie = resCust.headers['set-cookie'];
 
     const resIt = await request(app)
-      .post('/api/v1/auth/login')
+      .post('/api/v1/admin/auth/login')
       .send({ email: 'it@betacinemas.vn', password: 'Password@123' });
     itCookie = resIt.headers['set-cookie'];
 
     const resAcct = await request(app)
-      .post('/api/v1/auth/login')
+      .post('/api/v1/admin/auth/login')
       .send({ email: 'ketoan@betacinemas.vn', password: 'Password@123' });
     accountantCookie = resAcct.headers['set-cookie'];
 
     const resCskh = await request(app)
-      .post('/api/v1/auth/login')
+      .post('/api/v1/admin/auth/login')
       .send({ email: 'cskh@betacinemas.vn', password: 'Password@123' });
     cskhCookie = resCskh.headers['set-cookie'];
 
     const resMgr = await request(app)
-      .post('/api/v1/auth/login')
+      .post('/api/v1/admin/auth/login')
       .send({ email: 'manager@betacinemas.vn', password: 'Password@123' });
     managerCookie = resMgr.headers['set-cookie'];
 

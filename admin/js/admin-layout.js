@@ -10,34 +10,63 @@
     };
 
     const ROLE_PERMISSIONS = {
-        MANAGER: ['index.html', 'reconcile.html', 'refunds.html', 'report.html', 'cskh.html'],
-        IT: ['index.html', 'reconcile.html'],
-        ACCOUNTANT: ['index.html', 'reconcile.html', 'refunds.html', 'report.html'],
-        CSKH: ['index.html', 'refunds.html', 'cskh.html'],
+        MANAGER: [
+            'index.html',
+            'content.html',
+            'operations.html',
+            'management.html',
+            'orders.html',
+            'reconcile.html',
+            'refunds.html',
+            'cskh.html',
+            'report.html',
+            'settings.html',
+            'audit-log.html',
+        ],
+        IT: [
+            'index.html',
+            'orders.html',
+            'reconcile.html',
+            'settings.html',
+            'audit-log.html',
+        ],
+        ACCOUNTANT: [
+            'index.html',
+            'orders.html',
+            'reconcile.html',
+            'refunds.html',
+            'report.html',
+        ],
+        CSKH: [
+            'index.html',
+            'orders.html',
+            'refunds.html',
+            'cskh.html',
+        ],
     };
 
     window.adminLogout = async function() {
         try {
             if (window.API && API.post) {
-                await API.post('/auth/logout');
+                await API.post('/admin/auth/logout');
             }
         } catch (e) {
             console.warn('Lỗi đăng xuất:', e);
         }
         localStorage.removeItem('currentUser');
-        window.location.href = '../login.html';
+        window.location.href = 'login.html';
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // Lưu tạm nội dung trang hiện tại
+        // Lưu tạm nội dung trang hiện tại trước khi can thiệp DOM
         const currentBodyHtml = document.body.innerHTML;
 
-        // Render bộ khung giao diện tạm thời
+        // Render bộ khung giao diện chờ trong khi xác thực
         document.body.innerHTML = `
             <style>
                 body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; display: flex; height: 100vh; overflow: hidden; }
                 .sidebar { width: 250px; background: #2c3e50; color: white; display: flex; flex-direction: column; }
-                .sidebar-logo { padding: 20px; font-size: 20px; font-weight: bold; text-align: center; border-bottom: 1px solid #1a252f; background: #03599d; }
+                .sidebar-logo { padding: 20px; font-size: 20px; font-weight: bold; text-align: center; border-bottom: 1px solid #1a252f; background: #03599d; letter-spacing: 1px; }
                 .sidebar-menu { flex: 1; padding: 10px 0; overflow-y: auto; }
                 .menu-item { padding: 15px 20px; display: block; color: #ecf0f1; text-decoration: none; border-left: 4px solid transparent; transition: 0.2s; cursor: pointer; font-size: 14px; }
                 .menu-item:hover { background: #34495e; }
@@ -78,12 +107,17 @@
             <div class="sidebar">
                 <div class="sidebar-logo">BETA CINEMAS</div>
                 <div class="sidebar-menu" id="admin-menu">
-                    <a href="index.html" class="menu-item" data-page="index.html">📊 Dashboard</a>
-                    <a href="reconcile.html" class="menu-item" data-page="reconcile.html">🔄 Động cơ Đối soát</a>
-                    <a href="refunds.html" class="menu-item" data-page="refunds.html">💸 Quản lý Hoàn tiền</a>
-                    <a href="report.html" class="menu-item" data-page="report.html">📈 Báo cáo Kế toán</a>
-                    <a href="cskh.html" class="menu-item" data-page="cskh.html">🎧 Ticket CSKH</a>
-                    <a href="../index.html" class="menu-item" style="margin-top: 40px; color: #8fa3b7;">⬅ Về trang Khách hàng</a>
+                    <a href="index.html" class="menu-item" data-page="index.html">📊 Tổng quan</a>
+                    <a href="content.html" class="menu-item" data-page="content.html">🎬 Nội dung</a>
+                    <a href="operations.html" class="menu-item" data-page="operations.html">🏢 Vận hành rạp</a>
+                    <a href="management.html" class="menu-item" data-page="management.html">👥 Quản trị</a>
+                    <a href="orders.html" class="menu-item" data-page="orders.html">🎟️ Đơn hàng</a>
+                    <a href="reconcile.html" class="menu-item" data-page="reconcile.html">🔄 Thanh toán / Đối soát</a>
+                    <a href="refunds.html" class="menu-item" data-page="refunds.html">💸 Hoàn tiền</a>
+                    <a href="cskh.html" class="menu-item" data-page="cskh.html">🎧 CSKH</a>
+                    <a href="report.html" class="menu-item" data-page="report.html">📈 Báo cáo</a>
+                    <a href="settings.html" class="menu-item" data-page="settings.html">⚙️ Hệ thống</a>
+                    <a href="audit-log.html" class="menu-item" data-page="audit-log.html">📋 Nhật ký</a>
                 </div>
             </div>
             
@@ -94,40 +128,48 @@
                         <span style="margin-left: 15px; font-size: 13px; color: #666;">Chế độ hệ thống: <strong id="sys-mode" style="color: #28a745;">TO-BE</strong></span>
                     </div>
                     <div class="user-badge" id="admin-user-info">
-                        <span style="font-size: 13px; color: #777;">Đang xác thực tài khoản...</span>
+                        <span style="font-size: 13px; color: #777;">Đang xác thực tài khoản nhân viên...</span>
                     </div>
                 </div>
                 
                 <div class="content-body" id="app-content">
                     <div style="padding: 40px; text-align: center; color: #777;">
-                        Đang tải dữ liệu trang quản trị...
+                        Đang xác thực phiên làm việc nội bộ...
                     </div>
                 </div>
             </div>
         `;
 
-        // 1. Xác thực người dùng qua API GET /auth/me
+        // 1. Xác thực người dùng qua API GET /admin/auth/me TRƯỚC KHI RENDER
+        // Hoàn toàn không tin tưởng vào localStorage
         try {
             if (typeof API === 'undefined' || !API.get) {
                 throw new Error('API client không khả dụng');
             }
 
-            const meRes = await API.get('/auth/me');
+            const meRes = await API.get('/admin/auth/me');
             const user = meRes && meRes.user ? meRes.user : null;
 
-            if (!user || user.role === 'CUSTOMER') {
-                window.location.href = '../login.html';
+            if (!user || user.role === 'CUSTOMER' || !ROLE_PERMISSIONS[user.role]) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Nếu nhân viên có cờ must_change_password -> chuyển sang trang đổi mật khẩu
+            const currentPath = location.pathname.split('/').pop() || 'index.html';
+            if (user.must_change_password && currentPath !== 'change-password.html') {
+                window.location.href = 'change-password.html';
                 return;
             }
 
             window.adminUser = user;
 
-            // Hiển thị thông tin người dùng ở Header (đã bỏ dropdown góc nhìn)
+            // Hiển thị thông tin người dùng ở Header
             const userInfoEl = document.getElementById('admin-user-info');
             if (userInfoEl) {
                 userInfoEl.innerHTML = `
                     <span style="font-size: 13.5px; color: #444;">
-                        Xin chào: <strong style="color: #03599d;">${user.fullName || user.email}</strong>
+                        Xin chào: <strong style="color: #03599d;">${user.full_name || user.email}</strong>
                     </span>
                     <span class="badge primary">${ROLE_LABELS[user.role] || user.role}</span>
                     <button class="btn btn-danger" onclick="adminLogout()" style="padding: 5px 10px; font-size: 12px; margin-left: 8px;">
@@ -137,12 +179,11 @@
             }
 
             // 2. Lọc menu bên trái theo vai trò của người dùng
-            const currentPath = location.pathname.split('/').pop() || 'index.html';
             const allowedPages = ROLE_PERMISSIONS[user.role] || ['index.html'];
 
             document.querySelectorAll('#admin-menu .menu-item').forEach(item => {
                 const page = item.getAttribute('data-page');
-                if (!page) return; // Nút Về trang Khách hàng
+                if (!page) return;
 
                 if (allowedPages.includes(page)) {
                     item.style.display = 'block';
@@ -175,18 +216,18 @@
                 return;
             }
 
-            // 4. Nếu có quyền, gắn lại nội dung gốc của trang vào #app-content và kích hoạt logic của trang
+            // 4. Nếu hợp lệ, gắn lại nội dung gốc của trang vào #app-content và phát sự kiện adminReady
             const appContent = document.getElementById('app-content');
             if (appContent) {
                 appContent.innerHTML = currentBodyHtml;
             }
 
-            // Kích hoạt sự kiện để trang con bắt đầu render dữ liệu
+            // Kích hoạt sự kiện để các trang con gọi API lấy dữ liệu
             window.dispatchEvent(new CustomEvent('adminReady', { detail: { user } }));
 
         } catch (err) {
-            console.error('Lỗi xác thực quản trị:', err);
-            window.location.href = '../login.html';
+            console.error('Lỗi xác thực quản trị (401 hoặc lỗi phiên):', err);
+            window.location.href = 'login.html';
         }
     });
 })();

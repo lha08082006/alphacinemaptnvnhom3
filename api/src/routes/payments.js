@@ -9,7 +9,7 @@ const { validate } = require('../middleware/validate');
 const { IDEMPOTENCY } = require('../config/constants');
 const { AppError } = require('../lib/errors');
 const { asyncHandler, sendOk } = require('../lib/http');
-const { verifyQuery } = require('../lib/vnpay');
+const { verifyQuery, queryTransaction, refund, buildPaymentUrl, sortObject } = require('../lib/vnpay');
 const logger = require('../lib/logger');
 const paymentService = require('../services/paymentService');
 
@@ -17,10 +17,18 @@ const router = express.Router();
 
 const createPaymentSchema = z.object({
   orderId: z.string().min(1, 'Mã đơn hàng không được để trống'),
-  method: z.enum(['WALLET', 'ATM', 'INTL_CARD'], {
-    errorMap: () => ({ message: 'Phương thức thanh toán phải là WALLET, ATM hoặc INTL_CARD' }),
+  method: z.enum(['QR', 'ATM', 'INTL_CARD', 'WALLET'], {
+    errorMap: () => ({ message: 'Phương thức thanh toán phải là QR, ATM hoặc INTL_CARD' }),
   }),
   bankCode: z.string().optional(),
+  termsAccepted: z
+    .boolean()
+    .optional()
+    .default(true)
+    .refine((v) => v === true, {
+      message: 'Bắt buộc đồng ý với điều khoản thanh toán để tiếp tục',
+    }),
+  termsVersion: z.string().optional(),
 });
 
 /**
@@ -42,7 +50,7 @@ router.post(
       );
     }
 
-    const { orderId, method, bankCode } = req.valid.body;
+    const { orderId, method, bankCode, termsVersion } = req.valid.body;
     const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
 
     const result = await paymentService.createPayment({
@@ -50,6 +58,7 @@ router.post(
       orderId,
       method,
       bankCode,
+      termsVersion,
       idempotencyKey,
       ip,
     });
@@ -59,11 +68,11 @@ router.post(
 );
 
 /**
- * GET /payments/vnpay/ipn
+ * GET /payments/vnpay/ipn & GET /payments/vnpay_ipn
  * Cổng thanh toán VNPay gọi webhook IPN (server-to-server).
  * Phản hồi chuẩn JSON { RspCode, Message }, KHÔNG dùng sendOk.
  */
-router.get('/vnpay/ipn', async (req, res) => {
+router.get(['/vnpay/ipn', '/vnpay_ipn'], async (req, res) => {
   try {
     // 1. Kiểm tra chữ ký
     const isValid = verifyQuery(req.query);
@@ -99,12 +108,12 @@ router.get('/vnpay/ipn', async (req, res) => {
 });
 
 /**
- * GET /payments/vnpay/return
+ * GET /payments/vnpay/return & GET /payments/vnpay_return
  * Khách hàng được chuyển hướng về sau khi thanh toán trên VNPay.
  * Kiểm tra chữ ký, nếu VNPAY_TRUST_RETURN='true' mới gọi applyGatewayResult,
  * sau đó redirect về result.html?orderId=...
  */
-router.get('/vnpay/return', async (req, res) => {
+router.get(['/vnpay/return', '/vnpay_return'], async (req, res) => {
   try {
     const isValid = verifyQuery(req.query);
     const txnRef = req.query.vnp_TxnRef;
@@ -142,6 +151,81 @@ router.get('/vnpay/return', async (req, res) => {
   } catch (err) {
     logger.error('vnpay_return_error', { cause: err && err.message });
     return res.redirect('/result.html?error=internal');
+  }
+});
+
+/**
+ * POST /payments/vnpay/create_payment_url
+ * Tương thích với route create_payment_url từ mẫu vnpay_nodejs.
+ */
+router.post('/vnpay/create_payment_url', async (req, res) => {
+  try {
+    const { amount, bankCode, orderId, orderDescription, language } = req.body;
+    const ipAddr = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const txnRef = orderId || String(Date.now());
+    const amountVnd = Number(amount) || 10000;
+    const orderInfo = orderDescription || `Thanh toan cho ma GD: ${txnRef}`;
+
+    const paymentUrl = buildPaymentUrl({
+      txnRef,
+      amountVnd,
+      orderInfo,
+      ipAddr,
+      method: bankCode,
+    });
+
+    return res.status(200).json({ ok: true, paymentUrl, url: paymentUrl });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+/**
+ * POST /payments/vnpay/querydr
+ * Tương thích với route querydr từ mẫu vnpay_nodejs & Tài liệu VNPAY v2.1.0 (mục 2.5.4).
+ */
+router.post('/vnpay/querydr', async (req, res) => {
+  try {
+    const { orderId, transDate, requestId, orderInfo } = req.body;
+    const ipAddr = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    const result = await queryTransaction({
+      requestId,
+      txnRef: orderId,
+      transDate,
+      orderInfo,
+      ipAddr,
+    });
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+/**
+ * POST /payments/vnpay/refund
+ * Tương thích với route refund từ mẫu vnpay_nodejs & Tài liệu VNPAY v2.1.0 (mục 2.5.5).
+ */
+router.post('/vnpay/refund', async (req, res) => {
+  try {
+    const { orderId, transDate, amount, transType, user, orderInfo, transactionNo } = req.body;
+    const ipAddr = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+
+    const result = await refund({
+      txnRef: orderId,
+      amountVnd: Number(amount),
+      transDate,
+      transactionType: transType || '02',
+      transactionNo,
+      createBy: user || 'SYSTEM',
+      orderInfo,
+      ipAddr,
+    });
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
   }
 });
 

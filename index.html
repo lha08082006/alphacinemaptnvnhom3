@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/trailer.css">
     <link rel="stylesheet" href="css/showtimes-modal.css">
     <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="css/auth-modal.css">
 
     <style>
         /* =================================================== */
@@ -38,23 +39,7 @@
         }
 
         /* Thanh Chuyển Nhanh Toàn Diện 24 Trang */
-        #spa-quick-bar {
-            background: #0f172a;
-            color: #94a3b8;
-            padding: 8px 16px;
-            font-size: 12px;
-            font-family: 'Be Vietnam Pro', sans-serif;
-            position: sticky;
-            top: 0;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #03599d;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            overflow-x: auto;
-            white-space: nowrap;
-        }
+        #spa-quick-bar { display: none !important; }
         #spa-quick-bar::-webkit-scrollbar {
             height: 4px;
         }
@@ -1694,57 +1679,24 @@ body {
 </head>
 <body>
 
-    <!-- 1. THANH ĐIỀU HƯỚNG NHANH CÁC MÀN HÌNH DEMO -->
-    <div id="spa-quick-bar">
-        <div class="spa-quick-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-            24 TRANG ALL-IN-ONE:
-        </div>
-<button class="spa-quick-btn" onclick="window.spaNavigate('home')">Trang Chủ</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('schedule')">Lịch Chiếu Theo Rạp</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('cinema')">Hệ Thống Cụm Rạp</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('movie')">Chi Tiết Phim</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('gia-ve')">Bảng Giá Vé Chuẩn</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('price')">Chi Tiết Giá Vé & Suất Chiếu</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('booking')">Đặt Vé & Chọn Ghế</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('seats')">Sơ Đồ Chọn Ghế 2</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('checkout')">Thanh Toán & Chọn Combo</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('gateway')">Cổng VietQR Giả Lập</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('result')">Kết Quả Giao Dịch</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('ticket')">Vé Xem Phim (E-Ticket)</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('login')">Đăng Nhập / Đăng Ký Thành Viên</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('my-orders')">Lịch Sử Đơn Hàng</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('order')">Chi Tiết & Tra Cứu Đơn</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('inbox')">Hộp Thư Thông Báo</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('support')">Trung Tâm Trợ Giúp & FAQ</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('promo-t3')">Ưu Đãi Thứ 3 Vui Vẻ</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('promo-hssv')">Ưu Đãi Học Sinh Sinh Viên</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('promo-combo')">Ưu Đãi Combo</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('admin')">Quản Trị Hệ Thống</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('admin-reconcile')">Admin Đối Soát Giao Dịch</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('admin-refunds')">Admin Quản Lý Hoàn Tiền</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('admin-cskh')">Admin Hỗ Trợ Khách Hàng</button>
-<button class="spa-quick-btn" onclick="window.spaNavigate('admin-report')">Admin Báo Cáo Doanh Thu</button>
-
-    </div>
-
     <!-- 2. TOP BAR CHUẨN BETA CINEMAS -->
     <div id="top-bar">
         <div class="container-fluid" style="display:flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 13px;">
-            <span id="nav-user-guest" style="display:none;">
-                <a href="#login" onclick="window.spaNavigate('login')">Đăng nhập</a> <span style="margin:0 10px;">|</span>
-                <a href="#login" onclick="window.spaNavigate('login')">Đăng ký</a>
+            <span id="nav-user-guest">
+                <a href="javascript:void(0)" onclick="window.openAuthModal('login')">Đăng nhập</a> <span style="margin:0 10px;">|</span>
+                <a href="javascript:void(0)" onclick="window.openAuthModal('register')">Đăng ký</a>
             </span>
             
-            <span id="nav-user-info" style="display:inline-flex; align-items: center; gap: 8px;">
-                Xin chào: <span id="nav-username" style="color: white; font-weight: normal;">— luonghonganh</span> <span style="font-size: 10px; margin-left: -4px;">▾</span>
+            <span id="nav-user-info" style="display:none; align-items: center; gap: 8px;">
+                Xin chào: <span id="nav-username" style="color: white; font-weight: 600;">—</span> <span style="font-size: 10px; margin-left: -4px;">▾</span>
                 <a href="#my-orders" onclick="window.spaNavigate('my-orders')" style="color: #ffd166; margin-left: 10px; text-decoration: none; font-weight: 500;">📦 Đơn hàng</a>
                 <a href="#inbox" onclick="window.spaNavigate('inbox')" style="color: #ffd166; margin-left: 10px; text-decoration: none; font-weight: 500;">🔔 Thông báo</a>
-                <a href="#admin" onclick="window.spaNavigate('admin')" style="color: #38bdf8; margin-left: 10px; text-decoration: none; font-weight: bold; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 4px;">⚙️ Quản trị Admin</a>
+                <a href="javascript:void(0)" onclick="window.logout(event)" style="color: #ff9800; margin-left: 12px; text-decoration: none; font-weight: 600;">[Đăng xuất]</a>
             </span>
             
             <span class="flag-icon" title="English" style="width: 22px; height: 14px; display: inline-block; background: url('https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg') no-repeat center/cover; cursor: pointer;"></span>
         </div>
+    </div>
     </div>
 
     <!-- 3. MAIN HEADER -->
@@ -1775,6 +1727,16 @@ body {
                     <li><a href="#cinema" onclick="window.spaNavigate('cinema')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">RẠP</a></li>
                     <li><a href="#gia-ve" onclick="window.spaNavigate('gia-ve')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">GIÁ VÉ</a></li>
                     <li><a href="#promo-combo" onclick="window.spaNavigate('promo-combo')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy);">TIN MỚI VÀ ƯU ĐÃI</a></li>
+                    <li class="nav-dropdown" style="position: relative;" onmouseenter="const m=this.querySelector('.dropdown-menu-support'); if(m) m.style.display='block';" onmouseleave="const m=this.querySelector('.dropdown-menu-support'); if(m) m.style.display='none';">
+                        <a href="support.html" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-navy); display: flex; align-items: center; gap: 4px;">
+                            HỖ TRỢ <span style="font-size: 10px;">▾</span>
+                        </a>
+                        <ul class="dropdown-menu-support" style="display: none; position: absolute; top: 100%; left: 0; min-width: 250px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.12); border-radius: 6px; list-style: none; margin: 0; padding: 6px 0; z-index: 1001; border-top: 3px solid #03599d;">
+                            <li><a href="support.html" style="display: block; padding: 8px 16px; font-size: 13.5px; color: #333; text-decoration: none; font-weight: 600;">Khiếu nại thanh toán</a></li>
+                            <li><a href="support-tracking.html" style="display: block; padding: 8px 16px; font-size: 13.5px; color: #333; text-decoration: none; font-weight: 600;">Theo dõi khiếu nại</a></li>
+                            <li><a href="faq.html" style="display: block; padding: 8px 16px; font-size: 13.5px; color: #333; text-decoration: none; font-weight: 600;">Câu hỏi thường gặp về thanh toán</a></li>
+                        </ul>
+                    </li>
                     <li><a href="#booking" onclick="window.spaNavigate('booking')" class="spa-nav-link" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: #ff5722; background: #fff3e0; padding: 6px 14px; border-radius: 20px;">🎟️ ĐẶT VÉ NGAY</a></li>
                 </ul>
             </nav>
@@ -2168,7 +2130,7 @@ body {
                 </div>
                 <div class="bk-countdown">
                     <div class="bk-label">Thời gian còn lại</div>
-                    <div class="bk-val" id="bk-countdown-val">10:00</div>
+                    <div class="bk-val" id="bk-countdown-val">--:--</div>
                 </div>
             </div>
         </div>
@@ -2554,7 +2516,7 @@ body {
                     </div>
                     <div class="timer-column">
                         <div class="timer-heading">Thời gian còn lại</div>
-                        <div class="timer-display hold-timer" id="countdown-timer">10:00</div>
+                        <div class="timer-display hold-timer" id="countdown-timer">--:--</div>
                     </div>
                 </div>
             </div>
@@ -2621,7 +2583,7 @@ body {
                 </div>
                 
                 <div class="sidebar-buttons">
-                    <button class="btn-sidebar-back" onclick="location.href="#seats" data-view="seats"">QUAY LẠI</button>
+                    <button type="button" class="btn-sidebar-back" onclick="window.spaNavigate('booking')">QUAY LẠI</button>
                     <button class="btn-sidebar-next" onclick="openTncModal()">TIẾP TỤC</button>
                 </div>
             </div>
@@ -2736,10 +2698,10 @@ body {
                 </div>
             </div>
 
-            <!-- Đếm ngược 10 phút & Nút Hủy bên ngoài thẻ (Ảnh 5) -->
+            <!-- Đếm ngược giữ ghế & Nút Hủy bên ngoài thẻ (Ảnh 5) -->
             <div class="timer-section-outer">
                 <div class="timer-label">Thời gian còn lại</div>
-                <div class="timer-value hold-timer" id="gw-timer">10:00</div>
+                <div class="timer-value hold-timer" id="gw-timer">--:--</div>
             </div>
 
             <button class="btn-cancel-trans" onclick="cancelTransaction()">HỦY GIAO DỊCH</button>
@@ -3588,6 +3550,7 @@ body {
     <script src="js/beta-core.js"></script>
     <script src="js/api.js"></script>
     <script src="js/checkout.js"></script>
+    <script src="js/gateway.js"></script>
 
     <!-- Admin scripts -->
     <script src="js/admin-index.js"></script>
@@ -3672,12 +3635,51 @@ body {
             else if (viewId === 'ticket') {
                 initTicketView(params);
             }
+            else if (viewId === 'my-orders') {
+                initMyOrdersView();
+            }
             else if (viewId === 'schedule') {
                 initScheduleView(params);
             }
             else if (viewId.startsWith('admin')) {
                 // Khởi tạo bảng admin tương ứng
                 if (typeof initAdminDashboard === 'function') initAdminDashboard();
+            }
+        }
+
+        
+        async function initMyOrdersView() {
+            const tbody = document.getElementById('history-table');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">Đang tải lịch sử giao dịch...</td></tr>';
+            try {
+                const orders = (window.API && API.get) ? await API.get('/orders') : [];
+                if (!orders || orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">Bạn chưa có giao dịch đặt vé nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = orders.map((o) => {
+                    const createdDate = new Date(o.createdAt).toLocaleString('vi-VN');
+                    let claimBadge = '';
+                    if (o.remainingClaimMinutes > 0) {
+                        claimBadge = '<span style="background: #dbeafe; color: #1e40af; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 700;">⏰ Còn ' + o.remainingClaimMinutes + 'p</span>';
+                    } else {
+                        claimBadge = '<span style="background: #f1f5f9; color: #94a3b8; font-size: 11px; padding: 2px 8px; border-radius: 10px;">Hết hạn 60p</span>';
+                    }
+                    return '<tr>' +
+                        '<td><strong>' + o.orderId + '</strong></td>' +
+                        '<td>' + createdDate + '</td>' +
+                        '<td>Suất chiếu #' + (o.showtimeId || 1) + '</td>' +
+                        '<td><strong>' + Number(o.amountTotal).toLocaleString('vi-VN') + ' ₫</strong></td>' +
+                        '<td><span class="badge badge-primary">' + o.status + '</span><br>' + claimBadge + '</td>' +
+                        '<td>' +
+                            '<a href="result.html?orderId=' + encodeURIComponent(o.orderId) + '" class="btn btn-sm btn-primary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px; text-decoration: none;">Chi tiết vé</a>' +
+                            '<a href="support.html?orderId=' + encodeURIComponent(o.orderId) + '&action=report" class="btn btn-sm btn-outline-warning" style="padding: 4px 10px; font-size: 12px; color: #c2410c; border: 1px solid #fed7aa; text-decoration: none; font-weight: 700;">⚠️ Báo lỗi</a>' +
+                        '</td>' +
+                    '</tr>';
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #dc3545;">' + (err.message || 'Lỗi khi tải lịch sử đơn hàng.') + '</td></tr>';
             }
         }
 
@@ -3724,30 +3726,143 @@ body {
                 return;
             }
 
-            if (typeof DB !== 'undefined') {
+            function updateResultUI() {
+                if (typeof DB === 'undefined') return false;
                 const order = DB.get('beta_orders', orderId);
-                if (order && order.status === 'PAID') {
+                if (!order) return false;
+
+                if (order.status === 'PAID') {
                     content.innerHTML = `
-                        <div class="icon-large icon-success" style="font-size: 48px; color: #4CAF50;">✔️</div>
-                        <h2 style="color: #4CAF50;">THANH TOÁN THÀNH CÔNG</h2>
-                        <p style="margin: 20px 0; font-size: 16px;">Đơn hàng <strong>${orderId}</strong> của bạn đã được thanh toán và xuất vé.</p>
-                        <button class="btn btn-primary" onclick="window.spaNavigate('ticket', 'orderId=${orderId}')">XEM VÉ ĐIỆN TỬ</button>
+                        <div class="icon-large icon-success" style="font-size: 54px; color: #4CAF50; margin-bottom: 15px;">✔️</div>
+                        <h2 style="color: #4CAF50; font-family:'Montserrat', sans-serif; font-size: 24px; margin-bottom: 10px;">THANH TOÁN THÀNH CÔNG</h2>
+                        <p style="margin: 15px 0 25px; font-size: 15px; color: #444;">Đơn hàng <strong>${orderId}</strong> của bạn đã được thanh toán và xuất vé thành công.</p>
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button class="btn btn-primary" style="background:#005198; padding: 12px 28px; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="window.spaNavigate('ticket', 'orderId=${orderId}')">XEM VÉ ĐIỆN TỬ</button>
+                            <button class="btn btn-outline" style="border: 1px solid #005198; color: #005198; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="window.spaNavigate('home')">VỀ TRANG CHỦ</button>
+                        </div>
                     `;
+                    return true;
+                } else if (order.status === 'FAILED') {
+                    content.innerHTML = `
+                        <div class="icon-large icon-error" style="font-size: 54px; color: #e53935; margin-bottom: 15px;">❌</div>
+                        <h2 style="color: #e53935; font-family:'Montserrat', sans-serif; font-size: 24px; margin-bottom: 10px;">GIAO DỊCH THẤT BẠI</h2>
+                        <p style="margin: 15px 0 25px; font-size: 15px; color: #444;">Thanh toán không thành công hoặc giao dịch đã bị từ chối.</p>
+                        <button class="btn btn-primary" style="background:#f37720; border-radius: 8px; padding: 12px 28px; font-weight: bold; cursor: pointer;" onclick="window.spaNavigate('home')">ĐẶT VÉ LẠI</button>
+                    `;
+                    return true;
+                } else if (order.status === 'CANCELLED') {
+                    content.innerHTML = `
+                        <div class="icon-large" style="font-size: 54px; color: #78909c; margin-bottom: 15px;">🚫</div>
+                        <h2 style="color: #64748b; font-family:'Montserrat', sans-serif; font-size: 24px; margin-bottom: 10px;">ĐÃ HỦY GIAO DỊCH</h2>
+                        <p style="margin: 15px 0 25px; font-size: 15px; color: #444;">Bạn đã hủy giao dịch thanh toán vé xem phim.</p>
+                        <button class="btn btn-primary" style="background:#005198; border-radius: 8px; padding: 12px 28px; font-weight: bold; cursor: pointer;" onclick="window.spaNavigate('home')">VỀ TRANG CHỦ</button>
+                    `;
+                    return true;
                 }
+                return false;
+            }
+
+            if (!updateResultUI()) {
+                let attempts = 0;
+                const pollInterval = setInterval(() => {
+                    attempts++;
+                    if (updateResultUI() || attempts > 6) {
+                        clearInterval(pollInterval);
+                    }
+                }, 800);
             }
         }
 
         // Khởi tạo trang Vé điện tử Ticket trong SPA
         function initTicketView(params) {
             const orderId = params.get('orderId') || localStorage.getItem('currentOrder');
-            const qrBox = document.getElementById('qrcode');
-            if (qrBox && typeof QRCode !== 'undefined') {
-                qrBox.innerHTML = '';
-                new QRCode(qrBox, {
-                    text: orderId || 'BETA-CINEMA-TICKET-2026',
+            const container = document.getElementById('ticket-container');
+            if (!container) return;
+
+            if (!orderId) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 60px 20px;">
+                        <h2 style="color:#d32f2f; font-family:'Montserrat', sans-serif;">Không tìm thấy thông tin vé!</h2>
+                        <p style="margin: 15px 0 25px;">Vui lòng đặt vé từ trang chủ.</p>
+                        <button class="btn btn-primary" style="background:#005198; border-radius:8px; padding:10px 24px;" onclick="window.spaNavigate('home')">VỀ TRANG CHỦ</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const order = (typeof DB !== 'undefined') ? DB.get('beta_orders', orderId) : null;
+            let movie = null;
+            if (typeof DemoData !== 'undefined' && DemoData.movies) {
+                movie = DemoData.movies.find(x => x.id === (order?.movieId || 'm1')) || DemoData.movies[0];
+            }
+            const movieTitle = movie ? movie.title : (order?.movieTitle || 'Avengers: Hồi Kết');
+            const cinemaName = localStorage.getItem('selectedBookingCinema') || 'Beta Cinemas Thanh Xuân';
+            const showDate = localStorage.getItem('selectedBookingDate') || '22/10/2026';
+            const showTime = localStorage.getItem('selectedBookingTime') || '18:30';
+            const seatText = (order?.seats && order.seats.length > 0) ? order.seats.join(', ') : (localStorage.getItem('tempSelectedSeats') ? JSON.parse(localStorage.getItem('tempSelectedSeats')).map(s=>s.label).join(', ') : 'G1, G2');
+            
+            let comboText = 'Không có';
+            if (order?.combos && order.combos.length > 0) {
+                comboText = order.combos.map(c => `${c.qty}x ${c.name}`).join(', ');
+            }
+
+            const ticketCode = (order && order.ticketId) ? order.ticketId : ('TK' + Math.random().toString(36).substring(2, 10).toUpperCase());
+            const totalAmount = (order && order.amount) ? order.amount : 136000;
+
+            container.innerHTML = `
+                <div class="ticket-wrapper" style="max-width: 500px; margin: 40px auto 70px; background: white; border-radius: 14px; box-shadow: 0 10px 35px rgba(0,0,0,0.12); overflow: hidden; position: relative;">
+                    <div class="ticket-header" style="background: #005198; color: white; padding: 24px 20px; text-align: center;">
+                        <h2 style="margin:0; font-family:'Montserrat', sans-serif; font-size:22px; font-weight:800; letter-spacing:1px;">VÉ XEM PHIM ĐIỆN TỬ</h2>
+                        <p style="margin:6px 0 0 0; opacity:0.9; font-size:13px; font-weight:600;">BETA CINEMAS</p>
+                    </div>
+                    <div class="ticket-body" style="padding: 25px 30px; border-bottom: 2px dashed #ddd; position: relative; background: #fff;">
+                        <h3 style="color: #005198; text-align: center; margin: 0 0 20px; font-size: 20px; font-family:'Montserrat', sans-serif; font-weight:800;">${movieTitle}</h3>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                            <span style="color:#666;">Rạp chiếu:</span>
+                            <strong style="color:#222;">${cinemaName}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                            <span style="color:#666;">Suất chiếu:</span>
+                            <strong style="color:#222;">${showTime} - ${showDate}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                            <span style="color:#666;">Phòng chiếu:</span>
+                            <strong style="color:#222;">Phòng 02 (2D Phụ đề)</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                            <span style="color:#666;">Ghế ngồi:</span>
+                            <strong style="color:#f37720; font-size:16px;">${seatText}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+                            <span style="color:#666;">Combo bắp nước:</span>
+                            <strong style="color:#222; text-align:right; max-width:60%;">${comboText}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+                            <span style="color:#666;">Tổng thanh toán:</span>
+                            <strong style="color:#005198; font-size: 17px;">${Number(totalAmount).toLocaleString('vi-VN')} vnđ</strong>
+                        </div>
+                    </div>
+                    <div style="padding: 25px 30px; text-align: center; background: #fafafa;">
+                        <p style="margin:0 0 15px; font-size:12.5px; color:#777;">Trình mã QR này cho nhân viên soát vé tại rạp</p>
+                        <div id="qrcode" style="display: flex; justify-content: center; margin: 15px 0;"></div>
+                        <div style="font-family:'Montserrat', monospace; font-size: 19px; font-weight:800; letter-spacing: 3px; color:#222; margin-top:10px;">${ticketCode}</div>
+                        
+                        <div style="display:flex; gap:10px; margin-top:22px;">
+                            <button class="btn btn-outline" style="flex:1; border:1px solid #005198; color:#005198; padding:11px; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="window.print()">🖨️ IN VÉ</button>
+                            <button class="btn btn-primary" style="flex:1; background:#005198; color:white; padding:11px; border-radius:8px; font-weight:bold; border:none; cursor:pointer;" onclick="window.spaNavigate('home')">VỀ TRANG CHỦ</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const qrEl = document.getElementById('qrcode');
+            if (qrEl && typeof QRCode !== 'undefined') {
+                new QRCode(qrEl, {
+                    text: ticketCode,
                     width: 140,
                     height: 140,
-                    colorDark : "#03599d",
+                    colorDark : "#005198",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
                 });
@@ -3797,5 +3912,156 @@ body {
             onHashChange();
         });
     </script>
+
+    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ CHUẨN BETA CINEMAS -->
+    <div id="auth-modal" class="auth-modal-backdrop">
+        <div class="auth-modal-box">
+            <button type="button" class="auth-modal-close" onclick="window.closeAuthModal()" title="Đóng">&times;</button>
+            
+            <!-- Tabs Chuyển đổi -->
+            <div class="auth-tabs-header">
+                <div id="auth-tab-btn-login" class="auth-tab-btn active" onclick="window.switchAuthTab('login')">
+                    ĐĂNG NHẬP
+                </div>
+                <div id="auth-tab-btn-register" class="auth-tab-btn" onclick="window.switchAuthTab('register')">
+                    ĐĂNG KÝ
+                </div>
+            </div>
+
+            <div class="auth-modal-body">
+                <!-- Panel 1: Đăng nhập -->
+                <div id="auth-panel-login" class="auth-form-panel active">
+                    <form id="auth-login-form">
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input type="text" id="auth-login-email" class="auth-input" placeholder="Email hoặc Số điện thoại" required value="khachhang@gmail.com">
+                        </div>
+
+                        <div class="auth-input-group">
+                            <span class="auth-input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input type="password" id="auth-login-password" class="auth-input" placeholder="Mật khẩu" required value="Password@123">
+                        </div>
+
+                        <a href="javascript:void(0)" class="auth-forgot-link" onclick="alert('Vui lòng liên hệ hotline 1800 646 420 hoặc nhân viên rạp để được hỗ trợ cấp lại mật khẩu.')">Quên mật khẩu?</a>
+
+                        <!-- Captcha Đăng nhập -->
+                        <div class="auth-captcha-row">
+                            <div class="auth-captcha-box">
+                                <canvas id="auth-login-captcha-canvas" class="auth-captcha-canvas" width="120" height="40" title="Nhấn để đổi mã captcha"></canvas>
+                                <button type="button" id="auth-login-captcha-refresh" class="auth-captcha-refresh" title="Làm mới mã xác thực">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="text" id="auth-login-captcha-input" class="auth-captcha-input" placeholder="Mã xác thực" required maxlength="6" autocomplete="off">
+                        </div>
+
+                        <div id="auth-login-error" class="auth-msg-box error"></div>
+
+                        <button type="submit" id="auth-login-submit-btn" class="btn-auth-primary">
+                            ĐĂNG NHẬP BẰNG TÀI KHOẢN
+                        </button>
+
+                        <button type="button" class="btn-auth-facebook" onclick="window.demoSocialLogin('Facebook')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            TIẾP TỤC VỚI FACEBOOK
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Panel 2: Đăng ký -->
+                <div id="auth-panel-register" class="auth-form-panel">
+                    <form id="auth-register-form">
+                        <div class="auth-grid-2">
+                            <div class="auth-field">
+                                <label>Họ và tên *</label>
+                                <input type="text" id="auth-reg-name" required placeholder="Nguyễn Văn A">
+                            </div>
+                            <div class="auth-field">
+                                <label>Email *</label>
+                                <input type="email" id="auth-reg-email" required placeholder="example@email.com">
+                            </div>
+                            <div class="auth-field">
+                                <label>Mật khẩu *</label>
+                                <input type="password" id="auth-reg-password" required placeholder="Ít nhất 6 ký tự">
+                            </div>
+                            <div class="auth-field">
+                                <label>Xác nhận mật khẩu *</label>
+                                <input type="password" id="auth-reg-confirm-password" required placeholder="Nhập lại mật khẩu">
+                            </div>
+                            <div class="auth-field">
+                                <label>Ngày sinh *</label>
+                                <input type="date" id="auth-reg-dob" required value="2000-01-01">
+                            </div>
+                            <div class="auth-field">
+                                <label>Giới tính *</label>
+                                <select id="auth-reg-gender" required>
+                                    <option value="MALE">Nam</option>
+                                    <option value="FEMALE">Nữ</option>
+                                    <option value="OTHER">Khác</option>
+                                </select>
+                            </div>
+                            <div class="auth-field" style="grid-column: span 2;">
+                                <label>Số điện thoại *</label>
+                                <input type="tel" id="auth-reg-phone" required placeholder="0912 345 678" pattern="[0-9]{10,11}">
+                            </div>
+                        </div>
+
+                        <!-- Captcha Đăng ký -->
+                        <div class="auth-captcha-row" style="margin-top: 6px;">
+                            <div class="auth-captcha-box">
+                                <canvas id="auth-register-captcha-canvas" class="auth-captcha-canvas" width="120" height="40" title="Nhấn để đổi mã captcha"></canvas>
+                                <button type="button" id="auth-register-captcha-refresh" class="auth-captcha-refresh" title="Làm mới mã xác thực">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="text" id="auth-register-captcha-input" class="auth-captcha-input" placeholder="Mã xác thực" required maxlength="6" autocomplete="off">
+                        </div>
+
+                        <div class="auth-checkbox-row">
+                            <input type="checkbox" id="auth-reg-terms" required checked>
+                            <label for="auth-reg-terms">
+                                Tôi đã đọc, hiểu và đồng ý với các <a href="#support" style="color: #03599d; text-decoration: underline;">Điều khoản & Chính sách</a> của Beta Cinemas.
+                            </label>
+                        </div>
+
+                        <div id="auth-register-error" class="auth-msg-box error"></div>
+
+                        <button type="submit" id="auth-reg-submit-btn" class="btn-auth-primary">
+                            ĐĂNG KÝ
+                        </button>
+
+                        <button type="button" class="btn-auth-facebook" onclick="window.demoSocialLogin('Facebook')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            TIẾP TỤC VỚI FACEBOOK
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/auth-modal.js"></script>
+
 </body>
 </html>

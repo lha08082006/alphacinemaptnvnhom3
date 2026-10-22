@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Nội Bộ Vận Hành - Beta Cinemas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background: #1a252f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .admin-auth-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border-top: 5px solid #f26b38;
+        }
+        .auth-header {
+            background: #2c3e50;
+            color: #ffffff;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .auth-header h1 {
+            font-size: 20px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #ecf0f1;
+        }
+        .auth-header p {
+            font-size: 13px;
+            color: #bdc3c7;
+            margin-top: 6px;
+        }
+        .auth-body {
+            padding: 28px 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 7px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14.5px;
+            border: 1px solid #dce1e7;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: #03599d;
+            box-shadow: 0 0 0 3px rgba(3, 89, 157, 0.15);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 700;
+            background: #03599d;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+        .btn-submit:hover {
+            background: #024477;
+        }
+        .btn-submit:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 12px 15px;
+            font-size: 13.5px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.5;
+        }
+        .demo-accounts {
+            margin-top: 25px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-size: 12.5px;
+            color: #495057;
+            line-height: 1.7;
+        }
+        .demo-accounts strong {
+            color: #03599d;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-auth-card">
+        <div class="auth-header">
+            <h1>BETA CINEMAS</h1>
+            <p>CỔNG NỘI BỘ VẬN HÀNH & QUẢN TRỊ</p>
+        </div>
+        <div class="auth-body">
+            <div id="login-error" class="alert-error"></div>
+            
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Tài khoản Email nội bộ</label>
+                    <input type="email" id="email" class="form-control" value="manager@betacinemas.vn" required placeholder="name@betacinemas.vn">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <input type="password" id="password" class="form-control" value="Password@123" required placeholder="Nhập mật khẩu...">
+                </div>
+                
+                <button type="submit" id="btn-submit" class="btn-submit">ĐĂNG NHẬP HỆ THỐNG</button>
+            </form>
+            
+            <div class="demo-accounts">
+                <strong>Danh sách tài khoản Vận hành Demo (Pass: Password@123):</strong>
+                • Quản lý (Manager): <b>manager@betacinemas.vn</b><br>
+                • Kế toán (Accountant): <b>ketoan@betacinemas.vn</b><br>
+                • CSKH (Support): <b>cskh@betacinemas.vn</b><br>
+                • Kỹ thuật / IT: <b>it@betacinemas.vn</b><br>
+                <span style="color: #e74c3c; font-size: 11.5px; display: block; margin-top: 5px;">
+                    * Lưu ý bảo mật: Tài khoản sẽ tự động khóa sau 5 lần nhập sai liên tiếp.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Core -->
+    <script src="../js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('admin-login-form');
+            const btnSubmit = document.getElementById('btn-submit');
+            const errBox = document.getElementById('login-error');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    errBox.innerText = "Vui lòng nhập đầy đủ email và mật khẩu.";
+                    errBox.style.display = 'block';
+                    return;
+                }
+
+                errBox.style.display = 'none';
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "Đang xác thực bảo mật...";
+
+                try {
+                    const result = await API.post('/admin/auth/login', { email, password });
+                    const user = result.user;
+
+                    // Nếu tài khoản nhân viên có cờ must_change_password -> chuyển sang trang đổi mật khẩu
+                    if (user && user.must_change_password) {
+                        window.location.href = 'change-password.html';
+                        return;
+                    }
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const next = urlParams.get('next');
+                    window.location.href = next || 'index.html';
+                } catch (err) {
+                    errBox.innerText = err.message || "Email hoặc mật khẩu không chính xác.";
+                    errBox.style.display = 'block';
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "ĐĂNG NHẬP HỆ THỐNG";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

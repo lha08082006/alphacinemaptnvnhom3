@@ -149,6 +149,8 @@ describe('Step 4: Payment Service & Route POST /payments', () => {
     expect(updatedOrder.status).toBe('AWAITING_PAYMENT');
     expect(updatedOrder.current_attempt_id).toBe(attemptId);
     expect(updatedOrder.payment_method).toBe('ATM');
+    expect(updatedOrder.terms_accepted_at).toBeDefined();
+    expect(updatedOrder.terms_version).toBe('v1.0');
 
     // Kiểm tra order_status_history
     const history = await knex('order_status_history')
@@ -234,5 +236,73 @@ describe('Step 4: Payment Service & Route POST /payments', () => {
     expect(res.status).toBe(409);
     expect(res.body.ok).toBe(false);
     expect(res.body.error.code).toBe('HOLD_EXPIRED');
+  });
+
+  it('should create payment with method QR and custom termsVersion', async () => {
+    const newOrderId = 'BC777888999';
+    await knex('orders').insert({
+      order_id: newOrderId,
+      user_id: 1,
+      showtime_id: 1,
+      status: 'HOLDING',
+      amount_tickets: 50000,
+      amount_combos: 0,
+      amount_total: 50000,
+      customer_name: 'Nguyen Van A',
+      customer_phone: '0901234567',
+      customer_email: 'khachhang@gmail.com',
+      hold_expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    const res = await request(app)
+      .post('/api/v1/payments')
+      .set('Cookie', user1Cookie)
+      .set('Idempotency-Key', 'idemp_qr_test_001')
+      .send({
+        orderId: newOrderId,
+        method: 'QR',
+        termsAccepted: true,
+        termsVersion: 'v2.1',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.data.paymentUrl).toContain('vnp_BankCode=VNPAYQR');
+
+    const updated = await knex('orders').where({ order_id: newOrderId }).first();
+    expect(updated.payment_method).toBe('QR');
+    expect(updated.terms_version).toBe('v2.1');
+    expect(updated.terms_accepted_at).toBeDefined();
+
+    // Cleanup
+    await knex('payment_attempts').where({ order_id: newOrderId }).del();
+    await knex('order_status_history').where({ order_id: newOrderId }).del();
+    await knex('orders').where({ order_id: newOrderId }).del();
+  });
+
+  it('should reject with 400 VALIDATION_ERROR when termsAccepted is false', async () => {
+    const res = await request(app)
+      .post('/api/v1/payments')
+      .set('Cookie', user1Cookie)
+      .set('Idempotency-Key', 'idemp_terms_false')
+      .send({ orderId: testOrder1, method: 'QR', termsAccepted: false });
+
+    expect(res.status).toBe(400);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('should reject with 400 VALIDATION_ERROR when method is not in allowed enum', async () => {
+    const res = await request(app)
+      .post('/api/v1/payments')
+      .set('Cookie', user1Cookie)
+      .set('Idempotency-Key', 'idemp_invalid_method')
+      .send({ orderId: testOrder1, method: 'MOMO' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 });

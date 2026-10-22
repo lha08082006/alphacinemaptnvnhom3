@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật ký Kiểm toán (Audit Log) - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
+
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        /* Modal xem Before / After */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 750px;
+            max-width: 95%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            background: #03599d;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .close-btn {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .diff-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .diff-title {
+            font-weight: 700;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #ddd;
+        }
+        pre.json-view {
+            margin: 0;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="margin: 0; color: #333; font-weight: 700;">NHẬT KÝ KIỂM TOÁN HỆ THỐNG (AUDIT LOG)</h3>
+            <div style="font-size: 13px; color: #666; margin-top: 3px;">Phân quyền dành riêng: IT Vận hành (IT) & Quản lý (MANAGER)</div>
+        </div>
+        <button class="btn btn-primary" onclick="loadAuditLogs(1)">🔄 Làm mới nhật ký</button>
+    </div>
+
+    <!-- Thanh tìm kiếm và bộ lọc theo người, hành động, thời gian -->
+    <div class="filter-bar">
+        <input type="text" id="filter-search" class="filter-input" style="width: 240px;" placeholder="Tìm theo tên, email, ID, chi tiết..." onkeyup="onSearchDebounce()">
+
+        <select id="filter-action" class="filter-input" onchange="loadAuditLogs(1)">
+            <option value="ALL">-- Tất cả hành động --</option>
+            <option value="UPDATE_SETTINGS">Cập nhật cấu hình (UPDATE_SETTINGS)</option>
+            <option value="REFUND_APPROVE">Duyệt hoàn tiền (REFUND_APPROVE)</option>
+            <option value="CHANGE_USER_ROLE">Đổi vai trò nhân viên (CHANGE_USER_ROLE)</option>
+            <option value="TOGGLE_USER_STATUS">Khóa/Mở khóa tài khoản (TOGGLE_USER_STATUS)</option>
+            <option value="CREATE_USER">Tạo nhân viên mới (CREATE_USER)</option>
+            <option value="RESET_USER_PASSWORD">Đặt lại mật khẩu (RESET_USER_PASSWORD)</option>
+            <option value="TICKET_STATUS_CHANGE">Chuyển trạng thái ticket (TICKET_STATUS_CHANGE)</option>
+            <option value="MANUAL_RECON_RUN">Chạy đối soát thủ công (MANUAL_RECON_RUN)</option>
+            <option value="LOGIN">Đăng nhập thành công (LOGIN)</option>
+            <option value="LOGIN_FAILED">Đăng nhập thất bại (LOGIN_FAILED)</option>
+            <option value="ACCOUNT_LOCKED">Tài khoản bị khóa tự động (ACCOUNT_LOCKED)</option>
+        </select>
+
+        <select id="filter-entity" class="filter-input" onchange="loadAuditLogs(1)">
+            <option value="ALL">-- Tất cả thực thể --</option>
+            <option value="SETTINGS">SETTINGS (Hệ thống)</option>
+            <option value="USER">USER (Tài khoản)</option>
+            <option value="REFUND">REFUND (Lệnh hoàn)</option>
+            <option value="SUPPORT_TICKET">SUPPORT_TICKET (CSKH)</option>
+            <option value="RECON_RUN">RECON_RUN (Phiên đối soát)</option>
+            <option value="ORDER">ORDER (Đơn hàng)</option>
+        </select>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 13px; color: #555;">Từ:</label>
+            <input type="date" id="filter-from" class="filter-input">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 13px; color: #555;">Đến:</label>
+            <input type="date" id="filter-to" class="filter-input">
+        </div>
+
+        <button class="btn btn-primary" onclick="loadAuditLogs(1)">Lọc</button>
+        <button class="btn" style="background: #e9ecef; color: #495057;" onclick="resetFilter()">Đặt lại</button>
+    </div>
+
+    <!-- Bảng danh sách nhật ký -->
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 160px;">Thời gian</th>
+                        <th>Người thực hiện (Actor)</th>
+                        <th>Hành động (Action)</th>
+                        <th>Thực thể (Entity)</th>
+                        <th>Chi tiết thay đổi</th>
+                        <th style="text-align: right; width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                    <tr><td colspan="6" style="text-align: center; color: #888; padding: 30px;">Đang tải nhật ký kiểm toán...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="pagination-bar">
+                <span id="page-info" style="color: #666;">Trang 1 / 1 (0 bản ghi)</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="btn-prev" onclick="changePage(-1)" style="background: #e9ecef; color: #333;">« Trang trước</button>
+                    <button class="btn" id="btn-next" onclick="changePage(1)" style="background: #e9ecef; color: #333;">Trang sau »</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi tiết Trước & Sau (Before / After JSON) -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modal-title">CHI TIẾT NHẬT KÝ KIỂM TOÁN</span>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-meta" style="margin-bottom: 15px; font-size: 13px; color: #555; background: #eef6fc; padding: 10px 14px; border-radius: 6px;"></div>
+                <div class="diff-grid">
+                    <div class="diff-box">
+                        <div class="diff-title" style="color: #dc3545;">🔴 GIÁ TRỊ TRƯỚC (BEFORE):</div>
+                        <pre id="modal-before" class="json-view">--</pre>
+                    </div>
+                    <div class="diff-box">
+                        <div class="diff-title" style="color: #28a745;">🟢 GIÁ TRỊ SAU (AFTER):</div>
+                        <pre id="modal-after" class="json-view">--</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeModal()">Đóng cửa sổ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        (function() {
+            let currentPage = 1;
+            let totalPages = 1;
+            const pageSize = 20;
+            let currentLogs = [];
+            let debounceTimer = null;
+
+            const ACTION_LABELS = {
+                UPDATE_SETTINGS: '<span class="badge" style="background: #6f42c1; color: white;">⚙️ Cập nhật cấu hình</span>',
+                REFUND_APPROVE: '<span class="badge success">💸 Duyệt hoàn tiền</span>',
+                CHANGE_USER_ROLE: '<span class="badge info">🔄 Đổi vai trò</span>',
+                TOGGLE_USER_STATUS: '<span class="badge warning">🔒 Đổi trạng thái User</span>',
+                CREATE_USER: '<span class="badge primary">➕ Tạo nhân viên</span>',
+                RESET_USER_PASSWORD: '<span class="badge info">🔑 Đổi mật khẩu</span>',
+                TICKET_STATUS_CHANGE: '<span class="badge" style="background: #e67e22; color: white;">🎧 Chuyển trạng thái Ticket</span>',
+                MANUAL_RECON_RUN: '<span class="badge" style="background: #17a2b8; color: white;">⚖️ Đối soát thủ công</span>',
+                LOGIN: '<span class="badge success">Đăng nhập</span>',
+                LOGIN_FAILED: '<span class="badge error">Đăng nhập sai</span>',
+                ACCOUNT_LOCKED: '<span class="badge error">Khóa tài khoản</span>'
+            };
+
+            function formatTime(isoStr) {
+                if (!isoStr) return '--';
+                try {
+                    const d = new Date(isoStr);
+                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            window.onSearchDebounce = function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => loadAuditLogs(1), 300);
+            };
+
+            window.loadAuditLogs = async function(page = 1) {
+                currentPage = page;
+                const tbody = document.getElementById('logs-tbody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding: 25px;">Đang tải nhật ký kiểm toán...</td></tr>';
+
+                const search = document.getElementById('filter-search').value.trim();
+                const action = document.getElementById('filter-action').value;
+                const entity = document.getElementById('filter-entity').value;
+                const from = document.getElementById('filter-from').value;
+                const to = document.getElementById('filter-to').value;
+
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: pageSize,
+                });
+                if (search) params.set('search', search);
+                if (action && action !== 'ALL') params.set('action', action);
+                if (entity && entity !== 'ALL') params.set('entity', entity);
+                if (from) params.set('from', from);
+                if (to) params.set('to', to);
+
+                try {
+                    const res = await API.get('/admin/audit-logs?' + params.toString());
+                    let items = [];
+                    let total = 0;
+
+                    if (res && res.items) {
+                        items = res.items;
+                        total = res.pagination?.total || 0;
+                        totalPages = res.pagination?.totalPages || 1;
+                    } else if (Array.isArray(res)) {
+                        items = res;
+                        total = res.length;
+                        totalPages = 1;
+                    }
+
+                    currentLogs = items;
+                    renderTable(items);
+
+                    document.getElementById('page-info').innerText = `Trang ${currentPage} / ${totalPages} (Tổng ${total.toLocaleString('vi-VN')} bản ghi)`;
+                    document.getElementById('btn-prev').disabled = currentPage <= 1;
+                    document.getElementById('btn-next').disabled = currentPage >= totalPages;
+                } catch (err) {
+                    console.error('Lỗi khi tải audit logs:', err);
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc3545;">Lỗi tải dữ liệu: ${err.message || 'Thất bại'}</td></tr>`;
+                }
+            };
+
+            function renderTable(logs) {
+                const tbody = document.getElementById('logs-tbody');
+                if (!tbody) return;
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding: 30px;">Không tìm thấy bản ghi nhật ký nào phù hợp.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map((l, idx) => {
+                    const actionBadge = ACTION_LABELS[l.action] || `<span class="badge gray">${l.action}</span>`;
+
+                    let actorText = `<strong>#${l.actor_id}</strong> (${l.actor_type})`;
+                    if (l.actor_name || l.actor_email) {
+                        actorText = `<div><strong>${escapeHtml(l.actor_name || 'Nhân viên')}</strong></div><div style="font-size: 11.5px; color: #777;">${escapeHtml(l.actor_email || '')} ${l.actor_role ? `<span class="badge info" style="font-size: 10px;">${l.actor_role}</span>` : ''}</div>`;
+                    }
+
+                    // Tóm tắt giá trị sau
+                    let summaryText = l.after_json || l.before_json || '--';
+                    if (summaryText.length > 70) {
+                        summaryText = summaryText.slice(0, 70) + '...';
+                    }
+
+                    return `
+                        <tr>
+                            <td style="font-size: 12.5px; color: #555;">${formatTime(l.at)}</td>
+                            <td>${actorText}</td>
+                            <td>${actionBadge}</td>
+                            <td><strong style="color: #03599d;">${l.entity || '--'}</strong> ${l.entity_id ? `<span style="font-size: 12px; color: #666;">(#${l.entity_id})</span>` : ''}</td>
+                            <td style="font-family: monospace; font-size: 11.5px; color: #555; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                ${escapeHtml(summaryText)}
+                            </td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-primary" style="font-size: 11.5px; padding: 4px 10px;" onclick="viewDetail(${idx})">
+                                    🔍 Xem
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            window.changePage = function(delta) {
+                const targetPage = currentPage + delta;
+                if (targetPage >= 1 && targetPage <= totalPages) {
+                    loadAuditLogs(targetPage);
+                }
+            };
+
+            window.resetFilter = function() {
+                document.getElementById('filter-search').value = '';
+                document.getElementById('filter-action').value = 'ALL';
+                document.getElementById('filter-entity').value = 'ALL';
+                document.getElementById('filter-from').value = '';
+                document.getElementById('filter-to').value = '';
+                loadAuditLogs(1);
+            };
+
+            window.viewDetail = function(idx) {
+                const log = currentLogs[idx];
+                if (!log) return;
+
+                document.getElementById('modal-title').innerText = `NHẬT KÝ #${log.id} - ${log.action}`;
+                document.getElementById('modal-meta').innerHTML = `
+                    <div><strong>Thời gian:</strong> ${formatTime(log.at)} | <strong>Người thực hiện:</strong> ${escapeHtml(log.actor_name || log.actor_id)} (${log.actor_type})</div>
+                    <div><strong>Thực thể tác động:</strong> ${log.entity} (#${log.entity_id || ''}) | <strong>Hành động:</strong> ${log.action}</div>
+                `;
+
+                let beforeFormatted = '-- Không có giá trị trước --';
+                let afterFormatted = '-- Không có giá trị sau --';
+
+                try {
+                    if (log.before_json) {
+                        beforeFormatted = JSON.stringify(JSON.parse(log.before_json), null, 2);
+                    }
+                } catch (e) {
+                    beforeFormatted = log.before_json;
+                }
+
+                try {
+                    if (log.after_json) {
+                        afterFormatted = JSON.stringify(JSON.parse(log.after_json), null, 2);
+                    }
+                } catch (e) {
+                    afterFormatted = log.after_json;
+                }
+
+                document.getElementById('modal-before').innerText = beforeFormatted;
+                document.getElementById('modal-after').innerText = afterFormatted;
+                document.getElementById('detail-modal').classList.add('active');
+            };
+
+            window.closeModal = function() {
+                document.getElementById('detail-modal').classList.remove('active');
+            };
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            window.addEventListener('adminReady', () => loadAuditLogs(1));
+        })();
+    </script>
+</body>
+</html>

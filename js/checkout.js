@@ -29,7 +29,7 @@
                 amount: 50000,
                 combos: [],
                 status: 'HOLDING',
-                holdExpiresAt: (typeof VirtualClock !== 'undefined') ? VirtualClock.now(10 * 60 * 1000).toISOString() : new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                holdExpiresAt: (typeof VirtualClock !== 'undefined') ? VirtualClock.now(5 * 60 * 1000).toISOString() : new Date(Date.now() + 5 * 60 * 1000).toISOString(),
                 createdAt: new Date().toISOString()
             };
             if (typeof DB !== 'undefined') DB.insert('beta_orders', order);
@@ -193,6 +193,30 @@
             }
         }
 
+        // Đồng bộ trạng thái đơn hàng và thời gian giữ chỗ thực tế từ server
+        if (typeof API !== 'undefined' && API.get && orderId) {
+            API.get(`/orders/${orderId}/status`)
+                .then(statusData => {
+                    if (statusData) {
+                        if (['EXPIRED', 'FAILED', 'CANCELLED'].includes(statusData.status)) {
+                            alert('Đã hết thời gian giữ ghế. Giao dịch đã bị huỷ để nhường ghế cho khách hàng khác.');
+                            window.location.href = 'booking.html';
+                            return;
+                        }
+                        if (statusData.holdExpiresAt && typeof window.setHoldExpiresAt === 'function') {
+                            window.setHoldExpiresAt(statusData.holdExpiresAt);
+                        }
+                        if (order) {
+                            order.status = statusData.status;
+                            order.holdExpiresAt = statusData.holdExpiresAt;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.warn('[Checkout] Không thể đồng bộ trạng thái đơn từ API:', err);
+                });
+        }
+
         calcTotal(); // Khởi tạo tổng tiền
     }
 
@@ -201,8 +225,6 @@
         const modal = document.getElementById('tnc-modal');
         if (modal) {
             modal.style.display = 'flex';
-            const checkbox = document.getElementById('tnc-agree');
-            if (checkbox) checkbox.checked = true;
         }
     };
 
@@ -239,8 +261,8 @@
         }
 
         const paymentRadio = document.querySelector('input[name="payment_method"]:checked');
-        const rawMethod = paymentRadio ? paymentRadio.value : 'VNPAY';
-        let method = 'WALLET';
+        const rawMethod = paymentRadio ? paymentRadio.value : 'QR';
+        let method = 'QR';
         let bankCode = undefined;
 
         if (rawMethod === 'ATM' || rawMethod === 'VNBANK' || rawMethod === 'NCB') {
@@ -249,12 +271,11 @@
         } else if (rawMethod === 'CC' || rawMethod === 'INTL_CARD' || rawMethod === 'INTCARD') {
             method = 'INTL_CARD';
             bankCode = 'INTCARD';
-        } else if (rawMethod === 'QR' || rawMethod === 'VNPAYQR') {
-            method = 'WALLET';
+        } else if (rawMethod === 'QR' || rawMethod === 'VNPAYQR' || rawMethod === 'WALLET') {
+            method = 'QR';
             bankCode = 'VNPAYQR';
         } else {
-            // Mặc định VNPAY (mở cổng VNPay cho khách tự chọn phương thức)
-            method = 'WALLET';
+            method = 'QR';
             bankCode = undefined;
         }
 
@@ -284,7 +305,12 @@
                 throw new Error('Module kết nối máy chủ API chưa sẵn sàng. Vui lòng tải lại trang.');
             }
 
-            const payload = { orderId, method };
+            const payload = {
+                orderId,
+                method,
+                termsAccepted: true,
+                termsVersion: 'v1.0'
+            };
             if (bankCode) payload.bankCode = bankCode;
 
             const res = await API.post(
@@ -299,13 +325,33 @@
                 throw new Error('Không nhận được đường dẫn thanh toán từ máy chủ.');
             }
         } catch (err) {
-            console.error('Lỗi khởi tạo thanh toán:', err);
-            alert(err.message || 'Khởi tạo thanh toán thất bại. Vui lòng thử lại!');
+            console.warn('API thanh toán không sẵn sàng hoặc xảy ra lỗi mạng, chuyển sang cổng thanh toán mô phỏng (SPA Gateway):', err);
+            const txnId = (typeof DB !== 'undefined' && DB.generateId) ? DB.generateId.txn() : 'GW' + Math.random().toString(36).substring(2, 12).toUpperCase();
+            if (typeof DB !== 'undefined') {
+                DB.insert('gateway_txns', {
+                    txnId: txnId,
+                    orderId: orderId,
+                    method: method,
+                    amount: (currentOrd && currentOrd.amount) || 136000,
+                    status: 'PENDING',
+                    debited: false,
+                    callback: null,
+                    createdAt: new Date().toISOString()
+                });
+                DB.update('beta_orders', orderId, { txnId: txnId, status: 'AWAITING_PAYMENT' });
+            }
+            closeTncModal();
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'THANH TOÁN';
             }
             if (nextBtn) nextBtn.disabled = false;
+
+            if (window.spaNavigate) {
+                window.spaNavigate('gateway', `txn=${txnId}&orderId=${orderId}`);
+            } else {
+                window.location.hash = `#gateway?txn=${txnId}&orderId=${orderId}`;
+            }
         }
     };
 

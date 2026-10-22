@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Nội dung - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .tab-btn { padding: 10px 20px; font-weight: 700; cursor: pointer; border: none; background: none; font-size: 14px; color: #64748b; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #03599d; border-bottom-color: #03599d; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-add { background: #03599d; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-add:hover { background: #02467d; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-card { background: white; border-radius: 8px; width: 90%; max-width: 550px; padding: 24px; max-height: 85vh; overflow-y: auto; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #334155; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #e2e8f0; color: #334155; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-save { background: #03599d; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-edit { background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 4px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">QUẢN TRỊ NỘI DUNG (PHIM, BANNER, TIN TỨC & COMBO)</div>
+        <div class="card-body">
+            
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('movies')">Phim Chiếu</button>
+                <button class="tab-btn" onclick="switchTab('banners')">Banner Trang Chủ</button>
+                <button class="tab-btn" onclick="switchTab('promotions')">Tin & Ưu Đãi</button>
+                <button class="tab-btn" onclick="switchTab('combos')">Combo Bắp Nước</button>
+            </div>
+
+            <!-- TAB 1: PHIM -->
+            <div id="tab-movies" class="tab-content active">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Danh sách Phim Chiếu Rạp</h4>
+                    <button class="btn-add" onclick="openMovieModal()">+ Thêm Phim Mới</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Poster</th>
+                            <th>Tên Phim</th>
+                            <th>Thời lượng</th>
+                            <th>Độ tuổi</th>
+                            <th>Trạng thái</th>
+                            <th>Trailer</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movies-tbody">
+                        <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải danh sách phim...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 2: BANNER -->
+            <div id="tab-banners" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Banner Khuyến Mãi Trang Chủ</h4>
+                    <button class="btn-add" onclick="openBannerModal()">+ Thêm Banner</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hình ảnh</th>
+                            <th>Tiêu đề</th>
+                            <th>Thứ tự</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="banners-tbody">
+                        <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải banners...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 3: TIN & ƯU ĐÃI -->
+            <div id="tab-promotions" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Tin Mới & Chương Trình Ưu Đãi</h4>
+                    <button class="btn-add" onclick="openPromoModal()">+ Thêm Ưu Đãi Mới</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Loại / Tag</th>
+                            <th>Giảm giá</th>
+                            <th>Hiệu lực đến</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promos-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải ưu đãi...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 4: COMBO -->
+            <div id="tab-combos" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Combo Bắp Nước Beta</h4>
+                    <button class="btn-add" onclick="openComboModal()">+ Thêm Combo Mới</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Combo</th>
+                            <th>Mô tả</th>
+                            <th>Giá bán</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="combos-tbody">
+                        <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải combos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL THÊM/SỬA PHIM -->
+    <div id="movie-modal" class="modal">
+        <div class="modal-card">
+            <h3 id="movie-modal-title" style="margin-top:0; color:#03599d;">Thêm Phim Mới</h3>
+            <form id="movie-form" onsubmit="saveMovie(event)">
+                <input type="hidden" id="movie-id">
+                <div class="form-group">
+                    <label>Tên phim *</label>
+                    <input type="text" id="movie-title" required placeholder="Nhập tên phim">
+                </div>
+                <div class="form-group">
+                    <label>Thời lượng (phút) *</label>
+                    <input type="number" id="movie-duration" required min="1" value="120">
+                </div>
+                <div class="form-group">
+                    <label>Phân loại độ tuổi *</label>
+                    <select id="movie-age" required>
+                        <option value="P">P - Phổ biến mọi lứa tuổi</option>
+                        <option value="T13">T13 - Khán giả từ 13 tuổi</option>
+                        <option value="T16">T16 - Khán giả từ 16 tuổi</option>
+                        <option value="T18">T18 - Khán giả từ 18 tuổi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Trạng thái chiếu *</label>
+                    <select id="movie-status" required>
+                        <option value="NOW_SHOWING">NOW_SHOWING (Đang chiếu)</option>
+                        <option value="COMING_SOON">COMING_SOON (Sắp chiếu)</option>
+                        <option value="ENDED">ENDED (Đã ngừng chiếu)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Poster URL *</label>
+                    <input type="url" id="movie-poster" required placeholder="https://example.com/poster.jpg">
+                </div>
+                <div class="form-group">
+                    <label>Trailer URL (Youtube embed)</label>
+                    <input type="url" id="movie-trailer" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('movie-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Phim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM BANNER -->
+    <div id="banner-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Banner Trang Chủ</h3>
+            <form id="banner-form" onsubmit="saveBanner(event)">
+                <div class="form-group">
+                    <label>Tiêu đề Banner *</label>
+                    <input type="text" id="banner-title" required placeholder="Banner phim bom tấn...">
+                </div>
+                <div class="form-group">
+                    <label>Hình ảnh Banner URL *</label>
+                    <input type="url" id="banner-image" required placeholder="https://files.betacorp.vn/media/images/...">
+                </div>
+                <div class="form-group">
+                    <label>Đường dẫn khi click (Target URL)</label>
+                    <input type="text" id="banner-target" placeholder="#booking hoặc #promo">
+                </div>
+                <div class="form-group">
+                    <label>Thứ tự hiển thị (Order Index)</label>
+                    <input type="number" id="banner-order" value="1" min="1">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('banner-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Banner</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM ƯU ĐÃI -->
+    <div id="promo-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Tin & Chương Trình Ưu Đãi</h3>
+            <form id="promo-form" onsubmit="savePromo(event)">
+                <div class="form-group">
+                    <label>Tiêu đề ưu đãi *</label>
+                    <input type="text" id="promo-title" required placeholder="Thứ 3 Vui Vẻ...">
+                </div>
+                <div class="form-group">
+                    <label>Loại / Tag</label>
+                    <input type="text" id="promo-tag" placeholder="HSSV, COMBO, THU3...">
+                </div>
+                <div class="form-group">
+                    <label>Mức giảm giá (%)</label>
+                    <input type="number" id="promo-discount" min="0" max="100" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Ngày hết hạn</label>
+                    <input type="date" id="promo-end">
+                </div>
+                <div class="form-group">
+                    <label>Nội dung chi tiết</label>
+                    <textarea id="promo-content" rows="3" placeholder="Mô tả chi tiết thể lệ ưu đãi..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('promo-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Ưu Đãi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM COMBO -->
+    <div id="combo-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Combo Bắp Nước</h3>
+            <form id="combo-form" onsubmit="saveCombo(event)">
+                <div class="form-group">
+                    <label>Tên Combo *</label>
+                    <input type="text" id="combo-name" required placeholder="Beta Combo...">
+                </div>
+                <div class="form-group">
+                    <label>Mô tả chi tiết</label>
+                    <input type="text" id="combo-desc" placeholder="1 Bắp lớn + 2 Nước ngọt...">
+                </div>
+                <div class="form-group">
+                    <label>Giá bán (VNĐ) *</label>
+                    <input type="number" id="combo-price" required min="1000" step="1000" value="79000">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('combo-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Combo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function openMovieModal() {
+            document.getElementById('movie-form').reset();
+            document.getElementById('movie-id').value = '';
+            document.getElementById('movie-modal-title').innerText = 'Thêm Phim Mới';
+            document.getElementById('movie-modal').classList.add('show');
+        }
+
+        function openBannerModal() {
+            document.getElementById('banner-form').reset();
+            document.getElementById('banner-modal').classList.add('show');
+        }
+
+        function openPromoModal() {
+            document.getElementById('promo-form').reset();
+            document.getElementById('promo-modal').classList.add('show');
+        }
+
+        function openComboModal() {
+            document.getElementById('combo-form').reset();
+            document.getElementById('combo-modal').classList.add('show');
+        }
+
+        // 1. TẢI DỮ LIỆU
+        async function loadAllContent() {
+            loadMovies();
+            loadBanners();
+            loadPromotions();
+            loadCombos();
+        }
+
+        async function loadMovies() {
+            try {
+                const res = await API.get('/admin/movies');
+                const movies = res || [];
+                const tbody = document.getElementById('movies-tbody');
+                if (movies.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Chưa có phim nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = movies.map(m => `
+                    <tr>
+                        <td><strong>${m.id}</strong></td>
+                        <td><img src="${m.poster_url || 'https://via.placeholder.com/40x60'}" style="width: 36px; height: 50px; object-fit: cover; border-radius: 4px;" alt="Poster"></td>
+                        <td><strong>${m.title}</strong></td>
+                        <td>${m.duration_min} phút</td>
+                        <td><span class="badge primary">${m.age_rating || 'P'}</span></td>
+                        <td><span class="badge ${m.status === 'NOW_SHOWING' ? 'success' : m.status === 'COMING_SOON' ? 'info' : 'secondary'}">${m.status}</span></td>
+                        <td>${m.trailer_url ? `<a href="${m.trailer_url}" target="_blank" style="color:#03599d; font-size:12px;">Xem Trailer</a>` : '--'}</td>
+                        <td>
+                            <button class="btn-edit" onclick="editMovie(${m.id}, '${encodeURIComponent(m.title)}', ${m.duration_min}, '${m.age_rating}', '${m.status}', '${encodeURIComponent(m.poster_url || '')}', '${encodeURIComponent(m.trailer_url || '')}')">Sửa</button>
+                            <button class="btn-danger" onclick="deleteMovie(${m.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải phim:', err);
+            }
+        }
+
+        async function loadBanners() {
+            try {
+                const res = await API.get('/admin/banners');
+                const banners = res || [];
+                const tbody = document.getElementById('banners-tbody');
+                if (banners.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có banner nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = banners.map(b => `
+                    <tr>
+                        <td><strong>${b.id}</strong></td>
+                        <td><img src="${b.image_url}" style="width: 120px; height: 45px; object-fit: cover; border-radius: 4px;" alt="Banner"></td>
+                        <td>${b.title}</td>
+                        <td>${b.order_idx}</td>
+                        <td><span class="badge ${b.is_active ? 'success' : 'secondary'}">${b.is_active ? 'Hoạt động' : 'Tạm ẩn'}</span></td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteBanner(${b.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải banners:', err);
+            }
+        }
+
+        async function loadPromotions() {
+            try {
+                const res = await API.get('/admin/promotions');
+                const promos = res || [];
+                const tbody = document.getElementById('promos-tbody');
+                if (promos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có chương trình ưu đãi nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = promos.map(p => `
+                    <tr>
+                        <td><strong>${p.id}</strong></td>
+                        <td><strong>${p.title}</strong></td>
+                        <td><span class="badge info">${p.tag || 'PROMO'}</span></td>
+                        <td>${p.discount_percent ? `${p.discount_percent}%` : '--'}</td>
+                        <td>${p.ends_at ? new Date(p.ends_at).toLocaleDateString('vi-VN') : 'Vô thời hạn'}</td>
+                        <td><span class="badge ${p.is_active ? 'success' : 'secondary'}">${p.is_active ? 'Đang chạy' : 'Hết hạn'}</span></td>
+                        <td>
+                            <button class="btn-danger" onclick="deletePromo(${p.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải ưu đãi:', err);
+            }
+        }
+
+        async function loadCombos() {
+            try {
+                const res = await API.get('/admin/combos');
+                const combos = res || [];
+                const tbody = document.getElementById('combos-tbody');
+                if (combos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có combo nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = combos.map(c => `
+                    <tr>
+                        <td><strong>${c.id}</strong></td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.description || '--'}</td>
+                        <td>${Number(c.price || 0).toLocaleString()} đ</td>
+                        <td><span class="badge ${c.is_active ? 'success' : 'secondary'}">${c.is_active ? 'Đang bán' : 'Ngừng'}</span></td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteCombo(${c.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải combos:', err);
+            }
+        }
+
+        // 2. LƯU VÀ XÓA DỮ LIỆU
+        async function saveMovie(e) {
+            e.preventDefault();
+            const id = document.getElementById('movie-id').value;
+            const payload = {
+                title: document.getElementById('movie-title').value.trim(),
+                duration_min: Number(document.getElementById('movie-duration').value),
+                age_rating: document.getElementById('movie-age').value,
+                status: document.getElementById('movie-status').value,
+                poster_url: document.getElementById('movie-poster').value.trim(),
+                trailer_url: document.getElementById('movie-trailer').value.trim(),
+            };
+
+            try {
+                if (id) {
+                    await API.put(`/admin/movies/${id}`, payload);
+                    alert('Cập nhật phim thành công!');
+                } else {
+                    await API.post('/admin/movies', payload);
+                    alert('Thêm phim mới thành công!');
+                }
+                closeModal('movie-modal');
+                loadMovies();
+            } catch (err) {
+                alert(err.message || 'Lỗi khi lưu phim!');
+            }
+        }
+
+        function editMovie(id, title, duration, age, status, poster, trailer) {
+            document.getElementById('movie-id').value = id;
+            document.getElementById('movie-title').value = decodeURIComponent(title);
+            document.getElementById('movie-duration').value = duration;
+            document.getElementById('movie-age').value = age;
+            document.getElementById('movie-status').value = status;
+            document.getElementById('movie-poster').value = decodeURIComponent(poster);
+            document.getElementById('movie-trailer').value = decodeURIComponent(trailer);
+            document.getElementById('movie-modal-title').innerText = `Chỉnh sửa Phim #${id}`;
+            document.getElementById('movie-modal').classList.add('show');
+        }
+
+        async function deleteMovie(id) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa phim #${id}?`)) return;
+            try {
+                await API.delete(`/admin/movies/${id}`);
+                alert('Đã xóa phim thành công!');
+                loadMovies();
+            } catch (err) {
+                alert(err.message || 'Không thể xóa phim này (có thể đã có đơn đặt vé)!');
+            }
+        }
+
+        async function saveBanner(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('banner-title').value.trim(),
+                image_url: document.getElementById('banner-image').value.trim(),
+                target_url: document.getElementById('banner-target').value.trim(),
+                order_idx: Number(document.getElementById('banner-order').value),
+                is_active: 1,
+            };
+            try {
+                await API.post('/admin/banners', payload);
+                alert('Thêm banner thành công!');
+                closeModal('banner-modal');
+                loadBanners();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu banner!');
+            }
+        }
+
+        async function deleteBanner(id) {
+            if (!confirm(`Xóa banner #${id}?`)) return;
+            try {
+                await API.delete(`/admin/banners/${id}`);
+                loadBanners();
+            } catch (err) {
+                alert(err.message || 'Lỗi xóa banner!');
+            }
+        }
+
+        async function savePromo(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('promo-title').value.trim(),
+                tag: document.getElementById('promo-tag').value.trim(),
+                discount_percent: Number(document.getElementById('promo-discount').value) || 0,
+                ends_at: document.getElementById('promo-end').value || null,
+                content: document.getElementById('promo-content').value.trim(),
+                is_active: 1,
+            };
+            try {
+                await API.post('/admin/promotions', payload);
+                alert('Thêm ưu đãi thành công!');
+                closeModal('promo-modal');
+                loadPromotions();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu ưu đãi!');
+            }
+        }
+
+        async function deletePromo(id) {
+            if (!confirm(`Xóa ưu đãi #${id}?`)) return;
+            try {
+                await API.delete(`/admin/promotions/${id}`);
+                loadPromotions();
+            } catch (err) {
+                alert(err.message || 'Lỗi xóa ưu đãi!');
+            }
+        }
+
+        async function saveCombo(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('combo-name').value.trim(),
+                description: document.getElementById('combo-desc').value.trim(),
+                price: Number(document.getElementById('combo-price').value),
+                is_active: 1,
+            };
+            try {
+                await API.post('/admin/combos', payload);
+                alert('Thêm combo thành công!');
+                closeModal('combo-modal');
+                loadCombos();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu combo!');
+            }
+        }
+
+        async function deleteCombo(id) {
+            if (!confirm(`Xóa combo #${id}?`)) return;
+            try {
+                await API.delete(`/admin/combos/${id}`);
+                loadCombos();
+            } catch (err) {
+                alert(err.message || 'Lỗi xóa combo!');
+            }
+        }
+
+        window.addEventListener('adminReady', loadAllContent);
+    </script>
+</body>
+</html>

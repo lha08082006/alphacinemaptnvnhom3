@@ -12,15 +12,18 @@
     font-family: 'Montserrat', sans-serif;
     font-size: 20px;
     font-weight: 800;
-    color: var(--text-navy);
+    color: var(--text-navy, #333);
     text-transform: uppercase;
     cursor: pointer;
     padding-bottom: 15px;
     position: relative;
     transition: color 0.2s;
 }
+.grid-tab:hover {
+    color: #005198;
+}
 .grid-tab.active {
-    color: var(--blue);
+    color: #005198;
 }
 .grid-tab.active::after {
     content: '';
@@ -29,7 +32,7 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: var(--blue);
+    background: #005198;
 }
 @media (max-width: 768px) {
     .grid-tab { font-size: 14px; padding-bottom: 10px; gap: 15px; }
@@ -49,14 +52,24 @@
     display: flex;
     flex-direction: column;
     background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    height: 100%;
 }
+.mg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
 .mg-poster-wrapper {
     position: relative;
     aspect-ratio: 2/3;
-    border-radius: 16px;
+    border-radius: 14px 14px 0 0;
     overflow: hidden;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 12px;
+    background: #222;
 }
 .mg-poster-bg {
     width: 100%;
@@ -93,27 +106,28 @@
     top: 0; left: 15px;
     color: white;
     font-weight: 800;
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 13px;
+    padding: 5px 12px;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
     z-index: 5;
     font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
 }
-.age-t18 { background: rgba(233, 30, 99, 0.9); }
-.age-t16 { background: rgba(245, 127, 23, 0.9); }
-.age-t13 { background: rgba(41, 182, 246, 0.9); }
-.age-p { background: rgba(102, 187, 106, 0.9); }
-.age-k { background: rgba(255, 152, 0, 0.9); }
+.age-t18 { background: #d32f2f; }
+.age-t16 { background: #f37720; }
+.age-t13 { background: #005198; }
+.age-p { background: #4caf50; }
+.age-k { background: #ff9800; }
 
 .mg-hot {
     position: absolute;
     top: 15px; right: -30px;
-    background: var(--orange);
+    background: #f37720;
     color: white;
     font-weight: 900;
-    font-size: 13px;
-    padding: 5px 35px;
+    font-size: 12px;
+    padding: 4px 35px;
     transform: rotate(45deg);
     z-index: 5;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -122,13 +136,15 @@
 .mg-sneak {
     position: absolute;
     bottom: 0; left: 0; width: 100%;
-    background: rgba(242, 106, 30, 0.95);
+    background: rgba(243, 119, 32, 0.95);
     color: white;
     font-weight: bold;
     text-align: center;
-    padding: 10px 0;
-    font-size: 14px;
+    padding: 8px 0;
+    font-size: 13px;
     z-index: 5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Overlay for Trailer */
@@ -148,24 +164,38 @@
 }
 
 .mg-btn-trailer {
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.65);
     border: 2px solid white;
     color: white;
-    padding: 10px 20px;
+    padding: 9px 20px;
     border-radius: 30px;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 13px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-.mg-btn-trailer:hover { background: var(--pink); border-color: var(--pink); }
+.mg-btn-trailer:hover {
+    background: #005198;
+    border-color: #005198;
+    transform: scale(1.05);
+}
 
 /* Text & Info */
+.mg-info {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
 .mg-title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
     font-size: 16px;
-    color: var(--blue);
-    margin: 0 0 10px 0;
+    color: #005198;
+    margin: 0 0 8px 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -177,44 +207,45 @@
 }
 .mg-meta { 
     font-size: 13px; 
-    color: #555; 
-    margin-bottom: 5px; 
+    color: #666; 
+    margin-bottom: 4px; 
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Buy Button */
+/* Buy Button - Beta Cinemas Brand Exact Match */
 .mg-buy-btn {
-    margin-top: 15px;
-    background: var(--blue);
+    margin-top: auto;
+    background: #005198;
     color: white;
     border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 800;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
     font-family: 'Montserrat', sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    transition: background 0.2s;
+    gap: 8px;
+    transition: all 0.3s ease;
     width: 100%;
     text-decoration: none;
+    height: 42px;
+    box-sizing: border-box;
 }
-.mg-buy-btn:hover { background: #154a87; }
-.mg-buy-btn svg { width: 24px; height: 24px; fill: var(--pink-soft); }
-
-.mg-card {
-    height: 100%;
+.mg-buy-btn:hover {
+    background: #3db1f3;
+    color: white;
+    box-shadow: 0 4px 12px rgba(61, 177, 243, 0.35);
 }
-.mg-info {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-.mg-buy-btn {
-    margin-top: auto;
+.mg-buy-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    flex-shrink: 0;
 }

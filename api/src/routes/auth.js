@@ -73,8 +73,13 @@ router.post(
     const user = await knex('users').where({ email: email.toLowerCase().trim() }).first();
 
     // Kiểm tra tài khoản và mật khẩu
+    // Chỉ chấp nhận vai trò CUSTOMER tại cổng khách hàng
     // Không báo lộ email có tồn tại hay không (cùng một thông báo lỗi)
-    const isValid = user && Boolean(user.is_active) && bcrypt.compareSync(password, user.password_hash);
+    const isValid =
+      user &&
+      Boolean(user.is_active) &&
+      user.role === 'CUSTOMER' &&
+      bcrypt.compareSync(password, user.password_hash);
 
     if (!isValid) {
       recordFailedAttempt(ip);
@@ -91,6 +96,7 @@ router.post(
         email: user.email,
         role: user.role,
         full_name: user.full_name,
+        type: 'CUSTOMER',
       },
       env.JWT_SECRET,
       {

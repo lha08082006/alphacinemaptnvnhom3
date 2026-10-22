@@ -19,6 +19,21 @@ const AUTH = Object.freeze({
   ROLES: Object.freeze(['CUSTOMER', 'IT', 'ACCOUNTANT', 'CSKH', 'MANAGER']),
 });
 
+// Xác thực dành riêng cho Cổng Quản trị / Nhân viên (Admin / Staff)
+const AUTH_ADMIN = Object.freeze({
+  COOKIE_NAME: 'beta_admin_token',
+  COOKIE_OPTIONS: Object.freeze({
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/api/v1/admin',
+    secure: false,
+    maxAge: 2 * 60 * 60 * 1000, // 2 giờ
+  }),
+  MAX_FAILED_ATTEMPTS: 5,
+  DEFAULT_LOCKOUT_MIN: 15,
+  STAFF_ROLES: Object.freeze(['IT', 'ACCOUNTANT', 'CSKH', 'MANAGER']),
+});
+
 // Quy ước 6 — Idempotency cho thao tác tạo thanh toán
 const IDEMPOTENCY = Object.freeze({
   HEADER: 'Idempotency-Key',
@@ -44,13 +59,25 @@ const DEFAULT_SETTINGS = Object.freeze({
   holdMinutes: 5,
   pendingVerifyHoldMin: 15,
   refundSendDelayMin: 30,
+  adminLockoutMin: 15,
+});
+
+// Thời gian hoàn tiền ước tính theo từng loại phương thức thanh toán (đồng nhất Điều khoản thanh toán)
+const REFUND_ESTIMATED_TIMES = Object.freeze({
+  INTL_CARD: 'trong vòng 30 ngày làm việc',
+  ATM: 'trong vòng 7 ngày làm việc',
+  WALLET: '7-14 ngày làm việc',
+  QR: '7-14 ngày làm việc',
+  DEFAULT: '7-14 ngày làm việc',
 });
 
 module.exports = {
   AUTH,
+  AUTH_ADMIN,
   IDEMPOTENCY,
   WEBHOOK_HEADERS,
   MAX_SEATS_PER_ORDER,
   REFUND_SEND_SLA_HOURS,
+  REFUND_ESTIMATED_TIMES,
   DEFAULT_SETTINGS,
 };

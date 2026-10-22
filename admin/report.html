@@ -3,133 +3,891 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo Kế toán - Beta Admin</title>
+    <title>Báo cáo & Thống kê - Beta Admin</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .report-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .report-tab-btn {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 9px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .report-tab-btn:hover {
+            background: #f8f9fa;
+            border-color: #03599d;
+            color: #03599d;
+        }
+        .report-tab-btn.active {
+            background: #03599d;
+            border-color: #03599d;
+            color: white;
+            box-shadow: 0 2px 5px rgba(3,89,157,0.25);
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            background: #fff;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .kpi-stat {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #03599d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .kpi-stat.danger {
+            border-left-color: #dc3545;
+            background: #fffafa;
+        }
+        .kpi-stat.warning {
+            border-left-color: #f39c12;
+            background: #fffdfa;
+        }
+        .kpi-stat.success {
+            border-left-color: #28a745;
+            background: #fafffa;
+        }
+        .kpi-stat.info {
+            border-left-color: #17a2b8;
+        }
+        .kpi-stat-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .kpi-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #222;
+        }
+        .kpi-stat-sub {
+            font-size: 11.5px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .sub-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .sub-nav-btn {
+            padding: 6px 14px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: 4px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+        }
+        .sub-nav-btn.active {
+            background: #eef6fc;
+            border-color: #03599d;
+            color: #03599d;
+        }
+
+        .progress-bar-container {
+            width: 100px;
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #28a745;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: #333;">BÁO CÁO ĐỐI SOÁT THEO NGÀY (KẾ TOÁN & QUẢN LÝ)</h3>
-        <button class="btn btn-success" style="padding: 9px 18px; font-weight: bold;" onclick="exportCSV()">
-            📥 TẢI XUỐNG CSV (UTF-8)
-        </button>
-    </div>
-
-    <div class="card" style="margin-bottom: 20px;">
-        <div class="card-body" style="padding: 15px 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <label style="font-size: 13.5px; font-weight: 600; color: #555;">Từ ngày:</label>
-                <input type="date" id="filter-from" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <label style="font-size: 13.5px; font-weight: 600; color: #555;">Đến ngày:</label>
-                <input type="date" id="filter-to" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-            </div>
-            <button class="btn btn-primary" onclick="loadReportData()" style="padding: 7px 15px;">
-                🔍 Lọc báo cáo
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h3 style="margin: 0; color: #333; font-weight: 700;">BÁO CÁO & PHÂN TÍCH TỔNG HỢP</h3>
+            <div style="font-size: 13px; color: #666; margin-top: 3px;">Phân quyền dành riêng cho: Kế toán (ACCOUNTANT) & Quản lý (MANAGER)</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" style="padding: 8px 16px; font-weight: bold;" onclick="exportCurrentCSV()">
+                📥 XUẤT CSV PHÂN HỆ NÀY
             </button>
-            <button class="btn" style="background: #e9ecef; color: #333; padding: 7px 12px;" onclick="resetFilter()">
-                Đặt lại
+            <button class="btn btn-primary" onclick="loadAllReports()">
+                🔄 Làm mới dữ liệu
             </button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body" style="padding: 0;">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Ngày</th>
-                        <th>Tổng tiền Cổng Ghi Nhận</th>
-                        <th>Tổng tiền Beta Thực Thu</th>
-                        <th>CHÊNH LỆCH</th>
-                        <th>Số GD Treo</th>
-                        <th>Lệnh Đã Hoàn</th>
-                        <th>Lệnh Đang Xử Lý</th>
-                    </tr>
-                </thead>
-                <tbody id="report-table">
-                    <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải dữ liệu báo cáo...</td></tr>
-                </tbody>
-            </table>
+    <!-- Thanh bộ lọc ngày -->
+    <div class="filter-bar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 13.5px; font-weight: 600; color: #555;">Từ ngày:</label>
+            <input type="date" id="filter-from" class="filter-input">
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 13.5px; font-weight: 600; color: #555;">Đến ngày:</label>
+            <input type="date" id="filter-to" class="filter-input">
+        </div>
+        <button class="btn btn-primary" onclick="loadAllReports()">
+            🔍 Lọc báo cáo
+        </button>
+        <button class="btn" style="background: #e9ecef; color: #495057;" onclick="resetFilter()">
+            Mặc định
+        </button>
+    </div>
+
+    <!-- 5 Phân hệ Báo cáo theo yêu cầu -->
+    <div class="report-nav">
+        <button class="report-tab-btn active" id="tab-btn-revenue" onclick="switchReportTab('revenue')">
+            💰 1. Doanh thu (Ngày / Phim / Rạp)
+        </button>
+        <button class="report-tab-btn" id="tab-btn-recon" onclick="switchReportTab('recon')">
+            ⚖️ 2. Đối soát Cổng & Beta
+        </button>
+        <button class="report-tab-btn" id="tab-btn-refunds" onclick="switchReportTab('refunds')">
+            💸 3. Hoàn tiền & SLA 24H
+        </button>
+        <button class="report-tab-btn" id="tab-btn-tickets" onclick="switchReportTab('tickets')">
+            🎧 4. CSKH & Thời gian xử lý
+        </button>
+        <button class="report-tab-btn" id="tab-btn-occupancy" onclick="switchReportTab('occupancy')">
+            🎟 5. Tỷ lệ lấp đầy ghế theo suất
+        </button>
+    </div>
+
+    <!-- NỘI DUNG TAB 1: DOANH THU -->
+    <div id="section-revenue" class="report-section">
+        <div class="kpi-row">
+            <div class="kpi-stat">
+                <div class="kpi-stat-title">Tổng doanh thu thực thu</div>
+                <div class="kpi-stat-value" id="kpi-rev-total">0 ₫</div>
+                <div class="kpi-stat-sub">Đơn hàng hoàn tất (PAID)</div>
+            </div>
+            <div class="kpi-stat info">
+                <div class="kpi-stat-title">Tổng đơn hàng thành công</div>
+                <div class="kpi-stat-value" id="kpi-rev-orders">0</div>
+                <div class="kpi-stat-sub">Giao dịch đã thanh toán</div>
+            </div>
+            <div class="kpi-stat success">
+                <div class="kpi-stat-title">Tổng vé xem phim bán ra</div>
+                <div class="kpi-stat-value" id="kpi-rev-tickets">0</div>
+                <div class="kpi-stat-sub">Ghế rạp đã xuất vé</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="sub-nav" style="margin-bottom: 0;">
+                    <button class="sub-nav-btn active" id="sub-btn-day" onclick="switchRevenueView('day')">📅 Theo Ngày</button>
+                    <button class="sub-nav-btn" id="sub-btn-movie" onclick="switchRevenueView('movie')">🎬 Theo Phim</button>
+                    <button class="sub-nav-btn" id="sub-btn-cinema" onclick="switchRevenueView('cinema')">🏢 Theo Cụm Rạp</button>
+                </div>
+                <button class="btn btn-success" style="font-size: 12px; padding: 5px 12px;" onclick="exportRevenueCSV()">
+                    📥 Tải CSV mục này
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <!-- 1.1 Doanh thu theo Ngày -->
+                <div id="view-revenue-day">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Số đơn hàng</th>
+                                <th>Tiền vé (VND)</th>
+                                <th>Tiền combo bắp nước (VND)</th>
+                                <th>TỔNG DOANH THU (VND)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rev-day">
+                            <tr><td colspan="5" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 1.2 Doanh thu theo Phim -->
+                <div id="view-revenue-movie" style="display: none;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã phim</th>
+                                <th>Tên phim</th>
+                                <th>Số đơn hàng</th>
+                                <th>Số vé bán ra</th>
+                                <th>Tiền vé (VND)</th>
+                                <th>Tiền bắp nước (VND)</th>
+                                <th>TỔNG DOANH THU (VND)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rev-movie">
+                            <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 1.3 Doanh thu theo Rạp -->
+                <div id="view-revenue-cinema" style="display: none;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã rạp</th>
+                                <th>Tên cụm rạp</th>
+                                <th>Thành phố</th>
+                                <th>Số đơn hàng</th>
+                                <th>Số vé bán ra</th>
+                                <th>Tiền vé (VND)</th>
+                                <th>Tiền bắp nước (VND)</th>
+                                <th>TỔNG DOANH THU (VND)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rev-cinema">
+                            <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TAB 2: ĐỐI SOÁT -->
+    <div id="section-recon" class="report-section" style="display: none;">
+        <div class="kpi-row">
+            <div class="kpi-stat">
+                <div class="kpi-stat-title">Tổng tiền cổng xác nhận</div>
+                <div class="kpi-stat-value" id="kpi-recon-gw">0 ₫</div>
+                <div class="kpi-stat-sub">Giao dịch thành công tại cổng</div>
+            </div>
+            <div class="kpi-stat info">
+                <div class="kpi-stat-title">Tổng tiền Beta thu</div>
+                <div class="kpi-stat-value" id="kpi-recon-beta">0 ₫</div>
+                <div class="kpi-stat-sub">Đơn hàng ghi nhận PAID</div>
+            </div>
+            <div class="kpi-stat" id="card-recon-diff">
+                <div class="kpi-stat-title">Tổng chênh lệch (Cổng - Beta)</div>
+                <div class="kpi-stat-value" id="kpi-recon-diff">0 ₫</div>
+                <div class="kpi-stat-sub" id="sub-recon-diff">Khớp hoàn toàn</div>
+            </div>
+            <div class="kpi-stat danger">
+                <div class="kpi-stat-title">Giao dịch treo (Hanging)</div>
+                <div class="kpi-stat-value" id="kpi-recon-hanging">0</div>
+                <div class="kpi-stat-sub">Cổng đã trừ nhưng đơn chưa PAID</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>⚖️ BẢNG CHI TIẾT ĐỐI SOÁT THEO NGÀY</span>
+                <button class="btn btn-success" style="font-size: 12px; padding: 5px 12px;" onclick="exportCSVByType('recon')">
+                    📥 Tải CSV Đối soát
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Tiền Cổng Ghi Nhận</th>
+                            <th>Tiền Beta Thu</th>
+                            <th>CHÊNH LỆCH</th>
+                            <th>Số GD Treo</th>
+                            <th>Đã Hoàn</th>
+                            <th>Đang Xử Lý</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-recon">
+                        <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TAB 3: HOÀN TIỀN & SLA -->
+    <div id="section-refunds" class="report-section" style="display: none;">
+        <div class="kpi-row">
+            <div class="kpi-stat success">
+                <div class="kpi-stat-title">Đã hoàn tất (COMPLETED)</div>
+                <div class="kpi-stat-value" id="kpi-ref-comp">0</div>
+                <div class="kpi-stat-sub" id="sub-ref-comp-amt">0 ₫</div>
+            </div>
+            <div class="kpi-stat warning">
+                <div class="kpi-stat-title">Đang xử lý (PROCESSING)</div>
+                <div class="kpi-stat-value" id="kpi-ref-proc">0</div>
+                <div class="kpi-stat-sub" id="sub-ref-proc-amt">0 ₫</div>
+            </div>
+            <div class="kpi-stat danger">
+                <div class="kpi-stat-title">Quá hạn SLA 24H</div>
+                <div class="kpi-stat-value" id="kpi-ref-overdue">0</div>
+                <div class="kpi-stat-sub">Cần xử lý khẩn cấp</div>
+            </div>
+            <div class="kpi-stat info">
+                <div class="kpi-stat-title">TG trung bình phát hiện → gửi lệnh</div>
+                <div class="kpi-stat-value" id="kpi-ref-avg-time">0 phút</div>
+                <div class="kpi-stat-sub">Hiệu suất xử lý tự động & thủ công</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>💸 DANH SÁCH LỆNH HOÀN TIỀN & THEO DÕI SLA 24H</span>
+                <button class="btn btn-success" style="font-size: 12px; padding: 5px 12px;" onclick="exportCSVByType('refunds')">
+                    📥 Tải CSV Hoàn tiền
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã hoàn</th>
+                            <th>Mã đơn hàng</th>
+                            <th>Số tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian phát hiện</th>
+                            <th>Hạn SLA 24H</th>
+                            <th>TG phát hiện → gửi hoàn</th>
+                            <th>Cảnh báo SLA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-refunds">
+                        <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TAB 4: CSKH & TICKET -->
+    <div id="section-tickets" class="report-section" style="display: none;">
+        <div class="kpi-row">
+            <div class="kpi-stat">
+                <div class="kpi-stat-title">Tổng số ticket khiếu nại</div>
+                <div class="kpi-stat-value" id="kpi-tkt-total">0</div>
+                <div class="kpi-stat-sub">Tiếp nhận trong kỳ</div>
+            </div>
+            <div class="kpi-stat warning">
+                <div class="kpi-stat-title">Ticket đang mở (Mới + Đang xem)</div>
+                <div class="kpi-stat-value" id="kpi-tkt-open">0</div>
+                <div class="kpi-stat-sub">NEW / IN_REVIEW / WAITING</div>
+            </div>
+            <div class="kpi-stat success">
+                <div class="kpi-stat-title">Đã giải quyết thành công</div>
+                <div class="kpi-stat-value" id="kpi-tkt-resolved">0</div>
+                <div class="kpi-stat-sub">Trạng thái RESOLVED</div>
+            </div>
+            <div class="kpi-stat info">
+                <div class="kpi-stat-title">Thời gian xử lý trung bình</div>
+                <div class="kpi-stat-value" id="kpi-tkt-avg-time">0 giờ</div>
+                <div class="kpi-stat-sub">Từ lúc tạo đến khi hoàn tất</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🎧 BẢNG CHI TIẾT TICKET & THỜI GIAN XỬ LÝ</span>
+                <button class="btn btn-success" style="font-size: 12px; padding: 5px 12px;" onclick="exportCSVByType('tickets')">
+                    📥 Tải CSV CSKH Ticket
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Ticket</th>
+                            <th>Mã đơn</th>
+                            <th>Nguồn</th>
+                            <th>Trạng thái</th>
+                            <th>Loại sự cố</th>
+                            <th>Thời gian gửi</th>
+                            <th>Thời gian giải quyết</th>
+                            <th>Thời gian xử lý</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-tickets">
+                        <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TAB 5: TỶ LỆ LẤP ĐẦY GHẾ -->
+    <div id="section-occupancy" class="report-section" style="display: none;">
+        <div class="kpi-row">
+            <div class="kpi-stat">
+                <div class="kpi-stat-title">Số suất chiếu thống kê</div>
+                <div class="kpi-stat-value" id="kpi-occ-shows">0</div>
+                <div class="kpi-stat-sub">Suất chiếu trong kỳ</div>
+            </div>
+            <div class="kpi-stat info">
+                <div class="kpi-stat-title">Tổng ghế mở bán</div>
+                <div class="kpi-stat-value" id="kpi-occ-seats">0</div>
+                <div class="kpi-stat-sub">Sức chứa phòng chiếu</div>
+            </div>
+            <div class="kpi-stat success">
+                <div class="kpi-stat-title">Tổng ghế đã đặt (PAID)</div>
+                <div class="kpi-stat-value" id="kpi-occ-booked">0</div>
+                <div class="kpi-stat-sub">Vé đã xuất thành công</div>
+            </div>
+            <div class="kpi-stat warning">
+                <div class="kpi-stat-title">Tỷ lệ lấp đầy trung bình</div>
+                <div class="kpi-stat-value" id="kpi-occ-avg-rate">0%</div>
+                <div class="kpi-stat-sub">Hiệu suất khai thác rạp</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🎟 TỶ LỆ LẤP ĐẦY GHẾ THEO TỪNG SUẤT CHIẾU</span>
+                <button class="btn btn-success" style="font-size: 12px; padding: 5px 12px;" onclick="exportCSVByType('occupancy')">
+                    📥 Tải CSV Tỷ lệ Lấp đầy
+                </button>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã suất</th>
+                            <th>Phim</th>
+                            <th>Cụm Rạp</th>
+                            <th>Phòng</th>
+                            <th>Suất chiếu</th>
+                            <th>Định dạng</th>
+                            <th>Ghế đặt / Tổng</th>
+                            <th>Tỷ lệ lấp đầy</th>
+                            <th>Doanh thu suất</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-occupancy">
+                        <tr><td colspan="9" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- Script dependencies -->
     <script src="../js/api.js"></script>
     <script src="js/admin-layout.js"></script>
-    
+
     <script>
         (function() {
+            let reportData = null;
+            let currentTab = 'revenue';
+            let currentRevenueView = 'day';
+
             function formatMoney(amount) {
                 if (amount === null || amount === undefined) return '0 ₫';
                 return Number(amount).toLocaleString('vi-VN') + ' ₫';
             }
 
-            window.loadReportData = async function() {
+            function formatTime(isoStr) {
+                if (!isoStr) return '--';
+                try {
+                    const d = new Date(isoStr);
+                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return isoStr;
+                }
+            }
+
+            window.switchReportTab = function(tabName) {
+                currentTab = tabName;
+                const buttons = document.querySelectorAll('.report-tab-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                const targetBtn = document.getElementById('tab-btn-' + tabName);
+                if (targetBtn) targetBtn.classList.add('active');
+
+                const sections = document.querySelectorAll('.report-section');
+                sections.forEach(sec => sec.style.display = 'none');
+                const targetSec = document.getElementById('section-' + tabName);
+                if (targetSec) targetSec.style.display = 'block';
+            };
+
+            window.switchRevenueView = function(viewName) {
+                currentRevenueView = viewName;
+                const buttons = document.querySelectorAll('.sub-nav-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                const targetBtn = document.getElementById('sub-btn-' + viewName);
+                if (targetBtn) targetBtn.classList.add('active');
+
+                document.getElementById('view-revenue-day').style.display = viewName === 'day' ? 'block' : 'none';
+                document.getElementById('view-revenue-movie').style.display = viewName === 'movie' ? 'block' : 'none';
+                document.getElementById('view-revenue-cinema').style.display = viewName === 'cinema' ? 'block' : 'none';
+            };
+
+            window.loadAllReports = async function() {
                 const from = document.getElementById('filter-from').value;
                 const to = document.getElementById('filter-to').value;
                 const params = new URLSearchParams();
                 if (from) params.set('from', from);
                 if (to) params.set('to', to);
 
-                const endpoint = '/admin/reports/reconciliation' + (params.toString() ? '?' + params.toString() : '');
+                const endpoint = '/admin/reports/overview' + (params.toString() ? '?' + params.toString() : '');
 
                 try {
-                    const data = await API.get(endpoint);
-                    const list = Array.isArray(data) ? data : [];
-                    const tbody = document.getElementById('report-table');
-                    if (!tbody) return;
-
-                    if (list.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #777;">Không có dữ liệu đối soát trong khoảng thời gian này.</td></tr>';
-                        return;
-                    }
-
-                    tbody.innerHTML = list.map(r => {
-                        const diff = Number(r.difference || 0);
-                        const diffStyle = diff > 0 
-                            ? 'color: #dc3545; font-weight: bold;' 
-                            : (diff < 0 ? 'color: #f39c12; font-weight: bold;' : 'color: #28a745; font-weight: bold;');
-
-                        return `
-                            <tr>
-                                <td><strong>${r.date}</strong></td>
-                                <td>${formatMoney(r.gateway_total)}</td>
-                                <td>${formatMoney(r.beta_total)}</td>
-                                <td style="${diffStyle}">${formatMoney(diff)}</td>
-                                <td><span class="badge ${r.hanging_count > 0 ? 'error' : 'gray'}">${r.hanging_count}</span></td>
-                                <td><span class="badge success">${r.refunded_count}</span></td>
-                                <td><span class="badge warning">${r.refunding_count}</span></td>
-                            </tr>
-                        `;
-                    }).join('');
+                    const res = await API.get(endpoint);
+                    reportData = res || {};
+                    renderRevenueSection();
+                    renderReconSection();
+                    renderRefundsSection();
+                    renderTicketsSection();
+                    renderOccupancySection();
                 } catch (err) {
-                    console.error('Lỗi tải báo cáo đối soát:', err);
-                    const tbody = document.getElementById('report-table');
-                    if (tbody) {
-                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc3545;">Lỗi tải dữ liệu: ${err.message || 'Thất bại'}</td></tr>`;
-                    }
+                    console.error('Lỗi khi tải báo cáo tổng hợp:', err);
+                    alert('Lỗi tải báo cáo: ' + (err.message || 'Không thể lấy dữ liệu'));
                 }
             };
 
-            window.exportCSV = function() {
+            // 1. Render Doanh thu
+            function renderRevenueSection() {
+                if (!reportData || !reportData.revenue) return;
+                const rev = reportData.revenue;
+
+                document.getElementById('kpi-rev-total').innerText = formatMoney(rev.totals?.total_revenue);
+                document.getElementById('kpi-rev-orders').innerText = Number(rev.totals?.total_orders || 0).toLocaleString('vi-VN');
+                document.getElementById('kpi-rev-tickets').innerText = Number(rev.totals?.total_tickets || 0).toLocaleString('vi-VN');
+
+                // 1.1 Theo Ngày
+                const tableDay = document.getElementById('table-rev-day');
+                if (tableDay) {
+                    if (rev.by_day.length === 0) {
+                        tableDay.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">Không có dữ liệu trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableDay.innerHTML = rev.by_day.map(r => `
+                            <tr>
+                                <td><strong>${r.date}</strong></td>
+                                <td><span class="badge info">${r.orders_count}</span></td>
+                                <td>${formatMoney(r.amount_tickets)}</td>
+                                <td>${formatMoney(r.amount_combos)}</td>
+                                <td style="font-weight: bold; color: #03599d;">${formatMoney(r.total_revenue)}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+
+                // 1.2 Theo Phim
+                const tableMovie = document.getElementById('table-rev-movie');
+                if (tableMovie) {
+                    if (rev.by_movie.length === 0) {
+                        tableMovie.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888;">Không có dữ liệu trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableMovie.innerHTML = rev.by_movie.map(r => `
+                            <tr>
+                                <td>#${r.movie_id}</td>
+                                <td><strong>${r.movie_title}</strong></td>
+                                <td><span class="badge info">${r.orders_count}</span></td>
+                                <td><span class="badge success">${r.tickets_count}</span></td>
+                                <td>${formatMoney(r.amount_tickets)}</td>
+                                <td>${formatMoney(r.amount_combos)}</td>
+                                <td style="font-weight: bold; color: #03599d;">${formatMoney(r.total_revenue)}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+
+                // 1.3 Theo Cụm Rạp
+                const tableCinema = document.getElementById('table-rev-cinema');
+                if (tableCinema) {
+                    if (rev.by_cinema.length === 0) {
+                        tableCinema.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">Không có dữ liệu trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableCinema.innerHTML = rev.by_cinema.map(r => `
+                            <tr>
+                                <td>#${r.cinema_id}</td>
+                                <td><strong>${r.cinema_name}</strong></td>
+                                <td>${r.cinema_city}</td>
+                                <td><span class="badge info">${r.orders_count}</span></td>
+                                <td><span class="badge success">${r.tickets_count}</span></td>
+                                <td>${formatMoney(r.amount_tickets)}</td>
+                                <td>${formatMoney(r.amount_combos)}</td>
+                                <td style="font-weight: bold; color: #03599d;">${formatMoney(r.total_revenue)}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            }
+
+            // 2. Render Đối soát
+            function renderReconSection() {
+                if (!reportData || !reportData.recon) return;
+                const reconList = reportData.recon;
+
+                let sumGw = 0;
+                let sumBeta = 0;
+                let sumDiff = 0;
+                let sumHanging = 0;
+
+                reconList.forEach(r => {
+                    sumGw += Number(r.gateway_total || 0);
+                    sumBeta += Number(r.beta_total || 0);
+                    sumDiff += Number(r.difference || 0);
+                    sumHanging += Number(r.hanging_count || 0);
+                });
+
+                document.getElementById('kpi-recon-gw').innerText = formatMoney(sumGw);
+                document.getElementById('kpi-recon-beta').innerText = formatMoney(sumBeta);
+                document.getElementById('kpi-recon-diff').innerText = formatMoney(sumDiff);
+                document.getElementById('kpi-recon-hanging').innerText = sumHanging;
+
+                const cardDiff = document.getElementById('card-recon-diff');
+                if (sumDiff > 0) {
+                    cardDiff.className = 'kpi-stat danger';
+                    document.getElementById('sub-recon-diff').innerText = 'Cổng trừ thừa so với Beta';
+                } else if (sumDiff < 0) {
+                    cardDiff.className = 'kpi-stat warning';
+                    document.getElementById('sub-recon-diff').innerText = 'Beta ghi nhận thừa';
+                } else {
+                    cardDiff.className = 'kpi-stat success';
+                    document.getElementById('sub-recon-diff').innerText = 'Khớp hoàn toàn 100%';
+                }
+
+                const tableRecon = document.getElementById('table-recon');
+                if (tableRecon) {
+                    if (reconList.length === 0) {
+                        tableRecon.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888;">Không có dữ liệu đối soát trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableRecon.innerHTML = reconList.map(r => {
+                            const diff = Number(r.difference || 0);
+                            const diffStyle = diff > 0 
+                                ? 'color: #dc3545; font-weight: bold;' 
+                                : (diff < 0 ? 'color: #f39c12; font-weight: bold;' : 'color: #28a745; font-weight: bold;');
+
+                            return `
+                                <tr>
+                                    <td><strong>${r.date}</strong></td>
+                                    <td>${formatMoney(r.gateway_total)}</td>
+                                    <td>${formatMoney(r.beta_total)}</td>
+                                    <td style="${diffStyle}">${formatMoney(diff)}</td>
+                                    <td><span class="badge ${r.hanging_count > 0 ? 'error' : 'gray'}">${r.hanging_count}</span></td>
+                                    <td><span class="badge success">${r.refunded_count}</span></td>
+                                    <td><span class="badge warning">${r.refunding_count}</span></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            }
+
+            // 3. Render Hoàn tiền & SLA
+            function renderRefundsSection() {
+                if (!reportData || !reportData.refunds) return;
+                const ref = reportData.refunds;
+
+                document.getElementById('kpi-ref-comp').innerText = ref.completed_count;
+                document.getElementById('sub-ref-comp-amt').innerText = formatMoney(ref.completed_amount);
+                document.getElementById('kpi-ref-proc').innerText = ref.processing_count;
+                document.getElementById('sub-ref-proc-amt').innerText = formatMoney(ref.processing_amount);
+                document.getElementById('kpi-ref-overdue').innerText = ref.overdue_count;
+                document.getElementById('kpi-ref-avg-time').innerText = ref.avg_turnaround_minutes + ' phút';
+
+                const tableRef = document.getElementById('table-refunds');
+                if (tableRef) {
+                    if (!ref.items || ref.items.length === 0) {
+                        tableRef.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">Không có lệnh hoàn tiền nào trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableRef.innerHTML = ref.items.map(r => {
+                            let statusBadge = `<span class="badge warning">${r.status}</span>`;
+                            if (r.status === 'COMPLETED') statusBadge = `<span class="badge success">COMPLETED</span>`;
+                            if (r.status === 'REJECTED') statusBadge = `<span class="badge gray">REJECTED</span>`;
+
+                            const overdueBadge = r.is_overdue
+                                ? `<span class="badge error">QUÁ HẠN SLA 24H</span>`
+                                : `<span class="badge success">Trong hạn</span>`;
+
+                            return `
+                                <tr>
+                                    <td><strong>${r.refund_id}</strong></td>
+                                    <td><a href="orders.html?q=${encodeURIComponent(r.order_id)}" target="_blank" style="color: #03599d; font-weight: 600;">${r.order_id}</a></td>
+                                    <td style="color: #dc3545; font-weight: bold;">${formatMoney(r.amount)}</td>
+                                    <td>${statusBadge}</td>
+                                    <td>${formatTime(r.detected_at)}</td>
+                                    <td>${formatTime(r.send_due_at)}</td>
+                                    <td><strong>${r.turnaround_minutes !== null ? r.turnaround_minutes + ' phút' : '--'}</strong></td>
+                                    <td>${overdueBadge}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            }
+
+            // 4. Render CSKH & Ticket
+            function renderTicketsSection() {
+                if (!reportData || !reportData.tickets) return;
+                const tkt = reportData.tickets;
+
+                const openCount = (tkt.by_status.NEW || 0) + (tkt.by_status.IN_REVIEW || 0) + (tkt.by_status.WAITING_REFUND || 0);
+
+                document.getElementById('kpi-tkt-total').innerText = tkt.total_tickets;
+                document.getElementById('kpi-tkt-open').innerText = openCount;
+                document.getElementById('kpi-tkt-resolved').innerText = tkt.by_status.RESOLVED || 0;
+                document.getElementById('kpi-tkt-avg-time').innerText = `${tkt.avg_resolution_hours} giờ (${tkt.avg_resolution_minutes}p)`;
+
+                const tableTkt = document.getElementById('table-tickets');
+                if (tableTkt) {
+                    if (!tkt.items || tkt.items.length === 0) {
+                        tableTkt.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888;">Không có ticket khiếu nại nào trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableTkt.innerHTML = tkt.items.map(t => {
+                            let badge = `<span class="badge warning">${t.status}</span>`;
+                            if (t.status === 'RESOLVED') badge = `<span class="badge success">RESOLVED</span>`;
+                            if (t.status === 'REJECTED') badge = `<span class="badge gray">REJECTED</span>`;
+                            if (t.status === 'IN_REVIEW') badge = `<span class="badge primary">IN_REVIEW</span>`;
+
+                            return `
+                                <tr>
+                                    <td><a href="cskh.html?ticketId=${encodeURIComponent(t.ticket_id)}" target="_blank" style="color: #03599d; font-weight: bold;">#${t.ticket_id}</a></td>
+                                    <td>${t.order_id ? `<a href="orders.html?q=${encodeURIComponent(t.order_id)}" target="_blank" style="color: #03599d;">${t.order_id}</a>` : '--'}</td>
+                                    <td><span class="badge ${t.source === 'CUSTOMER' ? 'info' : 'gray'}">${t.source}</span></td>
+                                    <td>${badge}</td>
+                                    <td>${t.issue_type || 'Khiếu nại'}</td>
+                                    <td>${formatTime(t.created_at)}</td>
+                                    <td>${formatTime(t.resolved_at)}</td>
+                                    <td><strong>${t.resolution_hours !== null ? t.resolution_hours + 'h' : '--'}</strong></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            }
+
+            // 5. Render Tỷ lệ Lấp đầy Ghế
+            function renderOccupancySection() {
+                if (!reportData || !reportData.occupancy) return;
+                const occList = reportData.occupancy;
+
+                const showCount = occList.length;
+                let totalSeats = 0;
+                let totalBooked = 0;
+                let totalRevenue = 0;
+
+                occList.forEach(s => {
+                    totalSeats += Number(s.total_seats || 0);
+                    totalBooked += Number(s.booked_seats || 0);
+                    totalRevenue += Number(s.revenue || 0);
+                });
+
+                const avgRate = totalSeats > 0 ? (Math.round((totalBooked / totalSeats) * 1000) / 10) : 0;
+
+                document.getElementById('kpi-occ-shows').innerText = showCount;
+                document.getElementById('kpi-occ-seats').innerText = totalSeats.toLocaleString('vi-VN');
+                document.getElementById('kpi-occ-booked').innerText = totalBooked.toLocaleString('vi-VN');
+                document.getElementById('kpi-occ-avg-rate').innerText = avgRate + '%';
+
+                const tableOcc = document.getElementById('table-occupancy');
+                if (tableOcc) {
+                    if (occList.length === 0) {
+                        tableOcc.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888;">Không có suất chiếu nào trong khoảng thời gian này.</td></tr>';
+                    } else {
+                        tableOcc.innerHTML = occList.map(s => {
+                            const rate = Number(s.occupancy_rate || 0);
+                            let rateColor = '#28a745';
+                            if (rate < 30) rateColor = '#dc3545';
+                            else if (rate < 60) rateColor = '#f39c12';
+
+                            return `
+                                <tr>
+                                    <td><strong>#${s.showtime_id}</strong></td>
+                                    <td><strong>${s.movie_title}</strong></td>
+                                    <td>${s.cinema_name}</td>
+                                    <td>${s.room_name}</td>
+                                    <td>${formatTime(s.starts_at)}</td>
+                                    <td><span class="badge info">${s.format}</span></td>
+                                    <td><strong>${s.booked_seats}</strong> / ${s.total_seats}</td>
+                                    <td>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-fill" style="width: ${rate}%; background: ${rateColor};"></div>
+                                        </div>
+                                        <strong style="color: ${rateColor};">${rate}%</strong>
+                                    </td>
+                                    <td style="font-weight: bold; color: #03599d;">${formatMoney(s.revenue)}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            }
+
+            // Export CSV Functions
+            window.exportCurrentCSV = function() {
+                if (currentTab === 'revenue') {
+                    exportRevenueCSV();
+                } else {
+                    exportCSVByType(currentTab);
+                }
+            };
+
+            window.exportRevenueCSV = function() {
+                let type = 'revenue_daily';
+                if (currentRevenueView === 'movie') type = 'revenue_movie';
+                if (currentRevenueView === 'cinema') type = 'revenue_cinema';
+                exportCSVByType(type);
+            };
+
+            window.exportCSVByType = function(type) {
                 const from = document.getElementById('filter-from').value;
                 const to = document.getElementById('filter-to').value;
-                const params = new URLSearchParams();
+                const params = new URLSearchParams({ type });
                 if (from) params.set('from', from);
                 if (to) params.set('to', to);
 
-                const exportUrl = `${API.BASE_URL}/admin/reports/reconciliation/export.csv${params.toString() ? '?' + params.toString() : ''}`;
+                const exportUrl = `${API.BASE_URL}/admin/reports/export.csv?${params.toString()}`;
                 window.location.href = exportUrl;
             };
 
             window.resetFilter = function() {
                 document.getElementById('filter-from').value = '';
                 document.getElementById('filter-to').value = '';
-                loadReportData();
+                loadAllReports();
             };
 
-            window.addEventListener('adminReady', loadReportData);
+            window.addEventListener('adminReady', loadAllReports);
         })();
     </script>
 </body>

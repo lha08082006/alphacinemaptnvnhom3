@@ -9,12 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="top-bar">
             <div class="container-fluid" style="display:flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 13px;">
                 <span id="nav-user-guest" style="display:none;">
-                    <a href="login.html" id="nav-login">Đăng nhập</a> <span style="margin:0 10px;">|</span>
-                    <a href="login.html" id="nav-register">Đăng ký</a>
+                    <a href="dang-nhap.html" id="nav-login">Đăng nhập</a> <span style="margin:0 10px;">|</span>
+                    <a href="dang-nhap.html" id="nav-register">Đăng ký</a>
                 </span>
                 
                 <span id="nav-user-info" style="display:inline-flex; align-items: center; gap: 8px;">
                     Xin chào: <span id="nav-username" style="color: white; font-weight: normal;">— luonghonganh</span> <span style="font-size: 10px; margin-left: -4px;">▾</span>
+                    <a href="my-orders.html" style="color: #ffd166; margin-left: 6px; text-decoration: none; font-weight: 600; font-size: 12.5px;">📋 Đơn hàng</a>
+                    <a href="inbox.html" style="color: #ffd166; margin-left: 6px; text-decoration: none; font-weight: 600; font-size: 12.5px;">🔔 Thông báo</a>
                     <a href="#" onclick="logout(event)" title="Tài khoản / Đăng xuất" style="color: white; display: inline-flex; align-items: center; margin-left: 5px;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </a>
@@ -50,6 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <li><a href="combo.html" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">TIN MỚI VÀ ƯU ĐÃI</a></li>
                         <li><a href="#" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">NHƯỢNG QUYỀN</a></li>
                         <li><a href="#" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy);">THÀNH VIÊN</a></li>
+                        <li class="nav-dropdown" style="position: relative;">
+                            <a href="support.html" class="nav-link-dropdown" style="text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-navy); display: flex; align-items: center; gap: 4px;">
+                                HỖ TRỢ <span style="font-size: 11px;">▾</span>
+                            </a>
+                            <ul class="dropdown-menu-support">
+                                <li><a href="support.html">Khiếu nại thanh toán</a></li>
+                                <li><a href="support-tracking.html">Theo dõi khiếu nại</a></li>
+                                <li><a href="faq.html">Câu hỏi thường gặp về thanh toán</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </nav>
 
@@ -140,6 +152,45 @@ document.addEventListener('DOMContentLoaded', () => {
 .main-nav ul li a:hover {
     color: var(--blue) !important;
 }
+
+/* Dropdown Menu Hỗ Trợ */
+.nav-dropdown {
+    position: relative;
+    padding: 10px 0;
+}
+.dropdown-menu-support {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 260px;
+    background: white;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    border-radius: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+    z-index: 1001;
+    border-top: 3px solid #03599d;
+}
+.nav-dropdown:hover .dropdown-menu-support {
+    display: block;
+}
+.dropdown-menu-support li a {
+    display: block;
+    padding: 10px 18px;
+    font-family: 'Be Vietnam Pro', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    text-decoration: none !important;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.dropdown-menu-support li a:hover {
+    background: #e3f2fd;
+    color: #03599d !important;
+}
 </style>
     `;
     document.body.insertAdjacentHTML('beforeend', footerHtml);
@@ -175,7 +226,7 @@ window.updateAuthUI = function () {
     if (user) {
         guestSpan.style.display = 'none';
         infoSpan.style.display = 'inline';
-        document.getElementById('nav-username').innerText = user.name;
+        document.getElementById('nav-username').innerText = user.name || user.email;
         checkUnread();
     } else {
         guestSpan.style.display = 'inline';
@@ -183,10 +234,17 @@ window.updateAuthUI = function () {
     }
 };
 
-window.logout = function (e) {
-    e.preventDefault();
+window.logout = async function (e) {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+        if (window.API && API.post) {
+            await API.post('/auth/logout');
+        }
+    } catch (_err) {}
     localStorage.removeItem('currentUser');
-    Notify.success("Đã đăng xuất.");
+    if (typeof Notify !== 'undefined' && Notify.success) {
+        Notify.success("Đã đăng xuất.");
+    }
     updateAuthUI();
     if (window.location.pathname.includes('my-orders') || window.location.pathname.includes('inbox')) {
         window.location.href = 'index.html';

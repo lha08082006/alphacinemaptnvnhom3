@@ -26,7 +26,7 @@ const S = ORDER_STATUS;
  * nhưng được suy ra từ quy tắc nghiệp vụ — xem docs/ARCHITECTURE.md mục 6.
  */
 const TRANSITIONS = Object.freeze({
-  [S.HOLDING]: [S.AWAITING_PAYMENT, S.EXPIRED],
+  [S.HOLDING]: [S.AWAITING_PAYMENT, S.EXPIRED, S.CANCELLED],
   [S.AWAITING_PAYMENT]: [S.PAID, S.FAILED, S.CANCELLED, S.PENDING_VERIFY],
   [S.PENDING_VERIFY]: [
     S.PAID, // BR-10: callback SUCCESS đến muộn
@@ -36,7 +36,7 @@ const TRANSITIONS = Object.freeze({
   [S.FAILED]: [S.REFUND_PENDING], // [MỞ RỘNG] BR-06 quét FAILED có txnId; BR-12 hoàn thủ công (AS-IS)
   [S.EXPIRED]: [S.REFUND_PENDING], // [MỞ RỘNG] BR-06 quét EXPIRED có txnId
   [S.REFUND_PENDING]: [S.REFUNDED],
-  [S.PAID]: [],
+  [S.PAID]: [S.REFUND_PENDING], // [MỞ RỘNG] Rạp hủy suất chiếu hoặc hoàn tiền khiếu nại
   [S.CANCELLED]: [],
   [S.REFUNDED]: [],
 });

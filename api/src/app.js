@@ -58,6 +58,20 @@ function createApp() {
 
   app.use(express.static(path.join(__dirname, '..', '..')));
 
+  // Route alias tiện ích cho giao diện web
+  app.get('/dang-nhap', (_req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'dang-nhap.html'));
+  });
+  app.get('/booking', (_req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'booking.html'));
+  });
+  app.get('/seats', (_req, res) => {
+    res.redirect('/booking');
+  });
+  app.get('/admin/login', (_req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'admin', 'login.html'));
+  });
+
   app.use(notFound);
   app.use(errorHandler);
   return app;

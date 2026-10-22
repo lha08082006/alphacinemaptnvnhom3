@@ -6,60 +6,204 @@
     <title>Quản lý Hoàn tiền - Beta Admin</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .kpi-stat {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #03599d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .kpi-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+        .kpi-stat.danger {
+            border-left-color: #dc3545;
+            background: #fffafa;
+        }
+        .kpi-stat-title {
+            font-size: 11.5px;
+            font-weight: bold;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .kpi-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+        }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
         .check-list { display: flex; gap: 4px; font-size: 13px; }
-        .check-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: white; font-weight: bold; font-size: 10.5px; }
+        .check-item { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: white; font-weight: bold; font-size: 10px; }
         .check-ok { background: #28a745; }
         .check-ng { background: #dc3545; }
+        
+        .sla-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .sla-tag.overdue {
+            background: #ffe3e3;
+            color: #dc3545;
+            border: 1px solid #ffa8a8;
+        }
+        .sla-tag.ok {
+            background: #e6fcf5;
+            color: #0ca678;
+            border: 1px solid #b2f2bb;
+        }
+        .sla-tag.warning {
+            background: #fff9db;
+            color: #f59f00;
+            border: 1px solid #ffe066;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: #333;">QUẢN LÝ TIẾN ĐỘ HOÀN TIỀN (REFUNDS)</h3>
-        <button class="btn btn-primary" onclick="loadRefundsData()">🔄 Làm mới dữ liệu</button>
+        <div>
+            <h3 style="margin: 0; color: #333;">QUẢN LÝ TIẾN ĐỘ & DUYỆT HOÀN TIỀN (REFUNDS)</h3>
+            <p style="color: #666; font-size: 13px; margin-top: 4px;">
+                Theo dõi tiến độ hoàn tiền, cam kết SLA 24 giờ và thực thi phê duyệt hoàn tiền. Mọi hành động duyệt được ghi nhận vào Audit Log.
+            </p>
+        </div>
+        <button class="btn btn-primary" onclick="loadRefundsData(1)">🔄 Làm mới dữ liệu</button>
     </div>
-    
-    <div class="card" style="border-left: 4px solid #dc3545; margin-bottom: 25px;">
-        <div class="card-header" style="color: #dc3545;">CA LỆCH THIẾU ĐIỀU KIỆN - CẦN CSKH XỬ LÝ (SYSTEM TICKETS)</div>
-        <div class="card-body" style="padding: 0;">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã Ticket</th>
-                        <th>Mã Đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Lý do</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="ticket-table">
-                    <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải danh sách ca lệch...</td></tr>
-                </tbody>
-            </table>
+
+    <!-- KPI STATS -->
+    <div class="kpi-row">
+        <div class="kpi-stat" onclick="filterByStatus('')">
+            <div class="kpi-stat-title">Tổng lệnh hoàn</div>
+            <div class="kpi-stat-value" id="kpi-total">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #f59f00;" onclick="filterByStatus('CHECKING')">
+            <div class="kpi-stat-title">Đang giữ lệnh (Checking)</div>
+            <div class="kpi-stat-value" id="kpi-checking" style="color: #f59f00;">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #17a2b8;" onclick="filterByStatus('SENT')">
+            <div class="kpi-stat-title">Đang xử lý (Cổng/Bank)</div>
+            <div class="kpi-stat-value" id="kpi-processing" style="color: #17a2b8;">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #28a745;" onclick="filterByStatus('COMPLETED')">
+            <div class="kpi-stat-title">Đã hoàn tất (Completed)</div>
+            <div class="kpi-stat-value" id="kpi-completed" style="color: #28a745;">0</div>
+        </div>
+        <div class="kpi-stat danger" onclick="filterOverdue()">
+            <div class="kpi-stat-title" style="color: #dc3545;">⚠️ Quá hạn SLA 24H</div>
+            <div class="kpi-stat-value" id="kpi-overdue" style="color: #dc3545;">0</div>
         </div>
     </div>
 
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <input type="text" id="filter-search" class="filter-input" placeholder="Tìm theo mã hoàn, mã đơn..." style="min-width: 220px;" onkeyup="if(event.key==='Enter') loadRefundsData(1)">
+
+        <select id="filter-status" class="filter-input" onchange="loadRefundsData(1)">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="CHECKING">CHECKING (Đang giữ lệnh chờ gửi)</option>
+            <option value="SENT">SENT (Đã gửi cổng VNPay)</option>
+            <option value="BANK_PROCESSING">BANK_PROCESSING (Ngân hàng đang xử lý)</option>
+            <option value="COMPLETED">COMPLETED (Hoàn tất về tài khoản)</option>
+            <option value="REJECTED">REJECTED (Từ chối hoàn)</option>
+        </select>
+
+        <select id="filter-sla" class="filter-input" onchange="loadRefundsData(1)">
+            <option value="">-- Tất cả SLA --</option>
+            <option value="true">⚠️ Chỉ xem ca QUÁ HẠN SLA 24H</option>
+        </select>
+
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 12.5px; color: #666;">Từ:</span>
+            <input type="date" id="filter-from" class="filter-input" onchange="loadRefundsData(1)">
+            <span style="font-size: 12.5px; color: #666;">Đến:</span>
+            <input type="date" id="filter-to" class="filter-input" onchange="loadRefundsData(1)">
+        </div>
+
+        <button class="btn btn-primary" onclick="loadRefundsData(1)" style="padding: 7px 14px; font-size: 13px;">
+            Lọc
+        </button>
+        <button class="btn" onclick="resetFilters()" style="background: #e9ecef; color: #333; padding: 7px 12px; font-size: 13px;">
+            Đặt lại
+        </button>
+    </div>
+
+    <!-- MAIN REFUNDS TABLE -->
     <div class="card" style="border-left: 4px solid #03599d;">
-        <div class="card-header">DANH SÁCH LỆNH HOÀN TIỀN (AUTO & MANUAL)</div>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>DANH SÁCH LỆNH HOÀN TIỀN & THEO DÕI HẠN SLA 24H</span>
+            <span id="refunds-count-badge" style="font-size: 12.5px; font-weight: normal; color: #666;">Đang tải...</span>
+        </div>
         <div class="card-body" style="padding: 0;">
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Mã Hoàn (RefundId)</th>
-                        <th>Mã Đơn</th>
+                        <th>Mã Đơn hàng</th>
                         <th>Khách hàng</th>
                         <th>Số Tiền</th>
                         <th>Loại</th>
-                        <th>Kiểm tra (a-e)</th>
-                        <th>Trạng thái / SLA</th>
-                        <th>Thời gian tạo</th>
-                        <th>Thao tác</th>
+                        <th>Kiểm tra 5 điều kiện</th>
+                        <th>Trạng thái & Hạn SLA 24h</th>
+                        <th>Thời gian phát hiện</th>
+                        <th style="text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="refund-table">
-                    <tr><td colspan="9" style="text-align: center; color: #888;">Đang tải danh sách lệnh hoàn...</td></tr>
+                    <tr><td colspan="9" style="text-align: center; color: #888; padding: 25px;">Đang tải danh sách lệnh hoàn...</td></tr>
                 </tbody>
             </table>
+
+            <div class="pagination-container">
+                <div style="font-size: 12.5px; color: #666;" id="page-info">Trang 1 / 1</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn" id="btn-prev" onclick="changePage(-1)" style="background: #f1f3f5; color: #333; padding: 5px 12px;" disabled>◀ Trang trước</button>
+                    <button class="btn" id="btn-next" onclick="changePage(1)" style="background: #f1f3f5; color: #333; padding: 5px 12px;" disabled>Trang sau ▶</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -69,13 +213,16 @@
     
     <script>
         (function() {
+            let currentPage = 1;
+            let totalPages = 1;
+            const pageLimit = 10;
+
             function formatMoney(amount) {
-                if (amount === null || amount === undefined) return '0 ₫';
-                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+                return Number(amount || 0).toLocaleString('vi-VN') + ' đ';
             }
 
             function formatTime(isoStr) {
-                if (!isoStr) return '';
+                if (!isoStr) return '--';
                 try {
                     const d = new Date(isoStr);
                     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
@@ -84,138 +231,218 @@
                 }
             }
 
-            window.loadRefundsData = async function() {
+            function formatRemainingSla(minutes) {
+                if (minutes === null || minutes === undefined) return '';
+                if (minutes < 0) {
+                    const absM = Math.abs(minutes);
+                    const h = Math.floor(absM / 60);
+                    const m = absM % 60;
+                    return `(Trễ ${h}h ${m}m)`;
+                }
+                const h = Math.floor(minutes / 60);
+                const m = minutes % 60;
+                return `(Còn ${h}h ${m}m)`;
+            }
+
+            window.loadRefundsData = async function(page = 1) {
+                currentPage = page;
+                const tbody = document.getElementById('refund-table');
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888; padding: 25px;">Đang tải danh sách lệnh hoàn tiền...</td></tr>';
+
+                const search = document.getElementById('filter-search').value.trim();
+                const status = document.getElementById('filter-status').value;
+                const overdue = document.getElementById('filter-sla').value;
+                const from = document.getElementById('filter-from').value;
+                const to = document.getElementById('filter-to').value;
+
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: pageLimit,
+                });
+                if (search) {
+                    if (search.startsWith('BC') || search.length >= 8) {
+                        params.append('orderId', search);
+                    } else {
+                        params.append('refundId', search);
+                    }
+                }
+                if (status) params.append('status', status);
+                if (overdue) params.append('overdue', overdue);
+                if (from) params.append('from', from);
+                if (to) params.append('to', to);
+
                 try {
-                    const [refundsRes, ticketsRes] = await Promise.all([
+                    // Tải danh sách hoàn tiền có phân trang và danh sách đầy đủ để cập nhật KPI
+                    const [resPaging, allRefunds] = await Promise.all([
+                        API.get('/admin/refunds?' + params.toString()),
                         API.get('/admin/refunds').catch(() => []),
-                        API.get('/admin/tickets?source=SYSTEM').catch(() => []),
                     ]);
 
-                    const refunds = Array.isArray(refundsRes) ? refundsRes : [];
-                    const tickets = Array.isArray(ticketsRes) ? ticketsRes : [];
+                    let refunds = [];
+                    let total = 0;
 
-                    // 1. Render Tickets
-                    const tBody = document.getElementById('ticket-table');
-                    if (tBody) {
-                        const openTickets = tickets.filter(t => t.status === 'NEW' || t.status === 'IN_REVIEW' || t.status === 'WAITING_REFUND');
-                        if (openTickets.length === 0) {
-                            tBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777;">Không có ca lệch nào cần xử lý thủ công.</td></tr>';
-                        } else {
-                            tBody.innerHTML = openTickets.map(t => `
-                                <tr>
-                                    <td><strong>${t.ticket_id}</strong></td>
-                                    <td><strong>${t.order_id || '—'}</strong></td>
-                                    <td>${t.customer_name || t.customer_email || '—'}</td>
-                                    <td style="color: #444;">${t.reason}</td>
-                                    <td><span class="badge warning">${t.status}</span></td>
-                                    <td>
-                                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="resolveTicket('${t.ticket_id}')">Giải quyết</button>
-                                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;" onclick="rejectTicket('${t.ticket_id}')">Từ chối</button>
-                                    </td>
-                                </tr>
-                            `).join('');
-                        }
+                    if (resPaging && resPaging.items) {
+                        refunds = resPaging.items;
+                        total = resPaging.pagination?.total || 0;
+                        totalPages = resPaging.pagination?.totalPages || 1;
+                    } else if (Array.isArray(resPaging)) {
+                        refunds = resPaging;
+                        total = resPaging.length;
+                        totalPages = 1;
                     }
 
-                    // 2. Render Refunds
-                    const rBody = document.getElementById('refund-table');
-                    if (rBody) {
-                        if (refunds.length === 0) {
-                            rBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #777;">Chưa có lệnh hoàn tiền nào.</td></tr>';
-                        } else {
-                            rBody.innerHTML = refunds.map(r => {
-                                let checks = {};
-                                try {
-                                    checks = typeof r.checks_json === 'string' ? JSON.parse(r.checks_json) : (r.checks_json || {});
-                                } catch (e) {}
-
-                                const checkHtml = r.type === 'AUTO' ? `
-                                    <div class="check-list" title="a:Cổng OK, b:Chưa vé, c:Khớp tiền, d:Chưa hoàn, e:Chưa xử lý CSKH">
-                                        <span class="check-item ${checks.a ? 'check-ok' : 'check-ng'}">a</span>
-                                        <span class="check-item ${checks.b ? 'check-ok' : 'check-ng'}">b</span>
-                                        <span class="check-item ${checks.c ? 'check-ok' : 'check-ng'}">c</span>
-                                        <span class="check-item ${checks.d ? 'check-ok' : 'check-ng'}">d</span>
-                                        <span class="check-item ${checks.e ? 'check-ok' : 'check-ng'}">e</span>
-                                    </div>
-                                ` : '<span style="font-size: 12px; color: #888;">Thủ công</span>';
-
-                                let stBadge = `<span class="badge gray">${r.status}</span>`;
-                                if (r.status === 'CHECKING') stBadge = '<span class="badge warning">Đang giữ lệnh</span>';
-                                if (r.status === 'SENT') stBadge = '<span class="badge info">Đã gửi cổng VNPay</span>';
-                                if (r.status === 'BANK_PROCESSING') stBadge = '<span class="badge info">Ngân hàng xử lý</span>';
-                                if (r.status === 'COMPLETED') stBadge = '<span class="badge success">Đã về tài khoản</span>';
-                                if (r.status === 'REJECTED') stBadge = '<span class="badge error">Từ chối</span>';
-
-                                if (r.sla_breached) {
-                                    stBadge += ' <span class="badge error" style="margin-left: 4px;">Quá hạn 24h</span>';
-                                }
-
-                                const canApprove = r.status !== 'COMPLETED' && r.status !== 'REJECTED';
-
-                                return `
-                                    <tr>
-                                        <td><strong>${r.refund_id}</strong></td>
-                                        <td>${r.order_id}</td>
-                                        <td>${r.customer_name || r.customer_email || '—'}</td>
-                                        <td style="color: #dc3545; font-weight: bold;">${formatMoney(r.amount)}</td>
-                                        <td><span class="badge ${r.type === 'AUTO' ? 'gray' : 'primary'}">${r.type}</span></td>
-                                        <td>${checkHtml}</td>
-                                        <td>${stBadge}</td>
-                                        <td style="font-size: 12px; color: #888;">${formatTime(r.detected_at || r.created_at)}</td>
-                                        <td>
-                                            ${canApprove ? `
-                                                <button class="btn btn-success" style="padding: 4px 8px; font-size: 11px;" onclick="approveRefund('${r.refund_id}')">
-                                                    Phê duyệt ngay
-                                                </button>
-                                            ` : '—'}
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('');
-                        }
+                    // Cập nhật thẻ chỉ số KPI
+                    if (Array.isArray(allRefunds)) {
+                        document.getElementById('kpi-total').innerText = allRefunds.length;
+                        document.getElementById('kpi-checking').innerText = allRefunds.filter(r => r.status === 'CHECKING').length;
+                        document.getElementById('kpi-processing').innerText = allRefunds.filter(r => r.status === 'SENT' || r.status === 'BANK_PROCESSING').length;
+                        document.getElementById('kpi-completed').innerText = allRefunds.filter(r => r.status === 'COMPLETED').length;
+                        document.getElementById('kpi-overdue').innerText = allRefunds.filter(r => r.is_overdue || r.sla_breached).length;
                     }
+
+                    document.getElementById('refunds-count-badge').innerText = `Tổng số: ${total} lệnh`;
+                    document.getElementById('page-info').innerText = `Trang ${currentPage} / ${totalPages} (Tổng ${total} lệnh hoàn)`;
+                    document.getElementById('btn-prev').disabled = (currentPage <= 1);
+                    document.getElementById('btn-next').disabled = (currentPage >= totalPages);
+
+                    if (refunds.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888; padding: 30px;">Không tìm thấy lệnh hoàn tiền nào phù hợp.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = refunds.map(r => {
+                        let checks = {};
+                        try {
+                            checks = typeof r.checks_json === 'string' ? JSON.parse(r.checks_json) : (r.checks_json || {});
+                        } catch (e) {}
+
+                        const checkHtml = r.type === 'AUTO' ? `
+                            <div class="check-list" title="a:Cổng OK, b:Chưa vé, c:Khớp tiền, d:Chưa hoàn, e:Chưa xử lý CSKH">
+                                <span class="check-item ${checks.a ? 'check-ok' : 'check-ng'}">a</span>
+                                <span class="check-item ${checks.b ? 'check-ok' : 'check-ng'}">b</span>
+                                <span class="check-item ${checks.c ? 'check-ok' : 'check-ng'}">c</span>
+                                <span class="check-item ${checks.d ? 'check-ok' : 'check-ng'}">d</span>
+                                <span class="check-item ${checks.e ? 'check-ok' : 'check-ng'}">e</span>
+                            </div>
+                        ` : '<span style="font-size: 12px; color: #888;">Thủ công</span>';
+
+                        let stBadge = `<span class="badge gray">${r.status}</span>`;
+                        if (r.status === 'CHECKING') stBadge = '<span class="badge warning">Đang giữ lệnh</span>';
+                        if (r.status === 'SENT') stBadge = '<span class="badge info">Đã gửi cổng</span>';
+                        if (r.status === 'BANK_PROCESSING') stBadge = '<span class="badge info">Ngân hàng xử lý</span>';
+                        if (r.status === 'COMPLETED') stBadge = '<span class="badge success">Đã về tài khoản</span>';
+                        if (r.status === 'REJECTED') stBadge = '<span class="badge error">Từ chối</span>';
+
+                        // Khối hiển thị SLA 24 giờ
+                        let slaHtml = '';
+                        if (r.status === 'COMPLETED') {
+                            slaHtml = `<div class="sla-tag ok">✔ Hoàn tất lúc ${formatTime(r.completed_at)}</div>`;
+                        } else if (r.status === 'REJECTED') {
+                            slaHtml = `<div class="sla-tag" style="background: #f1f3f5; color: #666;">Đã từ chối</div>`;
+                        } else if (r.is_overdue || r.sla_breached) {
+                            slaHtml = `<div class="sla-tag overdue">⚠️ QUÁ HẠN SLA 24H ${formatRemainingSla(r.remaining_sla_minutes)}</div>`;
+                        } else if (r.send_due_at) {
+                            const isNearDue = r.remaining_sla_minutes !== null && r.remaining_sla_minutes <= 120;
+                            slaHtml = `<div class="sla-tag ${isNearDue ? 'warning' : 'ok'}">⏱ Hạn: ${formatTime(r.send_due_at)} ${formatRemainingSla(r.remaining_sla_minutes)}</div>`;
+                        }
+
+                        const canApprove = r.status !== 'COMPLETED' && r.status !== 'REJECTED';
+
+                        return `
+                            <tr style="${(r.is_overdue || r.sla_breached) && canApprove ? 'background: #fff8f8;' : ''}">
+                                <td><strong style="color: #03599d;">${r.refund_id}</strong></td>
+                                <td>
+                                    <a href="orders.html?q=${r.order_id}" style="color: #03599d; font-weight: bold; text-decoration: none;" title="Xem chi tiết đơn hàng">
+                                        ${r.order_id} ↗
+                                    </a>
+                                </td>
+                                <td>
+                                    <div><strong>${r.customer_name || 'Khách vãng lai'}</strong></div>
+                                    <div style="font-size: 11.5px; color: #777;">${r.customer_email || r.customer_phone || '--'}</div>
+                                </td>
+                                <td><strong style="color: #dc3545; font-size: 14px;">${formatMoney(r.amount)}</strong></td>
+                                <td><span class="badge ${r.type === 'AUTO' ? 'gray' : 'primary'}">${r.type}</span></td>
+                                <td>${checkHtml}</td>
+                                <td>
+                                    <div>${stBadge}</div>
+                                    ${slaHtml}
+                                </td>
+                                <td style="font-size: 12px; color: #666;">${formatTime(r.detected_at || r.created_at)}</td>
+                                <td style="text-align: center;">
+                                    ${canApprove ? `
+                                        <button class="btn btn-success" style="padding: 5px 10px; font-size: 12px; font-weight: bold;" onclick="approveRefund('${r.refund_id}')">
+                                            ✔ Duyệt hoàn
+                                        </button>
+                                    ` : '<span style="color: #999; font-size: 12px;">Đã đóng</span>'}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
 
                 } catch (err) {
                     console.error('Lỗi tải danh sách hoàn tiền:', err);
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #dc3545; padding: 25px;">Lỗi: ${err.message || 'Không thể tải danh sách hoàn tiền'}</td></tr>`;
                 }
             };
 
             window.approveRefund = async function(refundId) {
-                if (!confirm(`Xác nhận phê duyệt và thực thi hoàn tiền ngay cho mã: ${refundId}?`)) return;
+                if (!confirm(`Xác nhận phê duyệt và thực thi lệnh hoàn tiền #${refundId} ngay lập tức?\n\n(Hệ thống sẽ ghi nhận nhật ký kiểm toán Audit Log trước/sau khi duyệt)`)) {
+                    return;
+                }
+
                 try {
-                    await API.post(`/admin/refunds/${refundId}/approve`);
-                    alert('Đã phê duyệt và thực hiện hoàn tiền thành công!');
-                    loadRefundsData();
+                    const res = await API.post(`/admin/refunds/${refundId}/approve`);
+                    alert(
+                        `PHÊ DUYỆT HOÀN TIỀN THÀNH CÔNG!\n` +
+                        `---------------------------------\n` +
+                        `- Mã hoàn tiền: ${res.refund_id}\n` +
+                        `- Số tiền hoàn: ${formatMoney(res.amount)}\n` +
+                        `- Trạng thái mới: ${res.status}\n` +
+                        `- Đã ghi nhận bản ghi Audit Log (REFUND_APPROVE).`
+                    );
+                    loadRefundsData(currentPage);
                 } catch (err) {
                     alert('Lỗi phê duyệt hoàn tiền: ' + (err.message || 'Thất bại'));
                 }
             };
 
-            window.resolveTicket = async function(ticketId) {
-                const note = prompt('Nhập ghi chú xử lý ticket:', 'Đã rà soát và xử lý khiếu nại');
-                if (note === null) return;
-                try {
-                    await API.patch(`/admin/tickets/${ticketId}`, { status: 'RESOLVED', note });
-                    alert('Đã cập nhật trạng thái ticket thành công!');
-                    loadRefundsData();
-                } catch (err) {
-                    alert('Lỗi: ' + (err.message || 'Cập nhật thất bại'));
+            window.filterByStatus = function(st) {
+                document.getElementById('filter-status').value = st;
+                document.getElementById('filter-sla').value = '';
+                loadRefundsData(1);
+            };
+
+            window.filterOverdue = function() {
+                document.getElementById('filter-status').value = '';
+                document.getElementById('filter-sla').value = 'true';
+                loadRefundsData(1);
+            };
+
+            window.resetFilters = function() {
+                document.getElementById('filter-search').value = '';
+                document.getElementById('filter-status').value = '';
+                document.getElementById('filter-sla').value = '';
+                document.getElementById('filter-from').value = '';
+                document.getElementById('filter-to').value = '';
+                loadRefundsData(1);
+            };
+
+            window.changePage = function(delta) {
+                const next = currentPage + delta;
+                if (next >= 1 && next <= totalPages) {
+                    loadRefundsData(next);
                 }
             };
 
-            window.rejectTicket = async function(ticketId) {
-                const resolution = prompt('Nhập lý do từ chối khiếu nại:', 'Giao dịch không hợp lệ');
-                if (resolution === null) return;
-                try {
-                    await API.patch(`/admin/tickets/${ticketId}`, { status: 'REJECTED', resolution });
-                    alert('Đã từ chối ticket!');
-                    loadRefundsData();
-                } catch (err) {
-                    alert('Lỗi: ' + (err.message || 'Thất bại'));
+            // Nếu URL có ?orderId= thì điền sẵn vào bộ lọc
+            window.addEventListener('adminReady', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const orderIdParam = urlParams.get('orderId');
+                if (orderIdParam) {
+                    document.getElementById('filter-search').value = orderIdParam;
                 }
-            };
-
-            window.addEventListener('adminReady', loadRefundsData);
+                loadRefundsData(1);
+            });
         })();
     </script>
 </body>

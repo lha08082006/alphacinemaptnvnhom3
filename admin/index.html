@@ -24,22 +24,22 @@
 <body>
     <div class="kpi-grid" id="kpi-container">
         <div class="kpi-card" style="border-color: #2196F3;">
-            <div class="kpi-title">Tổng số giao dịch</div>
-            <div class="kpi-value" id="kpi-total-txns">--</div>
-            <div class="kpi-sub">Ghi nhận toàn hệ thống</div>
+            <div class="kpi-title">Doanh thu</div>
+            <div class="kpi-value" id="kpi-revenue">--</div>
+            <div class="kpi-sub">Vé đã thanh toán thành công</div>
         </div>
-        <div class="kpi-card" style="border-color: #28a745;" id="card-hanging">
-            <div class="kpi-title">Giao dịch treo chờ đối soát</div>
+        <div class="kpi-card" style="border-color: #dc3545;" id="card-hanging">
+            <div class="kpi-title">Giao dịch treo</div>
             <div class="kpi-value" id="kpi-hanging-txns">--</div>
-            <div class="kpi-sub" id="kpi-hanging-sub">Tỷ lệ: -- (Mục tiêu &lt; 0.5%)</div>
+            <div class="kpi-sub" id="kpi-hanging-sub">Cần xác minh / đối soát</div>
         </div>
         <div class="kpi-card" style="border-color: #ffc107;">
-            <div class="kpi-title">Ticket Khiếu Nại (Mở)</div>
+            <div class="kpi-title">Ticket mở</div>
             <div class="kpi-value" id="kpi-open-tickets">--</div>
-            <div class="kpi-sub">Cần CSKH xử lý</div>
+            <div class="kpi-sub">Khiếu nại cần CSKH xử lý</div>
         </div>
         <div class="kpi-card" style="border-color: #9C27B0;">
-            <div class="kpi-title">Lệnh Hoàn Tiền Đang Xử Lý</div>
+            <div class="kpi-title">Hoàn tiền chờ xử lý</div>
             <div class="kpi-value" id="kpi-refunding">--</div>
             <div class="kpi-sub">Đang trong tiến trình hoàn tiền</div>
         </div>
@@ -66,48 +66,59 @@
         (function() {
             async function loadDashboardData() {
                 try {
-                    const [reportRes, refundsRes, ticketsRes] = await Promise.all([
-                        API.get('/admin/reports/reconciliation').catch(() => []),
-                        API.get('/admin/refunds').catch(() => []),
-                        API.get('/admin/tickets').catch(() => []),
-                    ]);
-
-                    const report = Array.isArray(reportRes) ? reportRes : [];
-                    const refunds = Array.isArray(refundsRes) ? refundsRes : [];
-                    const tickets = Array.isArray(ticketsRes) ? ticketsRes : [];
-
-                    // 1. Tính toán KPIs
-                    let totalHanging = 0;
-                    let totalDifference = 0;
-                    report.forEach(r => {
-                        totalHanging += Number(r.hanging_count || 0);
-                        totalDifference += Number(r.difference || 0);
+                    // 1. Gọi API KPI dùng chung cho cả 4 vai trò
+                    const kpiRes = await API.get('/admin/dashboard/kpi').catch((e) => {
+                        console.error('Lỗi tải KPI:', e);
+                        return null;
                     });
 
-                    const openTickets = tickets.filter(t => t.status === 'NEW' || t.status === 'IN_REVIEW' || t.status === 'WAITING_REFUND').length;
-                    const pendingRefunds = refunds.filter(r => r.status === 'CHECKING' || r.status === 'SENT' || r.status === 'BANK_PROCESSING').length;
+                    if (kpiRes) {
+                        const revenue = Number(kpiRes.revenue || 0);
+                        const pendingTxns = Number(kpiRes.pendingTxns || 0);
+                        const openTickets = Number(kpiRes.openTickets || 0);
+                        const pendingRefunds = Number(kpiRes.pendingRefunds || 0);
 
-                    const totalTxns = refunds.length + tickets.length + 10; // Chỉ số tổng hợp
+                        const kpiRevEl = document.getElementById('kpi-revenue');
+                        if (kpiRevEl) {
+                            kpiRevEl.innerText = new Intl.NumberFormat('vi-VN').format(revenue) + ' đ';
+                        }
 
-                    const kpiTotalEl = document.getElementById('kpi-total-txns');
-                    if (kpiTotalEl) kpiTotalEl.innerText = totalTxns;
+                        const kpiHangingEl = document.getElementById('kpi-hanging-txns');
+                        if (kpiHangingEl) {
+                            kpiHangingEl.innerText = pendingTxns;
+                        }
 
-                    const kpiHangingEl = document.getElementById('kpi-hanging-txns');
-                    if (kpiHangingEl) kpiHangingEl.innerText = totalHanging;
+                        const cardHanging = document.getElementById('card-hanging');
+                        if (cardHanging) {
+                            cardHanging.style.borderColor = pendingTxns === 0 ? '#28a745' : '#dc3545';
+                        }
 
-                    const cardHanging = document.getElementById('card-hanging');
-                    if (cardHanging) {
-                        cardHanging.style.borderColor = totalHanging === 0 ? '#28a745' : '#dc3545';
+                        const kpiOpenEl = document.getElementById('kpi-open-tickets');
+                        if (kpiOpenEl) {
+                            kpiOpenEl.innerText = openTickets;
+                        }
+
+                        const kpiRefundingEl = document.getElementById('kpi-refunding');
+                        if (kpiRefundingEl) {
+                            kpiRefundingEl.innerText = pendingRefunds;
+                        }
                     }
 
-                    const kpiOpenEl = document.getElementById('kpi-open-tickets');
-                    if (kpiOpenEl) kpiOpenEl.innerText = openTickets;
-
-                    const kpiRefundingEl = document.getElementById('kpi-refunding');
-                    if (kpiRefundingEl) kpiRefundingEl.innerText = pendingRefunds;
-
-                    // 2. Render Biểu đồ cột từ dữ liệu đối soát
+                    // 2. Tải biểu đồ đối soát nếu tài khoản có quyền (ACCOUNTANT, MANAGER)
+                    const user = window.adminUser;
+                    const canViewReport = user && (user.role === 'ACCOUNTANT' || user.role === 'MANAGER');
                     const chartEl = document.getElementById('bar-chart');
+
+                    if (!canViewReport) {
+                        if (chartEl) {
+                            chartEl.innerHTML = '<div style="width: 100%; text-align: center; color: #888; align-self: center;">Biểu đồ chi tiết đối soát chỉ khả dụng cho Kế toán và Quản lý.</div>';
+                        }
+                        return;
+                    }
+
+                    const reportRes = await API.get('/admin/reports/reconciliation').catch(() => []);
+                    const report = Array.isArray(reportRes) ? reportRes : [];
+
                     if (chartEl) {
                         if (report.length === 0) {
                             chartEl.innerHTML = '<div style="width: 100%; text-align: center; color: #888; align-self: center;">Chưa có dữ liệu báo cáo đối soát.</div>';

@@ -3,40 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSKH Ticket - Beta Admin</title>
+    <title>CSKH & Xử lý Khiếu nại - Beta Admin</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .ticket-layout { display: flex; gap: 20px; }
-        .ticket-list { width: 360px; max-height: calc(100vh - 180px); overflow-y: auto; border-right: 1px solid #eee; padding-right: 15px; }
-        .ticket-item { padding: 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; background: white; }
-        .ticket-item:hover { background: #f8fbfd; border-color: #03599d; }
-        .ticket-item.active { background: #eef6fc; border-color: #03599d; box-shadow: 0 1px 4px rgba(3,89,157,0.15); }
-        
-        .ticket-detail { flex: 1; padding-left: 10px; }
-        .detail-box { background: #f9fbfd; padding: 20px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e3edf7; }
-        
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13.5px; }
-        .detail-row:last-child { margin-bottom: 0; }
-        
-        .action-box { background: white; border: 1px solid #eee; border-radius: 6px; padding: 20px; margin-top: 15px; }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .kpi-stat {
+            background: #fff;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #03599d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .kpi-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+        .kpi-stat.active {
+            background: #eef6fc;
+            border-color: #03599d;
+        }
+        .kpi-stat.danger {
+            border-left-color: #dc3545;
+        }
+        .kpi-stat.warning {
+            border-left-color: #f39c12;
+        }
+        .kpi-stat.success {
+            border-left-color: #28a745;
+        }
+        .kpi-stat.gray {
+            border-left-color: #6c757d;
+        }
+        .kpi-stat-title {
+            font-size: 11.5px;
+            font-weight: bold;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .kpi-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
+
+        .ticket-layout {
+            display: flex;
+            gap: 20px;
+            min-height: 600px;
+        }
+        .ticket-list-col {
+            width: 380px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            border-right: 1px solid #e9ecef;
+            padding-right: 15px;
+        }
+        .ticket-item {
+            padding: 14px;
+            border: 1px solid #e3edf7;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .ticket-item:hover {
+            background: #f8fbfd;
+            border-color: #03599d;
+        }
+        .ticket-item.active {
+            background: #eef6fc;
+            border-color: #03599d;
+            box-shadow: 0 2px 6px rgba(3,89,157,0.15);
+        }
+
+        .ticket-detail-col {
+            flex: 1;
+            padding-left: 5px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .detail-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #03599d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f0f4f8;
+            padding-bottom: 8px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 13.5px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13.5px;
+        }
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .info-value {
+            color: #222;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .sla-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+        .sla-badge.overdue {
+            background: #ffe3e3;
+            color: #dc3545;
+            border: 1px solid #ffa8a8;
+        }
+        .sla-badge.warning {
+            background: #fff9db;
+            color: #e67700;
+            border: 1px solid #ffe066;
+        }
+        .sla-badge.ok {
+            background: #e6fcf5;
+            color: #0ca678;
+            border: 1px solid #b2f2bb;
+        }
+
+        .link-box {
+            background: #f8fbfd;
+            border: 1px solid #d0e4f7;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notes-timeline {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: #fafafa;
+            margin-bottom: 14px;
+        }
+        .note-item {
+            padding: 8px 10px;
+            border-left: 3px solid #03599d;
+            background: #fff;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .note-item:last-child {
+            margin-bottom: 0;
+        }
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+        .note-content {
+            font-size: 13px;
+            color: #333;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .action-container {
+            background: #fdfefe;
+            border: 1px solid #cce5ff;
+            border-radius: 8px;
+            padding: 16px;
+        }
     </style>
 </head>
 <body>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: #333;">QUẢN LÝ KHIẾU NẠI & TRA SOÁT (CSKH)</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="margin: 0; color: #333; font-weight: 700;">TRUNG TÂM CSKH & XỬ LÝ KHIẾU NẠI</h3>
         <button class="btn btn-primary" onclick="loadTickets()">🔄 Làm mới danh sách</button>
     </div>
 
+    <!-- Hàng thống kê trạng thái ticket (Tabs đếm động) -->
+    <div class="kpi-row" id="kpi-tabs">
+        <div class="kpi-stat active" id="tab-ALL" onclick="selectFilterStatus('ALL')">
+            <div class="kpi-stat-title">Tất cả khiếu nại</div>
+            <div class="kpi-stat-value" id="count-all">0</div>
+        </div>
+        <div class="kpi-stat warning" id="tab-NEW" onclick="selectFilterStatus('NEW')">
+            <div class="kpi-stat-title">Mới tiếp nhận (NEW)</div>
+            <div class="kpi-stat-value" id="count-new">0</div>
+        </div>
+        <div class="kpi-stat" id="tab-IN_REVIEW" onclick="selectFilterStatus('IN_REVIEW')">
+            <div class="kpi-stat-title">Đang xử lý (IN_REVIEW)</div>
+            <div class="kpi-stat-value" id="count-in-review">0</div>
+        </div>
+        <div class="kpi-stat warning" id="tab-WAITING_REFUND" onclick="selectFilterStatus('WAITING_REFUND')">
+            <div class="kpi-stat-title">Chờ hoàn tiền (WAITING)</div>
+            <div class="kpi-stat-value" id="count-waiting-refund">0</div>
+        </div>
+        <div class="kpi-stat success" id="tab-RESOLVED" onclick="selectFilterStatus('RESOLVED')">
+            <div class="kpi-stat-title">Đã giải quyết (RESOLVED)</div>
+            <div class="kpi-stat-value" id="count-resolved">0</div>
+        </div>
+        <div class="kpi-stat gray" id="tab-REJECTED" onclick="selectFilterStatus('REJECTED')">
+            <div class="kpi-stat-title">Từ chối (REJECTED)</div>
+            <div class="kpi-stat-value" id="count-rejected">0</div>
+        </div>
+    </div>
+
+    <!-- Thanh tìm kiếm và bộ lọc -->
+    <div class="filter-bar">
+        <input type="text" id="filter-search" class="filter-input" style="width: 280px;" placeholder="Tìm mã ticket, mã đơn, khách, SĐT..." onkeyup="applyFilterDebounce()">
+        
+        <select id="filter-status-select" class="filter-input" onchange="onStatusSelectChange(this.value)">
+            <option value="ALL">-- Tất cả trạng thái --</option>
+            <option value="NEW">Mới tiếp nhận (NEW)</option>
+            <option value="IN_REVIEW">Đang xử lý (IN_REVIEW)</option>
+            <option value="WAITING_REFUND">Chờ hoàn tiền (WAITING_REFUND)</option>
+            <option value="RESOLVED">Đã giải quyết (RESOLVED)</option>
+            <option value="REJECTED">Từ chối (REJECTED)</option>
+        </select>
+
+        <select id="filter-source" class="filter-input" onchange="applyFilter()">
+            <option value="">-- Tất cả nguồn --</option>
+            <option value="CUSTOMER">Khách hàng gửi</option>
+            <option value="SYSTEM">Hệ thống tạo tự động</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="applyFilter()">Lọc</button>
+        <button class="btn" style="background: #e9ecef; color: #495057;" onclick="resetFilter()">Xóa lọc</button>
+    </div>
+
+    <!-- Layout Master - Detail -->
     <div class="card">
         <div class="card-body" style="padding: 20px;">
             <div class="ticket-layout">
-                <div class="ticket-list" id="ticket-list">
-                    <div style="padding: 30px; text-align: center; color: #888;">Đang tải danh sách khiếu nại...</div>
+                <!-- Cột danh sách bên trái -->
+                <div class="ticket-list-col" id="ticket-list">
+                    <div style="padding: 40px 20px; text-align: center; color: #888;">
+                        Đang tải danh sách khiếu nại...
+                    </div>
                 </div>
-                
-                <div class="ticket-detail" id="ticket-detail">
-                    <div style="text-align: center; padding: 60px 20px; color: #999;">
-                        👈 Vui lòng chọn một ticket bên trái để xem chi tiết và xử lý.
+
+                <!-- Cột chi tiết bên phải -->
+                <div class="ticket-detail-col" id="ticket-detail">
+                    <div style="text-align: center; padding: 100px 20px; color: #999;">
+                        <div style="font-size: 36px; margin-bottom: 15px;">👈</div>
+                        <div style="font-size: 15px; font-weight: 600;">Vui lòng chọn một ticket bên trái để xem chi tiết và xử lý.</div>
                     </div>
                 </div>
             </div>
@@ -46,11 +319,38 @@
     <!-- Script dependencies -->
     <script src="../js/api.js"></script>
     <script src="js/admin-layout.js"></script>
-    
+
     <script>
         (function() {
-            let tickets = [];
-            let selectedTicket = null;
+            let allTickets = [];
+            let filteredTickets = [];
+            let selectedTicketId = null;
+            let currentStatusFilter = 'ALL';
+            let debounceTimer = null;
+
+            const ISSUE_TYPE_LABELS = {
+                PAYMENT_DEBITED_NO_TICKET: 'Trừ tiền nhưng chưa có vé',
+                DOUBLE_PAYMENT: 'Bị trừ tiền 2 lần cho 1 đơn',
+                TICKET_NOT_RECEIVED: 'Chưa nhận vé qua email/SMS',
+                REFUND_DELAY: 'Hoàn tiền chậm hơn cam kết',
+                OTHER: 'Sự cố thanh toán khác'
+            };
+
+            const STATUS_BADGES = {
+                NEW: '<span class="badge warning">NEW - Mới tiếp nhận</span>',
+                IN_REVIEW: '<span class="badge primary">IN_REVIEW - Đang xử lý</span>',
+                WAITING_REFUND: '<span class="badge" style="background: #f39c12; color: white;">WAITING_REFUND - Chờ hoàn tiền</span>',
+                RESOLVED: '<span class="badge success">RESOLVED - Đã giải quyết</span>',
+                REJECTED: '<span class="badge gray">REJECTED - Bị từ chối</span>'
+            };
+
+            const TICKET_TRANSITIONS = {
+                NEW: ['IN_REVIEW', 'REJECTED'],
+                IN_REVIEW: ['WAITING_REFUND', 'RESOLVED', 'REJECTED'],
+                WAITING_REFUND: ['RESOLVED', 'REJECTED'],
+                RESOLVED: [],
+                REJECTED: []
+            };
 
             function formatMoney(amount) {
                 if (amount === null || amount === undefined) return '0 ₫';
@@ -58,7 +358,7 @@
             }
 
             function formatTime(isoStr) {
-                if (!isoStr) return '';
+                if (!isoStr) return '--';
                 try {
                     const d = new Date(isoStr);
                     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
@@ -67,188 +367,552 @@
                 }
             }
 
+            function getSlaInfo(ticket) {
+                if (!ticket.sla_due_at) return null;
+                const isTerminal = ticket.status === 'RESOLVED' || ticket.status === 'REJECTED';
+                const dueMs = new Date(ticket.sla_due_at).getTime();
+                const nowMs = Date.now();
+                const diffMinutes = Math.round((dueMs - nowMs) / 60000);
+
+                if (isTerminal) {
+                    return {
+                        isOverdue: false,
+                        text: `Hạn: ${formatTime(ticket.sla_due_at)}`,
+                        badgeClass: 'ok'
+                    };
+                }
+
+                if (diffMinutes < 0) {
+                    const overdueHours = Math.floor(Math.abs(diffMinutes) / 60);
+                    const overdueMins = Math.abs(diffMinutes) % 60;
+                    return {
+                        isOverdue: true,
+                        text: `⚠️ QUÁ HẠN SLA (Trễ ${overdueHours}h ${overdueMins}m)`,
+                        badgeClass: 'overdue'
+                    };
+                } else {
+                    const remHours = Math.floor(diffMinutes / 60);
+                    const remMins = diffMinutes % 60;
+                    return {
+                        isOverdue: false,
+                        text: `⏱ Còn ${remHours}h ${remMins}m (Hạn: ${formatTime(ticket.sla_due_at)})`,
+                        badgeClass: remHours < 4 ? 'warning' : 'ok'
+                    };
+                }
+            }
+
             window.loadTickets = async function() {
                 try {
                     const res = await API.get('/admin/tickets');
-                    tickets = Array.isArray(res) ? res : [];
-                    renderTicketList();
-                    if (selectedTicket) {
-                        const refreshed = tickets.find(t => t.ticket_id === selectedTicket.ticket_id);
-                        if (refreshed) {
-                            selectedTicket = refreshed;
-                            renderDetail();
+                    allTickets = Array.isArray(res) ? res : [];
+                    updateKpiCounters();
+                    applyFilter();
+
+                    // Nếu có URL param ?ticketId= hoặc ?orderId= thì tìm và chọn
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const targetTicketId = urlParams.get('ticketId');
+                    const targetOrderId = urlParams.get('orderId');
+
+                    if (targetTicketId) {
+                        const target = allTickets.find(t => t.ticket_id === targetTicketId);
+                        if (target) {
+                            selectTicket(target.ticket_id);
+                            return;
                         }
+                    } else if (targetOrderId) {
+                        const target = allTickets.find(t => t.order_id === targetOrderId);
+                        if (target) {
+                            selectTicket(target.ticket_id);
+                            return;
+                        }
+                    }
+
+                    if (selectedTicketId) {
+                        const exists = allTickets.find(t => t.ticket_id === selectedTicketId);
+                        if (exists) {
+                            selectTicket(selectedTicketId);
+                        } else if (filteredTickets.length > 0) {
+                            selectTicket(filteredTickets[0].ticket_id);
+                        }
+                    } else if (filteredTickets.length > 0) {
+                        selectTicket(filteredTickets[0].ticket_id);
                     }
                 } catch (err) {
                     console.error('Lỗi khi tải danh sách tickets:', err);
                     const listEl = document.getElementById('ticket-list');
                     if (listEl) {
-                        listEl.innerHTML = `<div style="padding: 20px; text-align: center; color: #dc3545;">Lỗi: ${err.message || 'Không thể tải tickets'}</div>`;
+                        listEl.innerHTML = `<div style="padding: 25px; text-align: center; color: #dc3545;">Lỗi tải dữ liệu: ${err.message || 'Không thể kết nối máy chủ'}</div>`;
                     }
                 }
+            };
+
+            function updateKpiCounters() {
+                const countAll = allTickets.length;
+                const countNew = allTickets.filter(t => t.status === 'NEW').length;
+                const countInReview = allTickets.filter(t => t.status === 'IN_REVIEW').length;
+                const countWaiting = allTickets.filter(t => t.status === 'WAITING_REFUND').length;
+                const countResolved = allTickets.filter(t => t.status === 'RESOLVED').length;
+                const countRejected = allTickets.filter(t => t.status === 'REJECTED').length;
+
+                document.getElementById('count-all').innerText = countAll;
+                document.getElementById('count-new').innerText = countNew;
+                document.getElementById('count-in-review').innerText = countInReview;
+                document.getElementById('count-waiting-refund').innerText = countWaiting;
+                document.getElementById('count-resolved').innerText = countResolved;
+                document.getElementById('count-rejected').innerText = countRejected;
+            }
+
+            window.selectFilterStatus = function(status) {
+                currentStatusFilter = status;
+                document.getElementById('filter-status-select').value = status;
+
+                // Cập nhật tab active
+                const tabs = document.querySelectorAll('.kpi-stat');
+                tabs.forEach(t => t.classList.remove('active'));
+                const targetTab = document.getElementById('tab-' + status);
+                if (targetTab) targetTab.classList.add('active');
+
+                applyFilter();
+            };
+
+            window.onStatusSelectChange = function(status) {
+                selectFilterStatus(status);
+            };
+
+            window.applyFilterDebounce = function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilter, 250);
+            };
+
+            window.applyFilter = function() {
+                const searchQ = (document.getElementById('filter-search').value || '').trim().toLowerCase();
+                const source = document.getElementById('filter-source').value;
+
+                filteredTickets = allTickets.filter(t => {
+                    // Lọc trạng thái
+                    if (currentStatusFilter !== 'ALL' && t.status !== currentStatusFilter) {
+                        return false;
+                    }
+                    // Lọc nguồn
+                    if (source && t.source !== source) {
+                        return false;
+                    }
+                    // Tìm kiếm từ khóa
+                    if (searchQ) {
+                        const inId = (t.ticket_id || '').toLowerCase().includes(searchQ);
+                        const inOrder = (t.order_id || '').toLowerCase().includes(searchQ);
+                        const inContact = (t.contact || '').toLowerCase().includes(searchQ);
+                        const inName = (t.customer_name || '').toLowerCase().includes(searchQ);
+                        const inEmail = (t.customer_email || '').toLowerCase().includes(searchQ);
+                        const inPhone = (t.customer_phone || '').toLowerCase().includes(searchQ);
+                        const inDesc = (t.description || '').toLowerCase().includes(searchQ);
+                        if (!inId && !inOrder && !inContact && !inName && !inEmail && !inPhone && !inDesc) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+                renderTicketList();
+            };
+
+            window.resetFilter = function() {
+                document.getElementById('filter-search').value = '';
+                document.getElementById('filter-source').value = '';
+                selectFilterStatus('ALL');
             };
 
             function renderTicketList() {
                 const listEl = document.getElementById('ticket-list');
                 if (!listEl) return;
 
-                if (tickets.length === 0) {
-                    listEl.innerHTML = '<p style="color: #777; text-align: center; margin-top: 30px;">Không có khiếu nại nào trong hệ thống.</p>';
+                if (filteredTickets.length === 0) {
+                    listEl.innerHTML = '<div style="padding: 40px 15px; text-align: center; color: #888;">Không tìm thấy khiếu nại phù hợp với bộ lọc.</div>';
                     return;
                 }
 
                 listEl.innerHTML = '';
-                tickets.forEach(t => {
-                    const isSelected = selectedTicket && selectedTicket.ticket_id === t.ticket_id;
-                    let sourceBadge = t.source === 'USER' 
-                        ? '<span class="badge info">Khách hàng</span>' 
-                        : '<span class="badge warning">Hệ thống Auto</span>';
-                    
-                    let statusBadge = '<span class="badge warning">NEW</span>';
-                    if (t.status === 'IN_REVIEW') statusBadge = '<span class="badge primary">IN_REVIEW</span>';
-                    if (t.status === 'WAITING_REFUND') statusBadge = '<span class="badge warning">WAIT_REFUND</span>';
-                    if (t.status === 'RESOLVED') statusBadge = '<span class="badge success">RESOLVED</span>';
-                    if (t.status === 'REJECTED') statusBadge = '<span class="badge gray">REJECTED</span>';
+                filteredTickets.forEach(t => {
+                    const isSelected = selectedTicketId === t.ticket_id;
+                    const issueLabel = ISSUE_TYPE_LABELS[t.issue_type] || t.issue_type || 'Khiếu nại thanh toán';
+                    const sla = getSlaInfo(t);
 
                     const el = document.createElement('div');
                     el.className = `ticket-item ${isSelected ? 'active' : ''}`;
+                    el.onclick = () => selectTicket(t.ticket_id);
+
                     el.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <strong style="color: #03599d;">#${t.ticket_id}</strong>
-                            ${sourceBadge}
+                            <strong style="color: #03599d; font-size: 13.5px;">#${t.ticket_id}</strong>
+                            <span style="font-size: 11px;">${t.source === 'CUSTOMER' ? '<span class="badge info">Khách gửi</span>' : '<span class="badge gray">Hệ thống</span>'}</span>
                         </div>
-                        <div style="font-size: 13.5px; font-weight: 600; color: #333; margin-bottom: 4px;">
-                            Đơn: ${t.order_id || 'Không có mã đơn'}
+                        <div style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 3px;">
+                            ${t.customer_name || t.contact || 'Khách vãng lai'}
                         </div>
-                        <div style="font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.4;">
-                            ${t.reason || 'Yêu cầu tra soát'}
+                        <div style="font-size: 12px; color: #666; margin-bottom: 6px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                            📌 ${issueLabel}
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #888;">
-                            <span>${formatTime(t.created_at)}</span>
-                            ${statusBadge}
+                        ${t.order_id ? `<div style="font-size: 12px; color: #03599d; margin-bottom: 6px;">Mã đơn: <strong>${t.order_id}</strong></div>` : ''}
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-top: 4px;">
+                            <span style="color: #888;">${formatTime(t.created_at)}</span>
+                            <div>${STATUS_BADGES[t.status] || t.status}</div>
                         </div>
-                    `;
 
-                    el.onclick = () => {
-                        selectedTicket = t;
-                        renderTicketList();
-                        renderDetail();
-                    };
+                        ${sla ? `
+                            <div style="margin-top: 6px;">
+                                <span class="sla-badge ${sla.badgeClass}">${sla.text}</span>
+                            </div>
+                        ` : ''}
+                    `;
 
                     listEl.appendChild(el);
                 });
             }
 
-            function renderDetail() {
-                const detailEl = document.getElementById('ticket-detail');
-                if (!selectedTicket || !detailEl) return;
+            window.selectTicket = async function(ticketId) {
+                selectedTicketId = ticketId;
+                renderTicketList();
 
-                const t = selectedTicket;
-                const canEdit = t.status !== 'RESOLVED' && t.status !== 'REJECTED';
+                const detailEl = document.getElementById('ticket-detail');
+                if (!detailEl) return;
+
+                detailEl.innerHTML = '<div style="padding: 40px; text-align: center; color: #888;">Đang tải chi tiết ticket...</div>';
+
+                try {
+                    const res = await API.get(`/admin/tickets/${ticketId}`);
+                    const ticket = res.ticket || res;
+                    const notes = res.notes || [];
+                    renderDetail(ticket, notes);
+                } catch (err) {
+                    console.error('Lỗi khi tải chi tiết ticket:', err);
+                    detailEl.innerHTML = `<div style="padding: 30px; text-align: center; color: #dc3545;">Lỗi tải chi tiết: ${err.message || 'Không thể tải thông tin'}</div>`;
+                }
+            };
+
+            function renderDetail(ticket, notes) {
+                const detailEl = document.getElementById('ticket-detail');
+                if (!detailEl) return;
+
+                const t = ticket;
+                const sla = getSlaInfo(t);
+                const issueLabel = ISSUE_TYPE_LABELS[t.issue_type] || t.issue_type || 'Khiếu nại thanh toán';
+                const isTerminal = t.status === 'RESOLVED' || t.status === 'REJECTED';
+                const allowedTransitions = TICKET_TRANSITIONS[t.status] || [];
+
+                let notesHtml = '';
+                if (notes.length === 0) {
+                    notesHtml = '<div style="padding: 12px; text-align: center; color: #999; font-size: 13px;">Chưa có ghi chú nội bộ nào.</div>';
+                } else {
+                    notesHtml = notes.map(n => `
+                        <div class="note-item">
+                            <div class="note-header">
+                                <strong>👤 ${n.author_name || 'Nhân viên'} (${n.author_role || 'STAFF'})</strong>
+                                <span>${formatTime(n.created_at)}</span>
+                            </div>
+                            <div class="note-content">${escapeHtml(n.note)}</div>
+                        </div>
+                    `).join('');
+                }
 
                 detailEl.innerHTML = `
-                    <div class="detail-box">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                            <h4 style="margin: 0; color: #03599d; font-size: 17px;">CHI TIẾT KHIẾU NẠI #${t.ticket_id}</h4>
-                            <span class="badge ${t.status === 'RESOLVED' ? 'success' : (t.status === 'REJECTED' ? 'gray' : 'warning')}" style="font-size: 13px;">
-                                ${t.status}
-                            </span>
+                    <!-- 1. Header Card -->
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span>KHIẾU NẠI & HỖ TRỢ #${t.ticket_id}</span>
+                            <div>${STATUS_BADGES[t.status] || t.status}</div>
                         </div>
 
-                        <div class="detail-row">
-                            <span style="color: #666;">Mã Đơn hàng:</span>
-                            <strong style="color: #03599d;">${t.order_id || '—'}</strong>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Trạng thái đơn hàng:</span>
-                            <span><strong>${t.order_status || '—'}</strong></span>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Số tiền đơn:</span>
-                            <strong style="color: #dc3545;">${formatMoney(t.amount_total)}</strong>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Khách hàng:</span>
-                            <span>${t.customer_name || '—'} (${t.customer_email || t.customer_phone || '—'})</span>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Nguồn tạo ticket:</span>
-                            <span><strong>${t.source}</strong></span>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Lý do khiếu nại:</span>
-                            <span>${t.reason || '—'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span style="color: #666;">Thời gian tạo:</span>
-                            <span>${formatTime(t.created_at)}</span>
-                        </div>
-                        ${t.resolution ? `
-                            <div class="detail-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc;">
-                                <span style="color: #666;">Kết quả xử lý:</span>
-                                <strong>${t.resolution}</strong>
+                        <div class="info-grid">
+                            <div>
+                                <div class="info-row">
+                                    <span class="info-label">Nguồn tạo:</span>
+                                    <span class="info-value">${t.source === 'CUSTOMER' ? 'Khách hàng gửi qua cổng hỗ trợ' : 'Hệ thống đối soát tự động tạo'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Thời gian tạo:</span>
+                                    <span class="info-value">${formatTime(t.created_at)}</span>
+                                </div>
                             </div>
-                        ` : ''}
+                            <div>
+                                <div class="info-row">
+                                    <span class="info-label">Cam kết SLA:</span>
+                                    <span class="info-value">
+                                        ${sla ? `<span class="sla-badge ${sla.badgeClass}">${sla.text}</span>` : 'Không có SLA'}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Người được phân công:</span>
+                                    <span class="info-value">${t.assigned_to ? '#' + t.assigned_to : 'Chưa phân công'}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    ${canEdit ? `
-                        <div class="action-box">
-                            <h5 style="margin-top: 0; margin-bottom: 12px; color: #333; font-size: 15px;">TIẾP NHẬN & XỬ LÝ TICKET</h5>
-                            
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #555;">Ghi chú nội bộ (Note):</label>
-                                <textarea id="txt-ticket-note" style="width: 100%; height: 70px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box;" placeholder="Nhập ghi chú xử lý..."></textarea>
-                            </div>
+                    <!-- 2. Thông tin khách hàng & sự cố -->
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span>👤 THÔNG TIN KHÁCH HÀNG & MÔ TẢ SỰ CỐ</span>
+                        </div>
 
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <button class="btn btn-primary" onclick="updateTicketStatus('IN_REVIEW')">
-                                    Đang xử lý (IN_REVIEW)
-                                </button>
-                                <button class="btn" style="background: #f39c12; color: white;" onclick="updateTicketStatus('WAITING_REFUND')">
-                                    Chờ hoàn tiền (WAITING_REFUND)
-                                </button>
-                                <button class="btn btn-success" onclick="updateTicketStatus('RESOLVED')">
-                                    Giải quyết xong (RESOLVED)
-                                </button>
-                                <button class="btn btn-danger" onclick="updateTicketStatus('REJECTED')">
-                                    Từ chối (REJECTED)
-                                </button>
+                        <div class="info-grid" style="margin-bottom: 12px;">
+                            <div>
+                                <div class="info-row">
+                                    <span class="info-label">Họ và tên:</span>
+                                    <span class="info-value">${t.customer_name || 'Khách hàng'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Số điện thoại:</span>
+                                    <span class="info-value">${t.customer_phone || t.contact || '—'}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="info-row">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">${t.customer_email || '—'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Kênh liên hệ gửi:</span>
+                                    <span class="info-value">${t.contact}</span>
+                                </div>
                             </div>
                         </div>
-                    ` : `
-                        <div style="padding: 15px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; color: #2e7d32; font-size: 13.5px;">
-                            Ticket này đã kết thúc xử lý (Trạng thái: <strong>${t.status}</strong>).
+
+                        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px 14px; margin-top: 10px;">
+                            <div style="font-weight: 700; color: #03599d; margin-bottom: 6px; font-size: 13.5px;">
+                                🏷 Loại sự cố: ${issueLabel}
+                            </div>
+                            <div style="font-size: 13.5px; color: #333; line-height: 1.5; white-space: pre-wrap;">
+                                ${escapeHtml(t.description || 'Không có mô tả chi tiết')}
+                            </div>
+                            ${t.attachment_url ? `
+                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ddd;">
+                                    <strong style="font-size: 12.5px; color: #555;">📎 Ảnh biên lai / chứng từ đính kèm:</strong><br>
+                                    <a href="${t.attachment_url}" target="_blank" style="display: inline-block; margin-top: 6px; color: #03599d; font-weight: 600; text-decoration: underline; font-size: 13px;">
+                                        🔍 Xem ảnh chứng từ đính kèm (Mở tab mới)
+                                    </a>
+                                </div>
+                            ` : ''}
                         </div>
-                    `}
+                    </div>
+
+                    <!-- 3. Liên kết Đơn hàng & Lệnh hoàn tiền (Theo yêu cầu prompt) -->
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span>🔗 LIÊN KẾT ĐƠN HÀNG & LỆNH HOÀN TIỀN</span>
+                        </div>
+
+                        ${t.order_id ? `
+                            <div class="link-box">
+                                <div>
+                                    <div style="font-weight: 700; color: #03599d; font-size: 14px; margin-bottom: 4px;">
+                                        📦 Đơn hàng: ${t.order_id}
+                                    </div>
+                                    <div style="font-size: 12.5px; color: #555;">
+                                        Trạng thái: <strong>${t.order_status || 'PAID'}</strong> | 
+                                        Tổng tiền: <strong style="color: #dc3545;">${formatMoney(t.amount_total)}</strong>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="orders.html?q=${encodeURIComponent(t.order_id)}" target="_blank" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;">
+                                        🔍 Xem chi tiết đơn hàng ↗
+                                    </a>
+                                </div>
+                            </div>
+                        ` : `
+                            <div style="padding: 10px; color: #777; font-size: 13px; font-style: italic;">
+                                Ticket này không gắn kèm mã đơn hàng.
+                            </div>
+                        `}
+
+                        ${t.refund_id ? `
+                            <div class="link-box" style="background: #fff8f0; border-color: #ffd8a8; margin-top: 12px;">
+                                <div>
+                                    <div style="font-weight: 700; color: #d9480f; font-size: 14px; margin-bottom: 4px;">
+                                        💸 Lệnh hoàn tiền: ${t.refund_id}
+                                    </div>
+                                    <div style="font-size: 12.5px; color: #555;">
+                                        Trạng thái hoàn: <span class="badge ${t.refund_status === 'COMPLETED' ? 'success' : 'warning'}">${t.refund_status || 'CHECKING'}</span> | 
+                                        Số tiền hoàn: <strong style="color: #d9480f;">${formatMoney(t.refund_amount || t.amount_total)}</strong>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="refunds.html?orderId=${encodeURIComponent(t.order_id || '')}" target="_blank" class="btn" style="background: #f39c12; color: white; font-size: 12px; padding: 6px 12px;">
+                                        💸 Quản lý lệnh hoàn tiền ↗
+                                    </a>
+                                </div>
+                            </div>
+                        ` : (t.order_id ? `
+                            <div class="link-box" style="background: #fdfdfd; border-color: #eee; margin-top: 12px;">
+                                <div style="font-size: 13px; color: #666;">
+                                    Chưa có lệnh hoàn tiền nào được tạo cho đơn hàng này.
+                                </div>
+                                <div>
+                                    <a href="refunds.html?orderId=${encodeURIComponent(t.order_id)}" target="_blank" class="btn" style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;">
+                                        ➕ Tạo / Tra soát lệnh hoàn ↗
+                                    </a>
+                                </div>
+                            </div>
+                        ` : '')}
+                    </div>
+
+                    <!-- 4. Lịch sử Ghi chú nội bộ (support_ticket_notes) -->
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span>📝 GHI CHÚ NỘI BỘ (STAFF NOTES)</span>
+                            <span style="font-size: 12px; font-weight: normal; color: #666;">Chỉ nhân viên nội bộ xem được</span>
+                        </div>
+
+                        <div class="notes-timeline" id="notes-list-box">
+                            ${notesHtml}
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 8px;">
+                            <input type="text" id="new-internal-note" class="filter-input" style="flex: 1;" placeholder="Nhập ghi chú xử lý nội bộ mới...">
+                            <button class="btn btn-primary" onclick="addInternalNote('${t.ticket_id}')">
+                                💾 Lưu ghi chú
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5. Phản hồi khách hàng & Đổi trạng thái theo luồng cho phép -->
+                    <div class="detail-card">
+                        <div class="detail-card-title">
+                            <span>⚙️ XỬ LÝ & CHUYỂN TRẠNG THÁI TICKET</span>
+                        </div>
+
+                        ${isTerminal ? `
+                            <div style="background: ${t.status === 'RESOLVED' ? '#e8f5e9' : '#f5f5f5'}; border: 1px solid ${t.status === 'RESOLVED' ? '#c8e6c9' : '#e0e0e0'}; border-radius: 6px; padding: 16px;">
+                                <div style="font-weight: 700; color: ${t.status === 'RESOLVED' ? '#2e7d32' : '#616161'}; margin-bottom: 6px; font-size: 14px;">
+                                    Ticket đã hoàn tất xử lý (Trạng thái: <strong>${t.status}</strong>) lúc ${formatTime(t.resolved_at)}
+                                </div>
+                                <div style="font-size: 13.5px; color: #333; margin-top: 8px;">
+                                    <strong>Kết quả giải quyết đã gửi cho khách:</strong><br>
+                                    <div style="background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; margin-top: 6px; font-style: italic;">
+                                        ${escapeHtml(t.resolution || 'Không có nội dung phản hồi')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="action-container">
+                                <div style="margin-bottom: 14px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #333;">
+                                        📢 Nội dung phản hồi khách hàng (Resolution):
+                                    </label>
+                                    <textarea id="txt-resolution" style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 13px; box-sizing: border-box;" placeholder="Nhập thông tin phản hồi sẽ gửi đến hộp thư thông báo của khách hàng...">${escapeHtml(t.resolution || '')}</textarea>
+                                    <div style="font-size: 11.5px; color: #666; margin-top: 4px;">
+                                        ℹ️ Khi bấm "Giải quyết xong (RESOLVED)" hoặc "Từ chối (REJECTED)", nội dung này là bắt buộc và sẽ được gửi vào mục Thông báo của khách hàng.
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #333;">
+                                        📝 Ghi chú nội bộ kèm theo khi chuyển trạng thái (Tuỳ chọn):
+                                    </label>
+                                    <input type="text" id="txt-action-note" class="filter-input" style="width: 100%; box-sizing: border-box;" placeholder="Ví dụ: Đã đối soát ngân hàng thành công, tiếp nhận yêu cầu...">
+                                </div>
+
+                                <div style="border-top: 1px solid #e3edf7; padding-top: 14px;">
+                                    <div style="font-size: 12.5px; font-weight: 700; color: #555; margin-bottom: 10px;">
+                                        CHUYỂN TRẠNG THÁI HỢP LỆ THEO QUY TRÌNH (TICKET_TRANSITIONS):
+                                    </div>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        ${allowedTransitions.includes('IN_REVIEW') ? `
+                                            <button class="btn btn-primary" onclick="transitionTicket('${t.ticket_id}', 'IN_REVIEW')">
+                                                ▶ Tiếp nhận xử lý (IN_REVIEW)
+                                            </button>
+                                        ` : ''}
+
+                                        ${allowedTransitions.includes('WAITING_REFUND') ? `
+                                            <button class="btn" style="background: #f39c12; color: white;" onclick="transitionTicket('${t.ticket_id}', 'WAITING_REFUND')">
+                                                ⏳ Chờ hoàn tiền (WAITING_REFUND)
+                                            </button>
+                                        ` : ''}
+
+                                        ${allowedTransitions.includes('RESOLVED') ? `
+                                            <button class="btn btn-success" onclick="transitionTicket('${t.ticket_id}', 'RESOLVED')">
+                                                ✅ Giải quyết xong (RESOLVED)
+                                            </button>
+                                        ` : ''}
+
+                                        ${allowedTransitions.includes('REJECTED') ? `
+                                            <button class="btn btn-danger" onclick="transitionTicket('${t.ticket_id}', 'REJECTED')">
+                                                ❌ Từ chối khiếu nại (REJECTED)
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `}
+                    </div>
                 `;
             }
 
-            window.updateTicketStatus = async function(newStatus) {
-                if (!selectedTicket) return;
-                const noteInput = document.getElementById('txt-ticket-note');
+            window.addInternalNote = async function(ticketId) {
+                const noteInput = document.getElementById('new-internal-note');
                 const note = noteInput ? noteInput.value.trim() : '';
 
-                let resolution = undefined;
-                if (newStatus === 'RESOLVED') {
-                    resolution = prompt('Nhập kết quả xử lý thành công:', 'Đã đối soát và hỗ trợ khách hàng');
-                    if (resolution === null) return;
-                } else if (newStatus === 'REJECTED') {
-                    resolution = prompt('Nhập lý do từ chối giải quyết:', 'Thông tin không chính xác hoặc không đủ điều kiện');
-                    if (resolution === null) return;
+                if (!note) {
+                    alert('Vui lòng nhập nội dung ghi chú nội bộ!');
+                    return;
                 }
 
                 try {
-                    await API.patch(`/admin/tickets/${selectedTicket.ticket_id}`, {
-                        status: newStatus,
-                        note: note || undefined,
-                        resolution: resolution,
-                    });
-                    alert(`Đã cập nhật ticket #${selectedTicket.ticket_id} sang trạng thái: ${newStatus}`);
-                    await loadTickets();
+                    await API.patch(`/admin/tickets/${ticketId}`, { note });
+                    noteInput.value = '';
+                    await selectTicket(ticketId);
+                    alert('Đã thêm ghi chú nội bộ thành công!');
                 } catch (err) {
-                    alert('Lỗi cập nhật ticket: ' + (err.message || 'Thất bại'));
+                    alert('Lỗi lưu ghi chú: ' + (err.message || 'Thao tác thất bại'));
                 }
             };
+
+            window.transitionTicket = async function(ticketId, newStatus) {
+                const resolutionInput = document.getElementById('txt-resolution');
+                const noteInput = document.getElementById('txt-action-note');
+
+                const resolution = resolutionInput ? resolutionInput.value.trim() : '';
+                const note = noteInput ? noteInput.value.trim() : '';
+
+                // Kiểm tra bắt buộc có phản hồi đối với RESOLVED và REJECTED
+                if ((newStatus === 'RESOLVED' || newStatus === 'REJECTED') && !resolution) {
+                    alert(`Vui lòng nhập "Nội dung phản hồi khách hàng (Resolution)" trước khi chuyển sang trạng thái ${newStatus}!`);
+                    if (resolutionInput) resolutionInput.focus();
+                    return;
+                }
+
+                let confirmMsg = `Bạn có chắc chắn muốn chuyển ticket #${ticketId} sang trạng thái "${newStatus}"?`;
+                if (newStatus === 'RESOLVED') confirmMsg += '\nLưu ý: Ticket sẽ hoàn tất và gửi phản hồi đến khách hàng.';
+                if (newStatus === 'REJECTED') confirmMsg += '\nLưu ý: Ticket sẽ bị đóng từ chối.';
+
+                if (!confirm(confirmMsg)) return;
+
+                try {
+                    const payload = {
+                        status: newStatus,
+                        resolution: resolution || undefined,
+                        note: note || undefined
+                    };
+
+                    await API.patch(`/admin/tickets/${ticketId}`, payload);
+                    alert(`Đã cập nhật ticket #${ticketId} sang trạng thái: ${newStatus}`);
+                    await loadTickets();
+                    await selectTicket(ticketId);
+                } catch (err) {
+                    console.error('Lỗi chuyển trạng thái ticket:', err);
+                    alert('Lỗi chuyển trạng thái: ' + (err.message || 'Không thể cập nhật'));
+                }
+            };
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
 
             window.addEventListener('adminReady', loadTickets);
         })();

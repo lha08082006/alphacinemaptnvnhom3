@@ -15,7 +15,7 @@ const path = require('path');
 const dbPath = path.join(__dirname, '../../../data/beta.sqlite');
 const Database = require('better-sqlite3');
 
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, requireStaff } = require('../middleware/auth');
 const router = express.Router();
 
 router.get(
@@ -104,7 +104,7 @@ router.post('/reset', (req, res) => {
   }
 });
 
-router.get('/manager-only', requireAuth, requireRole('MANAGER'), (req, res) => {
+router.get('/manager-only', requireStaff('MANAGER'), (req, res) => {
   sendOk(res, { message: 'Chào mừng Quản lý', role: req.user.role });
 });
 

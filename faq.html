@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Câu hỏi thường gặp về thanh toán - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .faq-container {
+            max-width: 900px;
+            margin: 40px auto 70px;
+            background: white;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+        .page-header-box {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 20px;
+        }
+        .page-title {
+            color: var(--beta-blue, #03599d);
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 10px;
+        }
+        .page-subtitle {
+            color: #666;
+            font-size: 14.5px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .faq-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .faq-item.active {
+            border-color: #03599d;
+            box-shadow: 0 2px 8px rgba(3, 89, 157, 0.08);
+        }
+        .faq-header {
+            padding: 16px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #1e293b;
+            user-select: none;
+        }
+        .faq-item.active .faq-header {
+            background: #e0f2fe;
+            color: #03599d;
+        }
+        .faq-icon {
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+        .faq-body {
+            padding: 18px 20px;
+            background: white;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #475569;
+            display: none;
+            border-top: 1px solid #e2e8f0;
+        }
+        .faq-item.active .faq-body {
+            display: block;
+        }
+
+        .highlight-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 4px;
+            color: #92400e;
+            font-size: 13.5px;
+            margin: 12px 0;
+        }
+
+        .cta-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 35px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 22px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #03599d; color: white; }
+        .btn-primary:hover { background: #024477; }
+        .btn-orange { background: #f26b38; color: white; }
+        .btn-orange:hover { background: #d9531e; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="faq-container">
+            <div class="page-header-box">
+                <h1 class="page-title">CÂU HỎI THƯỜNG GẶP VỀ THANH TOÁN (FAQ)</h1>
+                <p class="page-subtitle">
+                    Tổng hợp các quy định cốt lõi và hướng dẫn xử lý sự cố giao dịch trích xuất trực tiếp từ Điều khoản thanh toán của Beta Cinemas.
+                </p>
+            </div>
+
+            <!-- Danh sách FAQ Accordion -->
+            <div class="faq-list">
+                <!-- Câu 1 -->
+                <div class="faq-item active">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>1. Thời gian giữ ghế khi tiến hành đặt vé trực tuyến là bao lâu?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Theo quy chuẩn hệ thống Beta Cinemas, thời gian giữ ghế là <strong>5 phút</strong> kể từ khi bạn bấm "Tiếp tục" ở bước chọn ghế. Đồng hồ đếm ngược được đồng bộ trực tiếp từ máy chủ. Khi hết 5 phút mà giao dịch chưa hoàn tất, hệ thống sẽ tự động hủy đơn và nhả ghế để đảm bảo quyền lợi cho khách hàng khác.
+                    </div>
+                </div>
+
+                <!-- Câu 2 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>2. Sau khi thanh toán thành công, bao lâu tôi sẽ nhận được mã vé?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Theo <strong>Điều 3 trong Điều khoản thanh toán</strong>: Trong vòng <strong>30 phút</strong> kể từ khi thanh toán thành công, Beta Cinemas sẽ gửi tới Quý khách mã xác nhận thông tin vé/đơn hàng qua email và hiển thị tại trang Kết quả / Hộp thư thông báo. Quý khách chỉ cần mang mã QR hoặc mã vé đến quầy vé tại rạp để in vé vào phòng chiếu.
+                    </div>
+                </div>
+
+                <!-- Câu 3 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>3. Thời hạn gửi phản hồi, khiếu nại về giao dịch thanh toán là bao lâu?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        <div class="highlight-box">
+                            ⚠️ <strong>Mốc thời gian quan trọng:</strong> Nếu Quý khách cần hỗ trợ hay thắc mắc, khiếu nại về xác nhận mã vé/đơn hàng thì vui lòng phản hồi trong vòng <strong>60 phút kể từ khi thanh toán vé thành công</strong>. Sau khoảng thời gian trên, Beta Cinemas sẽ không chấp nhận giải quyết bất kỳ khiếu nại nào theo Điều khoản Mục 3.
+                        </div>
+                        Nếu quá 60 phút, hệ thống tiếp nhận trực tuyến sẽ tự động từ chối yêu cầu theo đúng quy định.
+                    </div>
+                </div>
+
+                <!-- Câu 4 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>4. Trường hợp tài khoản ngân hàng đã bị trừ tiền nhưng không nhận được vé?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Trường hợp này thường xảy ra khi đường truyền mạng giữa Cổng thanh toán và Rạp bị gián đoạn (Callback timeout). Quý khách hoàn toàn yên tâm vì Beta Cinemas áp dụng cơ chế <strong>đối soát tự động</strong>:
+                        <ul>
+                            <li>Hệ thống định kỳ quét đối chiếu với cổng thanh toán để tự động phát hiện các giao dịch bị trừ tiền mà chưa có vé.</li>
+                            <li>Nếu đơn chưa xuất vé, hệ thống tự động kích hoạt lệnh hoàn tiền (Auto Refund) trong vòng 24 giờ.</li>
+                            <li>Quý khách cũng có thể truy cập mục <strong>Khiếu nại thanh toán</strong> trên menu trong vòng 60 phút để tạo phiếu hỗ trợ, bộ phận CSKH sẽ ưu tiên kiểm tra ngay.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Câu 5 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>5. Thời gian tiền được hoàn về tài khoản của tôi là bao lâu?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Theo cam kết dịch vụ và quy định cổng thanh toán, thời gian tiền hoàn về tài khoản phụ thuộc vào phương thức thanh toán Quý khách đã sử dụng:
+                        <ul>
+                            <li><strong>Thẻ thanh toán quốc tế (Visa, MasterCard, JCB):</strong> Tiền về tài khoản trong vòng <strong>30 ngày làm việc</strong> (phụ thuộc vào ngân hàng phát hành thẻ).</li>
+                            <li><strong>Thẻ ATM nội địa:</strong> Tiền về tài khoản trong vòng <strong>7 ngày làm việc</strong>.</li>
+                            <li><strong>Ví điện tử / VNPAY-QR:</strong> Tiền về tài khoản trong vòng <strong>7 - 14 ngày làm việc</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Câu 6 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>6. Nếu tôi vô tình thanh toán lặp lại (thanh toán 2 lần) cho cùng một đơn hàng?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Theo <strong>Điều 8</strong>: Khi chưa nhận được kết quả giao dịch thanh toán, Quý khách vui lòng không thực hiện thanh toán lặp lại. Nếu Quý khách đã bị trừ tiền 2 lần, vui lòng chụp lại tin nhắn/biến động số dư và gửi phiếu khiếu nại với loại sự cố <strong>"Thanh toán hai lần"</strong> trong vòng 60 phút để được hoàn lại số tiền giao dịch trùng lặp.
+                    </div>
+                </div>
+
+                <!-- Câu 7 -->
+                <div class="faq-item">
+                    <div class="faq-header" onclick="toggleFaq(this)">
+                        <span>7. Tôi có thể hủy vé hoặc thay đổi suất chiếu sau khi đã thanh toán thành công không?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-body">
+                        Theo <strong>Điều 9 (Quy định về giao dịch trực tuyến trên Beta)</strong>: Giao dịch đã thanh toán thành công không thể hủy, đổi trả hoặc thay đổi thời gian và địa điểm nhận hàng. Quý khách vui lòng kiểm tra kỹ các thông tin về rạp, phim, suất chiếu và vị trí ghế trước khi xác nhận thanh toán.<br>
+                        <em>Ngoại lệ:</em> Theo <strong>Điều 7</strong>, trường hợp suất chiếu bị hủy do sự cố kỹ thuật bất khả kháng từ phía rạp, Beta Cinemas sẽ thực hiện hoàn trả toàn bộ số tiền giao dịch về tài khoản mua vé của Quý khách.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to action -->
+            <div class="cta-box">
+                <h3 style="font-size: 16px; color: #03599d; margin: 0 0 10px;">Bạn vẫn cần hỗ trợ về đơn hàng của mình?</h3>
+                <p style="font-size: 13.5px; color: #64748b; margin: 0 0 18px;">
+                    Hãy thực hiện tra cứu và gửi khiếu nại trực tuyến để được bộ phận CSKH Beta Cinemas hỗ trợ trong 24 giờ.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="support.html" class="btn btn-orange">👉 GỬI KHIẾU NẠI THANH TOÁN</a>
+                    <a href="support-tracking.html" class="btn btn-primary">🔍 THEO DÕI TIẾN ĐỘ PHIẾU</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script layout chung -->
+    <script src="js/layout.js"></script>
+
+    <script>
+        function toggleFaq(headerEl) {
+            const item = headerEl.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            // Đóng tất cả item khác
+            document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('active'));
+            
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

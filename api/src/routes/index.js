@@ -6,6 +6,7 @@ const healthRouter = require('./health');
 const authRouter = require('./auth');
 const paymentsRouter = require('./payments');
 const ordersRouter = require('./orders');
+const showtimesRouter = require('./showtimes');
 const notificationsRouter = require('./notifications');
 const supportRouter = require('./support');
 const adminRouter = require('./admin');
@@ -21,7 +22,9 @@ function buildApiRouter() {
   router.use('/auth', authRouter);
   router.use('/payments', paymentsRouter);
   router.use('/payment', paymentsRouter);
+  router.use('/order', paymentsRouter);
   router.use('/orders', ordersRouter);
+  router.use('/showtimes', showtimesRouter);
   router.use('/notifications', notificationsRouter);
   router.use('/support', supportRouter);
   router.use('/admin', adminRouter);

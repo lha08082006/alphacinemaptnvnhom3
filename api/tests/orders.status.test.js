@@ -19,6 +19,7 @@ describe('Step 6: Order Service & GET /orders/:id/status', () => {
 
   let testSeat1;
   let testSeat2;
+  let futureExp;
 
   beforeAll(async () => {
     app = createApp();
@@ -48,7 +49,7 @@ describe('Step 6: Order Service & GET /orders/:id/status', () => {
     await knex('orders').whereIn('order_id', orderIds).del();
 
     const nowIso = new Date().toISOString();
-    const futureExp = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    futureExp = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     const existingSeats = await knex('seats').where({ room_id: 1 }).limit(2);
     testSeat1 = existingSeats[0].id;
@@ -249,6 +250,7 @@ describe('Step 6: Order Service & GET /orders/:id/status', () => {
       expect(data.orderId).toBe(testOrderPaid);
       expect(data.status).toBe('PAID');
       expect(data.amount).toBe(60000);
+      expect(data.holdExpiresAt).toBe(futureExp);
 
       // Có thông tin vé
       expect(data.ticket).toBeDefined();
@@ -259,6 +261,37 @@ describe('Step 6: Order Service & GET /orders/:id/status', () => {
       expect(data.timeline).toBeDefined();
       expect(data.timeline.length).toBeGreaterThan(0);
       expect(data.timeline[0].toStatus).toBe('PAID');
+
+      // Có hạn khiếu nại còn lại
+      expect(data.remainingClaimMinutes).toBeDefined();
+      expect(data.isClaimExpired).toBe(false);
+    });
+  });
+
+  describe('GET /api/v1/orders (Lịch sử giao dịch)', () => {
+    it('should return 401 AUTH_REQUIRED when unauthenticated', async () => {
+      const res = await request(app).get('/api/v1/orders');
+      expect(res.status).toBe(401);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.error.code).toBe('AUTH_REQUIRED');
+    });
+
+    it('should return list of orders with remainingClaimMinutes and claim status for authenticated customer', async () => {
+      const res = await request(app)
+        .get('/api/v1/orders')
+        .set('Cookie', user1Cookie);
+
+      expect(res.status).toBe(200);
+      expect(res.body.ok).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+
+      const orderItem = res.body.data.find((o) => o.orderId === testOrderPaid);
+      expect(orderItem).toBeDefined();
+      expect(orderItem.status).toBe('PAID');
+      expect(orderItem.remainingClaimMinutes).toBeDefined();
+      expect(typeof orderItem.remainingClaimMinutes).toBe('number');
+      expect(orderItem.isClaimExpired).toBe(false);
     });
   });
 });

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị Nhân sự & Tài khoản - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .kpi-stat {
+            background: #fff;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #03599d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .kpi-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.06);
+        }
+        .kpi-stat-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .kpi-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 95%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            background: #03599d;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .close-btn {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+        .form-row {
+            margin-bottom: 15px;
+        }
+        .form-row label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h3 style="margin: 0; color: #333; font-weight: 700;">QUẢN TRỊ TÀI KHOẢN & PHÂN QUYỀN NHÂN VIÊN</h3>
+            <div style="font-size: 13px; color: #666; margin-top: 3px;">Phân quyền dành riêng: Quản trị viên (MANAGER)</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" style="font-weight: bold;" onclick="openCreateModal()">
+                ➕ Thêm Nhân Viên Mới
+            </button>
+            <button class="btn btn-primary" onclick="loadUsers()">
+                🔄 Làm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Hàng thống kê KPI tài khoản -->
+    <div class="kpi-row">
+        <div class="kpi-stat" onclick="filterByRole('ALL')">
+            <div class="kpi-stat-title">Tổng tài khoản</div>
+            <div class="kpi-stat-value" id="count-total">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #03599d;" onclick="filterByRole('MANAGER')">
+            <div class="kpi-stat-title">Quản lý (MANAGER)</div>
+            <div class="kpi-stat-value" id="count-manager">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #17a2b8;" onclick="filterByRole('IT')">
+            <div class="kpi-stat-title">IT Vận hành</div>
+            <div class="kpi-stat-value" id="count-it">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #f39c12;" onclick="filterByRole('ACCOUNTANT')">
+            <div class="kpi-stat-title">Kế toán</div>
+            <div class="kpi-stat-value" id="count-acct">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #28a745;" onclick="filterByRole('CSKH')">
+            <div class="kpi-stat-title">CSKH</div>
+            <div class="kpi-stat-value" id="count-cskh">0</div>
+        </div>
+        <div class="kpi-stat" style="border-left-color: #dc3545;" onclick="filterByStatus('locked')">
+            <div class="kpi-stat-title">Tài khoản bị khóa</div>
+            <div class="kpi-stat-value" id="count-locked">0</div>
+        </div>
+    </div>
+
+    <!-- Thanh tìm kiếm và bộ lọc -->
+    <div class="filter-bar">
+        <input type="text" id="filter-search" class="filter-input" style="width: 280px;" placeholder="Tìm theo tên, email, số điện thoại..." onkeyup="applyFilterDebounce()">
+        
+        <select id="filter-role" class="filter-input" onchange="applyFilter()">
+            <option value="ALL">-- Tất cả vai trò --</option>
+            <option value="MANAGER">Quản lý (MANAGER)</option>
+            <option value="IT">IT Vận hành (IT)</option>
+            <option value="ACCOUNTANT">Kế toán (ACCOUNTANT)</option>
+            <option value="CSKH">Chăm sóc khách hàng (CSKH)</option>
+            <option value="CUSTOMER">Khách hàng (CUSTOMER)</option>
+        </select>
+
+        <select id="filter-active" class="filter-input" onchange="applyFilter()">
+            <option value="ALL">-- Tất cả trạng thái --</option>
+            <option value="1">Đang hoạt động</option>
+            <option value="0">Đang bị khóa</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="applyFilter()">Lọc</button>
+        <button class="btn" style="background: #e9ecef; color: #495057;" onclick="resetFilter()">Đặt lại</button>
+    </div>
+
+    <!-- Bảng danh sách tài khoản -->
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th>Họ và tên</th>
+                        <th>Email / Liên hệ</th>
+                        <th>Vai trò (Role)</th>
+                        <th>Trạng thái</th>
+                        <th>Yêu cầu đổi MK</th>
+                        <th>Ngày tạo</th>
+                        <th style="text-align: right; width: 260px;">Thao tác quản trị</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody">
+                    <tr><td colspan="8" style="text-align: center; color: #888; padding: 30px;">Đang tải danh sách người dùng...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal 1: Thêm Nhân Viên Mới -->
+    <div id="create-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>➕ THÊM TÀI KHOẢN NHÂN VIÊN MỚI</span>
+                <button class="close-btn" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form onsubmit="handleCreateUser(event)">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <label>Họ và tên nhân viên *:</label>
+                        <input type="text" id="new-name" class="filter-input" style="width: 100%; box-sizing: border-box;" required placeholder="Ví dụ: Nguyễn Văn An">
+                    </div>
+                    <div class="form-row">
+                        <label>Email đăng nhập *:</label>
+                        <input type="email" id="new-email" class="filter-input" style="width: 100%; box-sizing: border-box;" required placeholder="Ví dụ: an.nv@betacinemas.vn">
+                    </div>
+                    <div class="form-row">
+                        <label>Số điện thoại liên hệ:</label>
+                        <input type="text" id="new-phone" class="filter-input" style="width: 100%; box-sizing: border-box;" placeholder="0912345678">
+                    </div>
+                    <div class="form-row">
+                        <label>Gán vai trò hệ thống *:</label>
+                        <select id="new-role" class="filter-input" style="width: 100%; box-sizing: border-box;" required>
+                            <option value="CSKH">Chăm sóc khách hàng (CSKH)</option>
+                            <option value="ACCOUNTANT">Kế toán (ACCOUNTANT)</option>
+                            <option value="IT">IT Vận hành (IT)</option>
+                            <option value="MANAGER">Quản lý cấp cao (MANAGER)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Mật khẩu khởi tạo * (ít nhất 6 ký tự):</label>
+                        <input type="password" id="new-password" class="filter-input" style="width: 100%; box-sizing: border-box;" required minlength="6" placeholder="Nhập mật khẩu ban đầu">
+                        <div style="font-size: 11.5px; color: #666; margin-top: 4px;">
+                            ℹ️ Nhân viên mới sẽ được yêu cầu đổi mật khẩu ở lần đăng nhập đầu tiên.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background: #e9ecef; color: #333;" onclick="closeCreateModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="font-weight: 700;">Tạo Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Đổi Vai Trò -->
+    <div id="role-modal" class="modal">
+        <div class="modal-content" style="width: 420px;">
+            <div class="modal-header">
+                <span>🔄 GÁN VAI TRÒ NGƯỜI DÙNG</span>
+                <button class="close-btn" onclick="closeRoleModal()">&times;</button>
+            </div>
+            <form onsubmit="handleUpdateRole(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="role-user-id">
+                    <div style="margin-bottom: 12px; font-size: 13.5px;">
+                        Tài khoản: <strong id="role-user-email" style="color: #03599d;">--</strong>
+                    </div>
+                    <div class="form-row">
+                        <label>Chọn vai trò mới:</label>
+                        <select id="role-select" class="filter-input" style="width: 100%; box-sizing: border-box;" required>
+                            <option value="CUSTOMER">Khách hàng (CUSTOMER)</option>
+                            <option value="CSKH">Chăm sóc khách hàng (CSKH)</option>
+                            <option value="ACCOUNTANT">Kế toán (ACCOUNTANT)</option>
+                            <option value="IT">IT Vận hành (IT)</option>
+                            <option value="MANAGER">Quản lý cấp cao (MANAGER)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background: #e9ecef; color: #333;" onclick="closeRoleModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        (function() {
+            let allUsers = [];
+            let currentUserId = null;
+            let debounceTimer = null;
+
+            const ROLE_BADGES = {
+                MANAGER: '<span class="badge primary">MANAGER</span>',
+                IT: '<span class="badge info">IT</span>',
+                ACCOUNTANT: '<span class="badge warning">ACCOUNTANT</span>',
+                CSKH: '<span class="badge success">CSKH</span>',
+                CUSTOMER: '<span class="badge gray">CUSTOMER</span>'
+            };
+
+            window.loadUsers = async function() {
+                try {
+                    const res = await API.get('/admin/management');
+                    allUsers = res && res.users ? res.users : [];
+                    updateCounters();
+                    applyFilter();
+                } catch (err) {
+                    console.error('Lỗi khi tải danh sách người dùng:', err);
+                    const tbody = document.getElementById('users-tbody');
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #dc3545;">Lỗi: ${err.message || 'Không thể tải dữ liệu'}</td></tr>`;
+                }
+            };
+
+            function updateCounters() {
+                document.getElementById('count-total').innerText = allUsers.length;
+                document.getElementById('count-manager').innerText = allUsers.filter(u => u.role === 'MANAGER').length;
+                document.getElementById('count-it').innerText = allUsers.filter(u => u.role === 'IT').length;
+                document.getElementById('count-acct').innerText = allUsers.filter(u => u.role === 'ACCOUNTANT').length;
+                document.getElementById('count-cskh').innerText = allUsers.filter(u => u.role === 'CSKH').length;
+                document.getElementById('count-locked').innerText = allUsers.filter(u => !u.is_active).length;
+            }
+
+            window.applyFilterDebounce = function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilter, 250);
+            };
+
+            window.applyFilter = function() {
+                const searchQ = (document.getElementById('filter-search').value || '').trim().toLowerCase();
+                const role = document.getElementById('filter-role').value;
+                const active = document.getElementById('filter-active').value;
+
+                const filtered = allUsers.filter(u => {
+                    if (role !== 'ALL' && u.role !== role) return false;
+                    if (active !== 'ALL') {
+                        const wantActive = active === '1';
+                        if (Boolean(u.is_active) !== wantActive) return false;
+                    }
+                    if (searchQ) {
+                        const inName = (u.full_name || '').toLowerCase().includes(searchQ);
+                        const inEmail = (u.email || '').toLowerCase().includes(searchQ);
+                        const inPhone = (u.phone || '').toLowerCase().includes(searchQ);
+                        if (!inName && !inEmail && !inPhone) return false;
+                    }
+                    return true;
+                });
+
+                renderTable(filtered);
+            };
+
+            window.filterByRole = function(role) {
+                document.getElementById('filter-role').value = role;
+                document.getElementById('filter-active').value = 'ALL';
+                applyFilter();
+            };
+
+            window.filterByStatus = function(status) {
+                if (status === 'locked') {
+                    document.getElementById('filter-active').value = '0';
+                }
+                applyFilter();
+            };
+
+            window.resetFilter = function() {
+                document.getElementById('filter-search').value = '';
+                document.getElementById('filter-role').value = 'ALL';
+                document.getElementById('filter-active').value = 'ALL';
+                applyFilter();
+            };
+
+            function renderTable(users) {
+                const tbody = document.getElementById('users-tbody');
+                if (!tbody) return;
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888; padding: 25px;">Không tìm thấy tài khoản phù hợp với điều kiện lọc.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => {
+                    const isSelf = currentUserId && Number(u.id) === Number(currentUserId);
+                    const isActive = Boolean(u.is_active);
+
+                    const statusBadge = isActive
+                        ? '<span class="badge success">Hoạt động</span>'
+                        : '<span class="badge error">BỊ KHÓA</span>';
+
+                    const mustChangeBadge = u.must_change_password
+                        ? '<span class="badge warning">Cần đổi MK</span>'
+                        : '<span style="color: #888; font-size: 12px;">Đã đổi</span>';
+
+                    const createdDate = u.created_at ? u.created_at.slice(0, 10) : '--';
+
+                    // Nút Khóa / Mở khóa
+                    let toggleBtn = '';
+                    if (isSelf) {
+                        toggleBtn = `<button class="btn" style="background: #e9ecef; color: #999; font-size: 11.5px; cursor: not-allowed;" title="Không thể tự khóa chính mình" disabled>🔒 Tự khóa (Chặn)</button>`;
+                    } else if (isActive) {
+                        toggleBtn = `<button class="btn btn-danger" style="font-size: 11.5px; padding: 4px 8px;" onclick="toggleStatus(${u.id}, false)">🔒 Khóa</button>`;
+                    } else {
+                        toggleBtn = `<button class="btn btn-success" style="font-size: 11.5px; padding: 4px 8px;" onclick="toggleStatus(${u.id}, true)">🔓 Mở khóa</button>`;
+                    }
+
+                    // Nút Đổi vai trò
+                    let roleBtn = '';
+                    if (isSelf) {
+                        roleBtn = `<button class="btn" style="background: #e9ecef; color: #999; font-size: 11.5px; cursor: not-allowed;" title="Không thể tự hạ quyền" disabled>Vai trò (Chặn)</button>`;
+                    } else {
+                        roleBtn = `<button class="btn" style="background: #6f42c1; color: white; font-size: 11.5px; padding: 4px 8px;" onclick="openRoleModal(${u.id}, '${escapeHtml(u.email)}', '${u.role}')">Vai trò</button>`;
+                    }
+
+                    // Nút Đặt lại mật khẩu
+                    const resetBtn = `<button class="btn btn-primary" style="font-size: 11.5px; padding: 4px 8px;" onclick="promptResetPassword(${u.id}, '${escapeHtml(u.email)}')">🔑 Đổi MK</button>`;
+
+                    return `
+                        <tr style="${!isActive ? 'background: #fff8f8;' : ''}">
+                            <td><strong>#${u.id}</strong></td>
+                            <td><strong>${escapeHtml(u.full_name || '--')}</strong> ${isSelf ? '<span class="badge info" style="font-size: 10px;">Bạn</span>' : ''}</td>
+                            <td>
+                                <div>${escapeHtml(u.email)}</div>
+                                <div style="font-size: 11.5px; color: #777;">${escapeHtml(u.phone || '')}</div>
+                            </td>
+                            <td>${ROLE_BADGES[u.role] || u.role}</td>
+                            <td>${statusBadge}</td>
+                            <td>${mustChangeBadge}</td>
+                            <td style="font-size: 12px; color: #666;">${createdDate}</td>
+                            <td style="text-align: right;">
+                                <div style="display: inline-flex; gap: 6px;">
+                                    ${roleBtn}
+                                    ${toggleBtn}
+                                    ${resetBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // 1. Thao tác Khóa / Mở khóa
+            window.toggleStatus = async function(userId, newActive) {
+                const actionText = newActive ? 'MỞ KHÓA' : 'KHÓA';
+                if (!confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản #${userId}?`)) return;
+
+                try {
+                    await API.patch(`/admin/users/${userId}/status`, { is_active: newActive });
+                    alert(`Đã ${actionText.toLowerCase()} tài khoản thành công!`);
+                    await loadUsers();
+                } catch (err) {
+                    alert('Lỗi: ' + (err.message || 'Thao tác thất bại'));
+                }
+            };
+
+            // 2. Thao tác Gán vai trò
+            window.openRoleModal = function(userId, email, currentRole) {
+                document.getElementById('role-user-id').value = userId;
+                document.getElementById('role-user-email').innerText = email;
+                document.getElementById('role-select').value = currentRole;
+                document.getElementById('role-modal').classList.add('active');
+            };
+
+            window.closeRoleModal = function() {
+                document.getElementById('role-modal').classList.remove('active');
+            };
+
+            window.handleUpdateRole = async function(e) {
+                e.preventDefault();
+                const userId = document.getElementById('role-user-id').value;
+                const newRole = document.getElementById('role-select').value;
+
+                try {
+                    await API.patch(`/admin/users/${userId}/role`, { role: newRole });
+                    alert(`Đã cập nhật vai trò người dùng thành: ${newRole}`);
+                    closeRoleModal();
+                    await loadUsers();
+                } catch (err) {
+                    alert('Lỗi cập nhật vai trò: ' + (err.message || 'Thất bại'));
+                }
+            };
+
+            // 3. Đặt lại mật khẩu
+            window.promptResetPassword = async function(userId, email) {
+                const newPass = prompt(`Nhập mật khẩu mới cho tài khoản ${email} (tối thiểu 6 ký tự):`, 'Beta@' + Math.floor(100000 + Math.random() * 900000));
+                if (!newPass) return;
+                if (newPass.length < 6) {
+                    alert('Mật khẩu mới phải có ít nhất 6 ký tự!');
+                    return;
+                }
+
+                try {
+                    await API.post(`/admin/users/${userId}/reset-password`, { newPassword: newPass });
+                    alert(`Đã đặt lại mật khẩu thành công cho ${email}!\nMật khẩu mới: ${newPass}\nNgười dùng sẽ được yêu cầu đổi mật khẩu ở lần đăng nhập tiếp theo.`);
+                    await loadUsers();
+                } catch (err) {
+                    alert('Lỗi đặt lại mật khẩu: ' + (err.message || 'Thất bại'));
+                }
+            };
+
+            // 4. Modal Thêm nhân viên mới
+            window.openCreateModal = function() {
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-email').value = '';
+                document.getElementById('new-phone').value = '';
+                document.getElementById('new-password').value = 'Beta@123456';
+                document.getElementById('create-modal').classList.add('active');
+            };
+
+            window.closeCreateModal = function() {
+                document.getElementById('create-modal').classList.remove('active');
+            };
+
+            window.handleCreateUser = async function(e) {
+                e.preventDefault();
+                const payload = {
+                    full_name: document.getElementById('new-name').value.trim(),
+                    email: document.getElementById('new-email').value.trim(),
+                    phone: document.getElementById('new-phone').value.trim() || undefined,
+                    role: document.getElementById('new-role').value,
+                    password: document.getElementById('new-password').value,
+                };
+
+                try {
+                    await API.post('/admin/users', payload);
+                    alert(`✅ Tạo tài khoản nhân viên thành công cho "${payload.full_name}" (${payload.role})!`);
+                    closeCreateModal();
+                    await loadUsers();
+                } catch (err) {
+                    alert('Lỗi tạo tài khoản: ' + (err.message || 'Thất bại'));
+                }
+            };
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            window.addEventListener('adminReady', (e) => {
+                if (e.detail && e.detail.id) {
+                    currentUserId = e.detail.id;
+                }
+                loadUsers();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -80,6 +80,7 @@ function mapMethodToBankCode(method) {
       return 'VNBANK';
     case 'INTL_CARD':
       return 'INTCARD';
+    case 'QR':
     case 'WALLET':
       return 'VNPAYQR';
     default:
@@ -102,7 +103,7 @@ function mapMethodToBankCode(method) {
  * @param {string} [params.ip='127.0.0.1']
  * @returns {Promise<{ attemptId: string, paymentUrl: string }>}
  */
-async function createPayment({ userId, orderId, method, bankCode, idempotencyKey, ip = '127.0.0.1' }) {
+async function createPayment({ userId, orderId, method, bankCode, termsVersion, idempotencyKey, ip = '127.0.0.1' }) {
   // 1. Kiểm tra Idempotency-Key trước
   const existingAttempt = await knex('payment_attempts')
     .where({ idempotency_key: idempotencyKey })
@@ -171,7 +172,7 @@ async function createPayment({ userId, orderId, method, bankCode, idempotencyKey
       created_at: nowIso,
     });
 
-    // Chuyển trạng thái đơn: HOLDING -> AWAITING_PAYMENT, cập nhật current_attempt_id và payment_method
+    // Chuyển trạng thái đơn: HOLDING -> AWAITING_PAYMENT, cập nhật current_attempt_id và payment_method, lưu chấp thuận điều khoản
     await setStatus(trx, order, 'AWAITING_PAYMENT', {
       reason: 'Khởi tạo thanh toán VNPay',
       actorType: 'USER',
@@ -179,6 +180,8 @@ async function createPayment({ userId, orderId, method, bankCode, idempotencyKey
       extraUpdates: {
         payment_method: method,
         current_attempt_id: attemptId,
+        terms_accepted_at: nowIso,
+        terms_version: termsVersion || 'v1.0',
       },
     });
 

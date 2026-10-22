@@ -5,192 +5,441 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đối soát Giao dịch - Beta Admin</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 12px 18px;
+            border-bottom: 1px solid #eee;
+        }
+        .filter-input {
+            padding: 6px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+    </style>
 </head>
 <body>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
             <h3 style="margin: 0; color: #333;">ĐỘNG CƠ ĐỐI SOÁT GIAO DỊCH (RECONCILIATION)</h3>
-            <p style="color: #666; font-size: 13.5px; margin-top: 5px;" id="recon-info">
-                Chu kỳ: 15 phút/lần. Động cơ tự động đối soát giữa VNPay và Beta Cinemas, tự động cấp vé muộn hoặc hoàn tiền.
+            <p style="color: #666; font-size: 13.5px; margin-top: 5px;">
+                Tự động đối soát giữa Cổng thanh toán và Beta Cinemas, tự động cấp vé muộn hoặc tạo lệnh hoàn tiền.
             </p>
         </div>
-        <button class="btn btn-primary" id="btn-run-recon" onclick="forceRun()" style="padding: 10px 18px; font-weight: 700;">
+        <button class="btn btn-primary" id="btn-run-recon" onclick="forceRunRecon()" style="padding: 10px 18px; font-weight: 700;">
             ⚡ CHẠY ĐỐI SOÁT NGAY
         </button>
     </div>
 
-    <div class="card">
+    <!-- CARD 1: DANH SÁCH LƯỢT CHẠY ĐỐI SOÁT -->
+    <div class="card" style="margin-bottom: 25px;">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Tình hình đối soát theo ngày</span>
-            <button class="btn" style="background: #e9ecef; color: #333; padding: 4px 10px; font-size: 12px;" onclick="loadReconData()">
-                🔄 Làm mới
+            <span>DANH SÁCH LƯỢT CHẠY ĐỐI SOÁT (RECON RUNS)</span>
+            <span id="runs-count-badge" style="font-size: 12.5px; font-weight: normal; color: #666;">Đang tải...</span>
+        </div>
+        
+        <div class="filter-bar">
+            <select id="run-filter-trigger" class="filter-input" onchange="loadRuns(1)">
+                <option value="">-- Tất cả nguồn chạy --</option>
+                <option value="MANUAL">MANUAL (Thủ công)</option>
+                <option value="SCHEDULED">SCHEDULED (Tự động)</option>
+            </select>
+
+            <select id="run-filter-status" class="filter-input" onchange="loadRuns(1)">
+                <option value="">-- Tất cả trạng thái --</option>
+                <option value="DONE">DONE (Hoàn tất)</option>
+                <option value="RUNNING">RUNNING (Đang chạy)</option>
+                <option value="FAILED">FAILED (Thất bại)</option>
+            </select>
+
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 12.5px; color: #666;">Từ:</span>
+                <input type="date" id="run-filter-from" class="filter-input" onchange="loadRuns(1)">
+                <span style="font-size: 12.5px; color: #666;">Đến:</span>
+                <input type="date" id="run-filter-to" class="filter-input" onchange="loadRuns(1)">
+            </div>
+
+            <button class="btn btn-primary" onclick="loadRuns(1)" style="padding: 6px 12px; font-size: 12.5px;">
+                Lọc
+            </button>
+            <button class="btn" onclick="resetRunFilters()" style="background: #e9ecef; color: #333; padding: 6px 10px; font-size: 12.5px;">
+                Đặt lại
             </button>
         </div>
+
         <div class="card-body" style="padding: 0;">
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Ngày</th>
-                        <th>Tổng tiền Cổng (VNPay)</th>
-                        <th>Tổng tiền Beta</th>
-                        <th>Chênh lệch</th>
-                        <th>Số GD Treo</th>
-                        <th>Đã hoàn tiền</th>
-                        <th>Đang hoàn tiền</th>
-                        <th>Đánh giá</th>
-                    </tr>
-                </thead>
-                <tbody id="recon-summary-table">
-                    <tr><td colspan="8" style="text-align: center; color: #888;">Đang tải dữ liệu đối soát...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="card" style="margin-top: 25px;">
-        <div class="card-header">Sự cố & Ca lệch cần chú ý gần nhất (Support Tickets)</div>
-        <div class="card-body" style="padding: 0;">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Mã Ticket</th>
-                        <th>Mã Đơn hàng</th>
-                        <th>Nguồn phát hiện</th>
-                        <th>Lý do / Phân loại</th>
+                        <th>Mã lượt</th>
+                        <th>Nguồn</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th style="text-align: center;">Đã quét</th>
+                        <th style="text-align: center;">Khớp</th>
+                        <th style="text-align: center;">Lệch</th>
+                        <th style="text-align: center;">Tự động hoàn</th>
+                        <th style="text-align: center;">Cảnh báo</th>
                         <th>Trạng thái</th>
-                        <th>Thời gian</th>
+                        <th style="text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody id="flagged-table">
-                    <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải danh sách...</td></tr>
+                <tbody id="runs-tbody">
+                    <tr><td colspan="11" style="text-align: center; color: #888; padding: 20px;">Đang tải danh sách lượt chạy...</td></tr>
                 </tbody>
             </table>
+
+            <div class="pagination-container">
+                <div style="font-size: 12.5px; color: #666;" id="runs-page-info">Trang 1 / 1</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn" id="btn-runs-prev" onclick="changeRunsPage(-1)" style="background: #f1f3f5; color: #333; padding: 4px 10px;" disabled>◀ Trang trước</button>
+                    <button class="btn" id="btn-runs-next" onclick="changeRunsPage(1)" style="background: #f1f3f5; color: #333; padding: 4px 10px;" disabled>Trang sau ▶</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Script dependencies -->
+    <!-- CARD 2: CHI TIẾT TỪNG DÒNG LỆCH GIỮA TIỀN CỔNG VÀ TIỀN BETA -->
+    <div class="card" id="card-mismatches">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #dc3545;">CHI TIẾT TỪNG DÒNG LỆCH GIỮA TIỀN CỔNG GHI NHẬN VÀ TIỀN BETA THU</span>
+            <span id="items-count-badge" style="font-size: 12.5px; font-weight: normal; color: #666;">Đang tải...</span>
+        </div>
+
+        <div class="filter-bar">
+            <input type="number" id="item-filter-run-id" class="filter-input" placeholder="Mã lượt chạy (Run ID)" style="width: 150px;" onchange="loadItems(1)">
+            
+            <select id="item-filter-class" class="filter-input" onchange="loadItems(1)">
+                <option value="">-- Tất cả ca có sai lệch --</option>
+                <option value="ALL">Hiển thị toàn bộ (kể cả MATCHED)</option>
+                <option value="NO_TICKET_DEBITED">NO_TICKET_DEBITED (Cổng trừ tiền nhưng chưa cấp vé)</option>
+                <option value="AMOUNT_MISMATCH">AMOUNT_MISMATCH (Lệch số tiền giữa 2 bên)</option>
+                <option value="DUPLICATE_PAYMENT">DUPLICATE_PAYMENT (Thanh toán trùng)</option>
+                <option value="LATE_CALLBACK">LATE_CALLBACK (Cổng callback sau khi đơn đã hủy/hết hạn)</option>
+                <option value="GATEWAY_FAILED">GATEWAY_FAILED (Cổng trừ thất bại)</option>
+            </select>
+
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 12.5px; color: #666;">Từ:</span>
+                <input type="date" id="item-filter-from" class="filter-input" onchange="loadItems(1)">
+                <span style="font-size: 12.5px; color: #666;">Đến:</span>
+                <input type="date" id="item-filter-to" class="filter-input" onchange="loadItems(1)">
+            </div>
+
+            <button class="btn btn-primary" onclick="loadItems(1)" style="padding: 6px 12px; font-size: 12.5px;">
+                Lọc
+            </button>
+            <button class="btn" onclick="resetItemFilters()" style="background: #e9ecef; color: #333; padding: 6px 10px; font-size: 12.5px;">
+                Đặt lại
+            </button>
+        </div>
+
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Lượt</th>
+                        <th>Mã đơn</th>
+                        <th>Mã GD Cổng</th>
+                        <th>Tiền Cổng</th>
+                        <th>Tiền Beta</th>
+                        <th>Chênh lệch</th>
+                        <th>Trạng thái Cổng</th>
+                        <th>Trạng thái Beta</th>
+                        <th>Phân loại lệch</th>
+                        <th>Hành động xử lý</th>
+                    </tr>
+                </thead>
+                <tbody id="items-tbody">
+                    <tr><td colspan="10" style="text-align: center; color: #888; padding: 25px;">Đang tải danh sách các dòng lệch...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="pagination-container">
+                <div style="font-size: 12.5px; color: #666;" id="items-page-info">Trang 1 / 1</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn" id="btn-items-prev" onclick="changeItemsPage(-1)" style="background: #f1f3f5; color: #333; padding: 4px 10px;" disabled>◀ Trang trước</button>
+                    <button class="btn" id="btn-items-next" onclick="changeItemsPage(1)" style="background: #f1f3f5; color: #333; padding: 4px 10px;" disabled>Trang sau ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/api.js"></script>
     <script src="js/admin-layout.js"></script>
-    
     <script>
-        (function() {
-            function formatMoney(amount) {
-                if (amount === null || amount === undefined) return '0 ₫';
-                return Number(amount).toLocaleString('vi-VN') + ' ₫';
+        let runsPage = 1;
+        let runsTotalPages = 1;
+        let itemsPage = 1;
+        let itemsTotalPages = 1;
+        const pageLimit = 10;
+
+        function formatMoney(amount) {
+            return Number(amount || 0).toLocaleString('vi-VN') + ' đ';
+        }
+
+        function formatTime(isoStr) {
+            if (!isoStr) return '--';
+            try {
+                const d = new Date(isoStr);
+                return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+            } catch (e) {
+                return isoStr;
+            }
+        }
+
+        // ==========================================
+        // 1. TẢI DANH SÁCH CÁC LƯỢT CHẠY (RECON RUNS)
+        // ==========================================
+        async function loadRuns(page = 1) {
+            runsPage = page;
+            const tbody = document.getElementById('runs-tbody');
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #888; padding: 15px;">Đang tải dữ liệu lượt chạy...</td></tr>';
+
+            const trigger = document.getElementById('run-filter-trigger').value;
+            const status = document.getElementById('run-filter-status').value;
+            const from = document.getElementById('run-filter-from').value;
+            const to = document.getElementById('run-filter-to').value;
+
+            const params = new URLSearchParams({
+                page: runsPage,
+                limit: pageLimit,
+            });
+            if (trigger) params.append('trigger', trigger);
+            if (status) params.append('status', status);
+            if (from) params.append('from', from);
+            if (to) params.append('to', to);
+
+            try {
+                const res = await API.get('/admin/recon/runs?' + params.toString());
+                let runs = [];
+                let total = 0;
+
+                if (res && res.items) {
+                    runs = res.items;
+                    total = res.pagination?.total || 0;
+                    runsTotalPages = res.pagination?.totalPages || 1;
+                } else if (Array.isArray(res)) {
+                    runs = res;
+                    total = res.length;
+                    runsTotalPages = 1;
+                }
+
+                document.getElementById('runs-count-badge').innerText = `Tổng số: ${total} lượt`;
+                document.getElementById('runs-page-info').innerText = `Trang ${runsPage} / ${runsTotalPages} (Tổng ${total} lượt)`;
+                document.getElementById('btn-runs-prev').disabled = (runsPage <= 1);
+                document.getElementById('btn-runs-next').disabled = (runsPage >= runsTotalPages);
+
+                if (runs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #888; padding: 20px;">Không có lượt chạy đối soát nào phù hợp.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = runs.map(r => `
+                    <tr>
+                        <td><strong>#${r.run_id}</strong></td>
+                        <td><span class="badge ${r.trigger === 'MANUAL' ? 'primary' : 'info'}">${r.trigger}</span></td>
+                        <td style="font-size: 12px; color: #555;">${formatTime(r.started_at)}</td>
+                        <td style="font-size: 12px; color: #555;">${formatTime(r.finished_at)}</td>
+                        <td style="text-align: center; font-weight: bold;">${r.scanned}</td>
+                        <td style="text-align: center; color: #28a745; font-weight: bold;">${r.matched}</td>
+                        <td style="text-align: center; color: ${r.mismatched > 0 ? '#dc3545' : '#28a745'}; font-weight: bold;">${r.mismatched}</td>
+                        <td style="text-align: center;"><span class="badge warning">${r.auto_refunds || 0}</span></td>
+                        <td style="text-align: center;"><span class="badge ${r.flagged > 0 ? 'error' : 'gray'}">${r.flagged || 0}</span></td>
+                        <td><span class="badge ${r.status === 'DONE' ? 'success' : (r.status === 'RUNNING' ? 'warning' : 'error')}">${r.status}</span></td>
+                        <td style="text-align: center;">
+                            <button class="btn" onclick="filterByRun(${r.run_id})" style="background: #f1f3f5; color: #03599d; padding: 3px 8px; font-size: 11.5px; font-weight: 600;">
+                                🔍 Xem dòng lệch
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error('Lỗi khi tải danh sách lượt chạy:', err);
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #dc3545; padding: 15px;">Lỗi: ${err.message || 'Không thể tải danh sách'}</td></tr>`;
+            }
+        }
+
+        function resetRunFilters() {
+            document.getElementById('run-filter-trigger').value = '';
+            document.getElementById('run-filter-status').value = '';
+            document.getElementById('run-filter-from').value = '';
+            document.getElementById('run-filter-to').value = '';
+            loadRuns(1);
+        }
+
+        function changeRunsPage(delta) {
+            const next = runsPage + delta;
+            if (next >= 1 && next <= runsTotalPages) {
+                loadRuns(next);
+            }
+        }
+
+        function filterByRun(runId) {
+            document.getElementById('item-filter-run-id').value = runId;
+            document.getElementById('card-mismatches').scrollIntoView({ behavior: 'smooth' });
+            loadItems(1);
+        }
+
+        // ==========================================
+        // 2. TẢI DANH SÁCH TỪNG DÒNG LỆCH (RECON ITEMS)
+        // ==========================================
+        async function loadItems(page = 1) {
+            itemsPage = page;
+            const tbody = document.getElementById('items-tbody');
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #888; padding: 20px;">Đang tải danh sách dòng lệch...</td></tr>';
+
+            const runId = document.getElementById('item-filter-run-id').value.trim();
+            const classification = document.getElementById('item-filter-class').value;
+            const from = document.getElementById('item-filter-from').value;
+            const to = document.getElementById('item-filter-to').value;
+
+            const params = new URLSearchParams({
+                page: itemsPage,
+                limit: pageLimit,
+            });
+            if (runId) params.append('runId', runId);
+            if (classification) {
+                params.append('classification', classification);
+            } else {
+                params.append('onlyMismatched', 'true');
+            }
+            if (from) params.append('from', from);
+            if (to) params.append('to', to);
+
+            try {
+                const res = await API.get('/admin/recon/items?' + params.toString());
+                let items = [];
+                let total = 0;
+
+                if (res && res.items) {
+                    items = res.items;
+                    total = res.pagination?.total || 0;
+                    itemsTotalPages = res.pagination?.totalPages || 1;
+                } else if (Array.isArray(res)) {
+                    items = res;
+                    total = res.length;
+                    itemsTotalPages = 1;
+                }
+
+                document.getElementById('items-count-badge').innerText = `Tổng số: ${total} ca lệch`;
+                document.getElementById('items-page-info').innerText = `Trang ${itemsPage} / ${itemsTotalPages} (Tổng ${total} ca lệch)`;
+                document.getElementById('btn-items-prev').disabled = (itemsPage <= 1);
+                document.getElementById('btn-items-next').disabled = (itemsPage >= itemsTotalPages);
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #28a745; padding: 25px;"><strong>Tuyệt vời! Không phát hiện dòng lệch nào.</strong></td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(item => {
+                    const diff = Number(item.difference || 0);
+                    const diffColor = diff !== 0 ? '#dc3545' : '#28a745';
+                    const diffText = diff > 0 ? `+${formatMoney(diff)}` : formatMoney(diff);
+
+                    let classBadge = 'badge warning';
+                    if (item.classification === 'MATCHED') classBadge = 'badge success';
+                    if (item.classification === 'NO_TICKET_DEBITED' || item.classification === 'AMOUNT_MISMATCH') classBadge = 'badge error';
+
+                    return `
+                        <tr>
+                            <td><strong>#${item.run_id}</strong></td>
+                            <td><strong style="color: #03599d;">${item.order_id || '--'}</strong></td>
+                            <td style="font-family: monospace; font-size: 11.5px;">${item.gateway_txn_id || '--'}</td>
+                            <td><strong>${formatMoney(item.amount_gateway)}</strong></td>
+                            <td>${formatMoney(item.amount_beta)}</td>
+                            <td><strong style="color: ${diffColor};">${diffText}</strong></td>
+                            <td><span class="badge ${item.gateway_debited ? 'success' : 'gray'}">${item.gateway_status}</span></td>
+                            <td><span class="badge info">${item.beta_status}</span></td>
+                            <td><span class="${classBadge}">${item.classification}</span></td>
+                            <td><span class="badge ${item.action === 'AUTO_REFUND' ? 'warning' : (item.action === 'FLAGGED' ? 'error' : 'gray')}">${item.action}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Lỗi khi tải dòng lệch:', err);
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #dc3545; padding: 20px;">Lỗi: ${err.message || 'Không thể tải danh sách'}</td></tr>`;
+            }
+        }
+
+        function resetItemFilters() {
+            document.getElementById('item-filter-run-id').value = '';
+            document.getElementById('item-filter-class').value = '';
+            document.getElementById('item-filter-from').value = '';
+            document.getElementById('item-filter-to').value = '';
+            loadItems(1);
+        }
+
+        function changeItemsPage(delta) {
+            const next = itemsPage + delta;
+            if (next >= 1 && next <= itemsTotalPages) {
+                loadItems(next);
+            }
+        }
+
+        // ==========================================
+        // 3. CHẠY ĐỐI SOÁT THỦ CÔNG (GHI AUDIT LOG)
+        // ==========================================
+        window.forceRunRecon = async function() {
+            if (!confirm('Bạn có chắc chắn muốn kích hoạt chạy đối soát thủ công ngay bây giờ không?')) {
+                return;
             }
 
-            function formatTime(isoStr) {
-                if (!isoStr) return '';
-                try {
-                    const d = new Date(isoStr);
-                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
-                } catch (e) {
-                    return isoStr;
-                }
+            const btn = document.getElementById('btn-run-recon');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Đang chạy đối soát...';
             }
 
-            window.loadReconData = async function() {
-                try {
-                    const [reportRes, ticketsRes] = await Promise.all([
-                        API.get('/admin/reports/reconciliation').catch(() => []),
-                        API.get('/admin/tickets?source=SYSTEM').catch(() => []),
-                    ]);
-
-                    const report = Array.isArray(reportRes) ? reportRes : [];
-                    const tickets = Array.isArray(ticketsRes) ? ticketsRes : [];
-
-                    // 1. Render Báo cáo tổng hợp đối soát theo ngày
-                    const summaryTable = document.getElementById('recon-summary-table');
-                    if (summaryTable) {
-                        if (report.length === 0) {
-                            summaryTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #777;">Chưa có dữ liệu đối soát.</td></tr>';
-                        } else {
-                            summaryTable.innerHTML = report.map(r => {
-                                const diff = Number(r.difference || 0);
-                                const isMismatch = diff !== 0 || Number(r.hanging_count || 0) > 0;
-                                const diffStyle = diff !== 0 ? 'color: #dc3545; font-weight: bold;' : 'color: #28a745;';
-                                const statusBadge = isMismatch 
-                                    ? '<span class="badge error">Có ca lệch / treo</span>'
-                                    : '<span class="badge success">Khớp 100%</span>';
-
-                                return `
-                                    <tr style="${isMismatch ? 'background: #fff8f8;' : ''}">
-                                        <td><strong>${r.date}</strong></td>
-                                        <td>${formatMoney(r.gateway_total)}</td>
-                                        <td>${formatMoney(r.beta_total)}</td>
-                                        <td style="${diffStyle}">${formatMoney(diff)}</td>
-                                        <td><strong>${r.hanging_count}</strong></td>
-                                        <td><span class="badge success">${r.refunded_count}</span></td>
-                                        <td><span class="badge warning">${r.refunding_count}</span></td>
-                                        <td>${statusBadge}</td>
-                                    </tr>
-                                `;
-                            }).join('');
-                        }
-                    }
-
-                    // 2. Render Flagged / System Support Tickets
-                    const flaggedTable = document.getElementById('flagged-table');
-                    if (flaggedTable) {
-                        if (tickets.length === 0) {
-                            flaggedTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777;">Không có ca lệch hoặc cảnh báo nào.</td></tr>';
-                        } else {
-                            flaggedTable.innerHTML = tickets.map(t => {
-                                let badgeClass = 'badge warning';
-                                if (t.status === 'RESOLVED') badgeClass = 'badge success';
-                                if (t.status === 'REJECTED') badgeClass = 'badge gray';
-
-                                return `
-                                    <tr>
-                                        <td><strong>${t.ticket_id}</strong></td>
-                                        <td>${t.order_id || '—'}</td>
-                                        <td><span class="badge primary">${t.source}</span></td>
-                                        <td style="color: #444;">${t.reason || '—'}</td>
-                                        <td><span class="${badgeClass}">${t.status}</span></td>
-                                        <td style="font-size: 12px; color: #888;">${formatTime(t.created_at)}</td>
-                                    </tr>
-                                `;
-                            }).join('');
-                        }
-                    }
-                } catch (err) {
-                    console.error('Lỗi khi tải dữ liệu đối soát:', err);
-                }
-            };
-
-            window.forceRun = async function() {
-                const btn = document.getElementById('btn-run-recon');
+            try {
+                const res = await API.post('/admin/recon/run');
+                alert(
+                    `ĐỐI SOÁT THỦ CÔNG HOÀN TẤT!\n` +
+                    `-----------------------------\n` +
+                    `- Mã lượt chạy: #${res.runId}\n` +
+                    `- Trạng thái: ${res.status}\n` +
+                    `- Tổng đơn quét: ${res.scanned}\n` +
+                    `- Ca khớp hoàn toàn: ${res.matched}\n` +
+                    `- Ca phát hiện lệch: ${res.mismatched}\n` +
+                    `- Ca hoàn tiền tự động: ${res.autoRefunds || 0}\n` +
+                    `- Ca cảnh báo (Flagged): ${res.flagged || 0}\n\n` +
+                    `(Đã ghi nhận nhật ký kiểm toán AUDIT_LOG thành công)`
+                );
+                await Promise.all([loadRuns(1), loadItems(1)]);
+            } catch (err) {
+                console.error('Lỗi khi chạy đối soát thủ công:', err);
+                alert('Lỗi: ' + (err.message || 'Không thể thực thi đối soát'));
+            } finally {
                 if (btn) {
-                    btn.disabled = true;
-                    btn.innerText = 'Đang chạy đối soát...';
+                    btn.disabled = false;
+                    btn.innerText = '⚡ CHẠY ĐỐI SOÁT NGAY';
                 }
+            }
+        };
 
-                try {
-                    const res = await API.post('/admin/recon/run');
-                    alert(
-                        `ĐỐI SOÁT HOÀN TẤT!\n` +
-                        `-----------------------------\n` +
-                        `- Trạng thái: ${res.status}\n` +
-                        `- Tổng đơn quét: ${res.scanned}\n` +
-                        `- Ca khớp hoàn toàn: ${res.matched}\n` +
-                        `- Ca phát hiện lệch: ${res.mismatched}\n` +
-                        `- Ca hoàn tiền tự động: ${res.autoRefunds || 0}\n` +
-                        `- Ca đánh dấu cảnh báo (Flagged): ${res.flagged || 0}`
-                    );
-                    await loadReconData();
-                } catch (err) {
-                    console.error('Lỗi khi chạy đối soát thủ công:', err);
-                    alert('Lỗi: ' + (err.message || 'Không thể thực thi đối soát'));
-                } finally {
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerText = '⚡ CHẠY ĐỐI SOÁT NGAY';
-                    }
-                }
-            };
-
-            window.addEventListener('adminReady', loadReconData);
-        })();
+        window.addEventListener('adminReady', () => {
+            loadRuns(1);
+            loadItems(1);
+        });
     </script>
 </body>
 </html>

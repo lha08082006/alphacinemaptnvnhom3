@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình Hệ thống - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .settings-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+        .settings-header {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            font-weight: 700;
+            font-size: 15px;
+            color: #03599d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13.5px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            border-color: #03599d;
+            box-shadow: 0 0 0 2px rgba(3,89,157,0.15);
+        }
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+            display: none;
+        }
+        .alert-box.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-box.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h3 style="margin: 0; color: #333; font-weight: 700;">CẤU HÌNH VẬN HÀNH HỆ THỐNG</h3>
+            <div style="font-size: 13px; color: #666; margin-top: 3px;">Phân quyền: IT Vận hành (IT) & Quản lý (MANAGER). Mọi thay đổi được ghi nhật ký audit_log.</div>
+        </div>
+        <button class="btn btn-primary" onclick="loadSettings()">🔄 Tải lại cấu hình</button>
+    </div>
+
+    <div id="settings-msg" class="alert-box"></div>
+
+    <form id="settings-form" onsubmit="saveSettings(event)">
+        <div class="settings-card">
+            <div class="settings-header">
+                <span>⚙️ THÔNG SỐ VẬN HÀNH CỐT LÕI (CORE SETTINGS)</span>
+                <span class="badge info">IT & MANAGER</span>
+            </div>
+            <div class="card-body" style="padding: 24px;">
+                <!-- 1. Chế độ hệ thống ASIS / TOBE -->
+                <div class="form-group">
+                    <label class="form-label" for="setting-mode">1. Chế độ hệ thống (Operating Mode):</label>
+                    <div class="form-desc">
+                        Lựa chọn mô hình vận hành giao dịch đặt vé và xử lý sự cố:
+                    </div>
+                    <select id="setting-mode" class="form-control" style="font-weight: 600;">
+                        <option value="ASIS">AS-IS: Chế độ ban đầu (Thủ công, đơn dễ treo khi callback muộn, đối soát thủ công)</option>
+                        <option value="TOBE">TO-BE: Chế độ hoàn thiện (Tự động đối soát, khóa ghế an toàn, tự động kích hoạt hoàn tiền SLA 24H)</option>
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <!-- 2. HOLD_MINUTES -->
+                    <div class="form-group">
+                        <label class="form-label" for="setting-holdMinutes">2. Thời gian giữ ghế (HOLD_MINUTES):</label>
+                        <div class="form-desc">Thời gian giữ chỗ tạm thời (phút) khi khách bấm chọn ghế. Hết giờ ghế tự động nhả về AVAILABLE.</div>
+                        <input type="number" id="setting-holdMinutes" class="form-control" min="1" max="60" required>
+                    </div>
+
+                    <!-- 3. Timeout -->
+                    <div class="form-group">
+                        <label class="form-label" for="setting-callbackTimeoutSec">3. Thời gian chờ phản hồi thanh toán / Timeout (giây):</label>
+                        <div class="form-desc">Thời gian tối đa chờ phản hồi từ cổng thanh toán VNPay trước khi kiểm tra trạng thái đơn.</div>
+                        <input type="number" id="setting-callbackTimeoutSec" class="form-control" min="5" max="3600" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- 4. Chu kỳ đối soát -->
+                    <div class="form-group">
+                        <label class="form-label" for="setting-reconcileIntervalMin">4. Chu kỳ đối soát tự động (phút):</label>
+                        <div class="form-desc">Khoảng thời gian nền giữa các lần quét đối soát giao dịch tự động với cổng VNPay.</div>
+                        <input type="number" id="setting-reconcileIntervalMin" class="form-control" min="1" max="1440" required>
+                    </div>
+
+                    <!-- 5. Gia hạn PENDING_VERIFY -->
+                    <div class="form-group">
+                        <label class="form-label" for="setting-pendingVerifyHoldMin">5. Gia hạn PENDING_VERIFY (phút):</label>
+                        <div class="form-desc">Thời gian giữ thêm cho các đơn hàng nghi vấn đang xác minh để tránh mất ghế của khách.</div>
+                        <input type="number" id="setting-pendingVerifyHoldMin" class="form-control" min="1" max="120" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="setting-refundSendDelayMin">6. Thời gian hoãn hoàn tiền tự động (phút):</label>
+                    <div class="form-desc">Thời gian đệm từ khi phát hiện giao dịch lệch đến lúc gửi yêu cầu sang cổng thanh toán.</div>
+                    <input type="number" id="setting-refundSendDelayMin" class="form-control" min="0" max="1440" required>
+                </div>
+
+                <div style="border-top: 1px solid #eee; padding-top: 18px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 12.5px; color: #888;">
+                        🔒 Mọi thay đổi thông số sẽ ghi lại bản ghi kiểm toán kèm giá trị cũ và mới vào <a href="audit-log.html" style="color: #03599d; font-weight: bold;">Nhật ký hệ thống (Audit Log)</a>.
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px; font-weight: 700;">
+                        💾 Lưu Cấu Hình Thay Đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        async function loadSettings() {
+            try {
+                const res = await API.get('/admin/settings');
+                if (res) {
+                    if (res.mode) document.getElementById('setting-mode').value = res.mode;
+                    if (res.holdMinutes) document.getElementById('setting-holdMinutes').value = res.holdMinutes;
+                    if (res.callbackTimeoutSec || res.timeout) {
+                        document.getElementById('setting-callbackTimeoutSec').value = res.callbackTimeoutSec || res.timeout;
+                    }
+                    if (res.reconcileIntervalMin) document.getElementById('setting-reconcileIntervalMin').value = res.reconcileIntervalMin;
+                    if (res.pendingVerifyHoldMin) document.getElementById('setting-pendingVerifyHoldMin').value = res.pendingVerifyHoldMin;
+                    if (res.refundSendDelayMin !== undefined) document.getElementById('setting-refundSendDelayMin').value = res.refundSendDelayMin;
+                }
+            } catch (err) {
+                console.error('Lỗi khi tải settings:', err);
+                showAlert('Lỗi tải cấu hình hệ thống: ' + (err.message || 'Thất bại'), 'danger');
+            }
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const payload = {
+                mode: document.getElementById('setting-mode').value,
+                holdMinutes: parseInt(document.getElementById('setting-holdMinutes').value, 10),
+                callbackTimeoutSec: parseInt(document.getElementById('setting-callbackTimeoutSec').value, 10),
+                reconcileIntervalMin: parseInt(document.getElementById('setting-reconcileIntervalMin').value, 10),
+                pendingVerifyHoldMin: parseInt(document.getElementById('setting-pendingVerifyHoldMin').value, 10),
+                refundSendDelayMin: parseInt(document.getElementById('setting-refundSendDelayMin').value, 10),
+            };
+
+            try {
+                await API.patch('/admin/settings', payload);
+                showAlert('✅ Đã lưu cấu hình hệ thống thành công! Thông tin trước/sau đã được ghi vào Nhật ký (Audit Log).', 'success');
+                await loadSettings();
+            } catch (err) {
+                showAlert('❌ Lỗi cập nhật cấu hình: ' + (err.message || 'Thất bại'), 'danger');
+            }
+        }
+
+        function showAlert(msg, type) {
+            const el = document.getElementById('settings-msg');
+            el.className = 'alert-box ' + type;
+            el.innerHTML = msg;
+            el.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.addEventListener('adminReady', loadSettings);
+    </script>
+</body>
+</html>

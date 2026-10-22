@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đơn hàng - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13.5px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #03599d;
+            box-shadow: 0 0 0 2px rgba(3, 89, 157, 0.15);
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-container {
+            background: #fff;
+            width: 850px;
+            max-width: 95vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            overflow-y: auto;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid #eee;
+            text-align: right;
+            background: #f8f9fa;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #888;
+        }
+        .close-btn:hover { color: #333; }
+        
+        /* Timeline styling */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-point {
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #03599d;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #03599d;
+        }
+        .timeline-content {
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            padding: 10px 14px;
+            border-radius: 6px;
+        }
+        .timeline-time {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .timeline-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .timeline-desc {
+            font-size: 12.5px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #fcfcfc;
+            border: 1px solid #eee;
+            padding: 14px;
+            border-radius: 6px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #777;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .info-val {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="filter-bar">
+        <input type="text" id="filter-q" class="filter-input" placeholder="Tìm theo mã đơn, email, SĐT..." style="min-width: 260px;" onkeyup="if(event.key==='Enter') applyFilters()">
+        
+        <select id="filter-status" class="filter-input" onchange="applyFilters()">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="HOLDING">HOLDING (Đang giữ ghế)</option>
+            <option value="AWAITING_PAYMENT">AWAITING_PAYMENT (Chờ thanh toán)</option>
+            <option value="PENDING_VERIFY">PENDING_VERIFY (Chờ xác minh)</option>
+            <option value="PAID">PAID (Đã thanh toán)</option>
+            <option value="FAILED">FAILED (Thất bại)</option>
+            <option value="EXPIRED">EXPIRED (Hết hạn)</option>
+            <option value="REFUND_PENDING">REFUND_PENDING (Chờ hoàn tiền)</option>
+            <option value="REFUNDED">REFUNDED (Đã hoàn tiền)</option>
+        </select>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 13px; color: #666;">Từ:</span>
+            <input type="date" id="filter-from" class="filter-input" onchange="applyFilters()">
+            <span style="font-size: 13px; color: #666;">Đến:</span>
+            <input type="date" id="filter-to" class="filter-input" onchange="applyFilters()">
+        </div>
+
+        <button class="btn btn-primary" onclick="applyFilters()" style="padding: 8px 16px;">
+            🔍 Tìm kiếm
+        </button>
+        <button class="btn" onclick="resetFilters()" style="background: #e9ecef; color: #333; padding: 8px 14px;">
+            Đặt lại
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>DANH SÁCH ĐƠN HÀNG HỆ THỐNG</span>
+            <span id="order-count-badge" style="font-size: 13px; font-weight: normal; color: #666;">Đang tải...</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>SĐT</th>
+                        <th>Email</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian tạo</th>
+                        <th style="text-align: center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #888; padding: 30px;">Đang tải danh sách đơn hàng...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="pagination-bar">
+                <div style="font-size: 13px; color: #666;" id="page-info">
+                    Trang 1 / 1
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="btn-prev-page" onclick="changePage(-1)" style="background: #f1f3f5; color: #333;" disabled>
+                        ◀ Trang trước
+                    </button>
+                    <button class="btn" id="btn-next-page" onclick="changePage(1)" style="background: #f1f3f5; color: #333;" disabled>
+                        Trang sau ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi Tiết & Timeline Đơn Hàng -->
+    <div class="modal-overlay" id="order-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h3 style="margin: 0; font-size: 17px; color: #333;" id="modal-title">Chi tiết đơn hàng</h3>
+                    <span style="font-size: 12px; color: #777;" id="modal-order-id">Mã đơn: --</span>
+                </div>
+                <button class="close-btn" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <div style="text-align: center; padding: 30px; color: #888;">Đang tải chi tiết đơn hàng...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeOrderModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        const pageLimit = 10;
+
+        const badgeMap = {
+            HOLDING: 'info',
+            AWAITING_PAYMENT: 'info',
+            PENDING_VERIFY: 'warning',
+            PAID: 'success',
+            FAILED: 'error',
+            EXPIRED: 'gray',
+            REFUND_PENDING: 'warning',
+            REFUNDED: 'primary'
+        };
+
+        function formatMoney(amount) {
+            return Number(amount || 0).toLocaleString('vi-VN') + ' đ';
+        }
+
+        function formatTime(isoStr) {
+            if (!isoStr) return '--';
+            try {
+                const d = new Date(isoStr);
+                return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+            } catch (e) {
+                return isoStr;
+            }
+        }
+
+        async function loadOrders(page = 1) {
+            currentPage = page;
+            const tbody = document.getElementById('orders-tbody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888; padding: 25px;">Đang tải dữ liệu...</td></tr>';
+
+            const q = document.getElementById('filter-q').value.trim();
+            const status = document.getElementById('filter-status').value;
+            const from = document.getElementById('filter-from').value;
+            const to = document.getElementById('filter-to').value;
+
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: pageLimit,
+            });
+            if (q) params.append('q', q);
+            if (status) params.append('status', status);
+            if (from) params.append('from', from);
+            if (to) params.append('to', to);
+
+            try {
+                const res = await API.get('/admin/orders?' + params.toString());
+                
+                let orders = [];
+                let total = 0;
+
+                if (res && res.items) {
+                    orders = res.items;
+                    total = res.pagination?.total || 0;
+                    totalPages = res.pagination?.totalPages || 1;
+                } else if (Array.isArray(res)) {
+                    orders = res;
+                    total = res.length;
+                    totalPages = 1;
+                }
+
+                document.getElementById('order-count-badge').innerText = `Tổng số: ${total} đơn`;
+                document.getElementById('page-info').innerText = `Trang ${currentPage} / ${totalPages} (Tổng ${total} đơn hàng)`;
+                document.getElementById('btn-prev-page').disabled = (currentPage <= 1);
+                document.getElementById('btn-next-page').disabled = (currentPage >= totalPages);
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #888; padding: 30px;">Không tìm thấy đơn hàng nào phù hợp.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td><strong style="color: #03599d;">${o.order_id}</strong></td>
+                        <td><strong>${o.customer_name || 'Khách vãng lai'}</strong></td>
+                        <td>${o.customer_phone || '--'}</td>
+                        <td>${o.customer_email || '--'}</td>
+                        <td><strong>${formatMoney(o.amount_total)}</strong></td>
+                        <td><span class="badge ${badgeMap[o.status] || 'gray'}">${o.status}</span></td>
+                        <td style="font-size: 12.5px; color: #666;">${formatTime(o.created_at)}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-primary" onclick="viewOrderDetail('${o.order_id}')" style="padding: 4px 10px; font-size: 12px;">
+                                👁️ Chi tiết & Timeline
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error('Lỗi khi tải đơn hàng:', err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #dc3545; padding: 25px;">Lỗi: ${err.message || 'Không thể tải dữ liệu đơn hàng'}</td></tr>`;
+            }
+        }
+
+        function applyFilters() {
+            loadOrders(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-q').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-from').value = '';
+            document.getElementById('filter-to').value = '';
+            loadOrders(1);
+        }
+
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                loadOrders(newPage);
+            }
+        }
+
+        async function viewOrderDetail(orderId) {
+            const modal = document.getElementById('order-modal');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-order-id').innerText = `Mã đơn: ${orderId}`;
+            modal.style.display = 'flex';
+            content.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">Đang tải chi tiết đơn hàng và timeline...</div>';
+
+            try {
+                const order = await API.get(`/admin/orders/${orderId}`);
+                if (!order) throw new Error('Không tìm thấy thông tin đơn hàng');
+
+                // Render chi tiết
+                const seatsList = (order.seats || []).map(s => `<span class="badge primary" style="margin-right: 4px;">${s.seat_code} (${s.seat_type})</span>`).join('') || 'Không có ghế';
+                const combosList = (order.combos || []).map(c => `<div>- ${c.combo_name || c.combo_id} x ${c.quantity} (${formatMoney(c.price)})</div>`).join('') || 'Không có combo';
+
+                const paymentsList = (order.payments || []).map(p => `
+                    <div style="font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed #eee;">
+                        <strong>${p.method || 'CỔNG'}</strong>: ${formatMoney(p.amount)} | Trạng thái: <span class="badge ${p.status === 'SUCCESS' ? 'success' : 'error'}">${p.status}</span>
+                        <div style="color: #777; font-size: 11.5px;">Mã GD cổng: ${p.gateway_txn_id || '--'} | Lúc: ${formatTime(p.created_at)}</div>
+                    </div>
+                `).join('') || '<div style="color: #888; font-size: 12.5px;">Chưa có giao dịch thanh toán nào</div>';
+
+                // Timeline trạng thái
+                let timelineHtml = '';
+                const timeline = order.timeline || [];
+                if (timeline.length === 0) {
+                    timelineHtml = `
+                        <div class="timeline-item">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">${formatTime(order.created_at)}</div>
+                                <div class="timeline-title">Trạng thái khởi tạo: <span class="badge ${badgeMap[order.status] || 'gray'}">${order.status}</span></div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    timelineHtml = timeline.map(step => `
+                        <div class="timeline-item">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">${formatTime(step.at || step.changed_at)}</div>
+                                <div class="timeline-title">
+                                    <span class="badge ${badgeMap[step.from_status] || 'gray'}">${step.from_status || 'START'}</span>
+                                    ➔ 
+                                    <span class="badge ${badgeMap[step.to_status] || 'gray'}">${step.to_status}</span>
+                                </div>
+                                <div class="timeline-desc">
+                                    ${step.reason ? `<strong>Lý do:</strong> ${step.reason}` : 'Chuyển trạng thái'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                content.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div class="info-label">Thông tin khách hàng</div>
+                            <div class="info-val"><strong>${order.customer_name || 'Khách vãng lai'}</strong></div>
+                            <div style="font-size: 13px; color: #555; margin-top: 4px;">SĐT: ${order.customer_phone || '--'}</div>
+                            <div style="font-size: 13px; color: #555;">Email: ${order.customer_email || '--'}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Thông tin suất chiếu</div>
+                            <div class="info-val"><strong>${order.showtime?.movie_title || 'Suất chiếu #' + order.showtime_id}</strong></div>
+                            <div style="font-size: 13px; color: #555; margin-top: 4px;">Rạp: ${order.showtime?.cinema_name || '--'} - Phòng: ${order.showtime?.room_name || '--'}</div>
+                            <div style="font-size: 13px; color: #555;">Giờ chiếu: ${formatTime(order.showtime?.start_time)}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div class="info-label">Ghế & Combo</div>
+                            <div style="margin-bottom: 8px;"><strong>Ghế:</strong> ${seatsList}</div>
+                            <div><strong>Combo:</strong> ${combosList}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-label">Thanh toán & Trạng thái hiện tại</div>
+                            <div style="font-size: 18px; color: #03599d; font-weight: bold; margin-bottom: 6px;">${formatMoney(order.amount_total)}</div>
+                            <div style="margin-bottom: 8px;">Trạng thái đơn: <span class="badge ${badgeMap[order.status] || 'gray'}">${order.status}</span></div>
+                            <div class="info-label" style="margin-top: 10px;">Lịch sử giao dịch cổng:</div>
+                            ${paymentsList}
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 25px;">
+                        <h4 style="margin: 0 0 15px 0; color: #03599d; font-size: 15px; border-bottom: 2px solid #eee; padding-bottom: 8px;">
+                            ⏳ TIMELINE LỊCH SỬ CHUYỂN TRẠNG THÁI ĐƠN HÀNG
+                        </h4>
+                        <div class="timeline">
+                            ${timelineHtml}
+                        </div>
+                    </div>
+                `;
+
+            } catch (err) {
+                console.error('Lỗi tải chi tiết đơn hàng:', err);
+                content.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 40px;">Lỗi: ${err.message || 'Không thể tải chi tiết đơn hàng'}</div>`;
+            }
+        }
+
+        function closeOrderModal() {
+            document.getElementById('order-modal').style.display = 'none';
+        }
+
+        // Đóng modal khi bấm ra ngoài
+        window.onclick = function(event) {
+            const modal = document.getElementById('order-modal');
+            if (event.target === modal) {
+                closeOrderModal();
+            }
+        };
+
+        window.addEventListener('adminReady', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qParam = urlParams.get('q');
+            if (qParam) {
+                const inputQ = document.getElementById('filter-q');
+                if (inputQ) inputQ.value = qParam;
+            }
+            loadOrders(1);
+        });
+    </script>
+</body>
+</html>

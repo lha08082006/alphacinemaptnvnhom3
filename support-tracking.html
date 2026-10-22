@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi khiếu nại - Beta Cinemas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .tracking-container {
+            max-width: 800px;
+            margin: 40px auto 70px;
+            background: white;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+        .page-header-box {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 20px;
+        }
+        .page-title {
+            color: var(--beta-blue, #03599d);
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 10px;
+        }
+        .page-subtitle {
+            color: #666;
+            font-size: 14.5px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 7px;
+            color: #334155;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            border-color: #03599d;
+            box-shadow: 0 0 0 3px rgba(3, 89, 157, 0.12);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: #03599d;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #024477;
+        }
+
+        .ticket-detail-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 25px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            font-size: 14px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .badge-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+        .badge-NEW { background: #e0f2fe; color: #0369a1; }
+        .badge-IN_REVIEW { background: #fef3c7; color: #b45309; }
+        .badge-WAITING_REFUND { background: #f3e8ff; color: #7e22ce; }
+        .badge-RESOLVED { background: #dcfce7; color: #15803d; }
+        .badge-REJECTED { background: #fee2e2; color: #b91c1c; }
+
+        .resolution-box {
+            margin-top: 18px;
+            padding: 16px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #03599d;
+        }
+
+        .alert-box {
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="tracking-container">
+            <div class="page-header-box">
+                <h1 class="page-title">THEO DÕI TIẾN ĐỘ KHIẾU NẠI</h1>
+                <p class="page-subtitle">
+                    Nhập mã phiếu hỗ trợ (Ticket Code) được cấp và thông tin xác thực để kiểm tra phản hồi từ bộ phận CSKH Beta Cinemas.
+                </p>
+            </div>
+
+            <!-- Form tra cứu phiếu -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Mã Phiếu hỗ trợ (Ticket Code) <span style="color: red;">*</span></label>
+                    <input type="text" id="track-ticket-code" class="form-control" placeholder="Ví dụ: CS123456">
+                </div>
+                <div class="form-group">
+                    <label>Email hoặc Số điện thoại xác thực <span style="color: red;">*</span></label>
+                    <input type="text" id="track-contact" class="form-control" placeholder="Email/SĐT đã đăng ký khi gửi phiếu">
+                </div>
+            </div>
+
+            <div style="margin-top: 5px;">
+                <button type="button" class="btn btn-primary" id="btn-do-track" style="width: 100%;" onclick="submitTrackTicket()">
+                    TRA CỨU TIẾN ĐỘ XỬ LÝ
+                </button>
+            </div>
+
+            <div id="track-alert" class="alert-box"></div>
+
+            <!-- Khung hiển thị chi tiết phiếu -->
+            <div id="ticket-detail-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Script layout chung và API client -->
+    <script src="js/layout.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        (function() {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Tự động điền email nếu người dùng đã đăng nhập
+                try {
+                    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    if (user && user.email) {
+                        const contactInput = document.getElementById('track-contact');
+                        if (contactInput && !contactInput.value) contactInput.value = user.email;
+                    }
+                } catch (e) {}
+
+                // Kiểm tra URL parameters: ví dụ support-tracking.html?ticketId=CS123
+                const params = new URLSearchParams(window.location.search);
+                const ticketId = params.get('ticketId') || params.get('code');
+                if (ticketId) {
+                    const codeInput = document.getElementById('track-ticket-code');
+                    if (codeInput) codeInput.value = ticketId;
+
+                    const contactInput = document.getElementById('track-contact');
+                    if (contactInput && contactInput.value) {
+                        submitTrackTicket();
+                    }
+                }
+            });
+
+            window.submitTrackTicket = async function() {
+                const code = document.getElementById('track-ticket-code').value.trim();
+                const contact = document.getElementById('track-contact').value.trim();
+                const btn = document.getElementById('btn-do-track');
+                const alertBox = document.getElementById('track-alert');
+                const detailArea = document.getElementById('ticket-detail-area');
+
+                if (!code || !contact) {
+                    alertBox.className = 'alert-box alert-warning';
+                    alertBox.innerHTML = '⚠️ Vui lòng nhập đầy đủ Mã phiếu hỗ trợ và Email / Số điện thoại xác thực.';
+                    alertBox.style.display = 'block';
+                    detailArea.style.display = 'none';
+                    return;
+                }
+
+                alertBox.style.display = 'none';
+                detailArea.style.display = 'none';
+                btn.disabled = true;
+                btn.innerText = 'Đang tra cứu hệ thống...';
+
+                try {
+                    const res = await API.get(`/support/tickets/${encodeURIComponent(code)}?contact=${encodeURIComponent(contact)}`);
+
+                    if (res && res.ticketId) {
+                        let resolutionHtml = '';
+                        if (res.resolution) {
+                            resolutionHtml = `
+                                <div class="resolution-box">
+                                    <div style="font-weight: 700; color: #03599d; margin-bottom: 6px; font-size: 14px;">
+                                        📢 Phản Hồi Từ CSKH Beta Cinemas:
+                                    </div>
+                                    <div style="font-size: 13.5px; line-height: 1.6; color: #334155;">
+                                        ${res.resolution}
+                                    </div>
+                                    ${res.resolvedAt ? `<div style="font-size: 12px; color: #64748b; margin-top: 6px;">Thời gian xử lý: ${new Date(res.resolvedAt).toLocaleString('vi-VN')}</div>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            resolutionHtml = `
+                                <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 6px; border: 1px dashed #86efac; font-size: 13px; color: #166534;">
+                                    ⏳ Phiếu đang được bộ phận chuyên trách đối soát. Kết quả xử lý sẽ được cập nhật tại đây và gửi qua thông báo tài khoản.
+                                </div>
+                            `;
+                        }
+
+                        let slaHtml = '';
+                        if (res.slaDueAt && res.status !== 'REJECTED' && res.status !== 'RESOLVED') {
+                            slaHtml = `
+                                <div class="detail-row">
+                                    <span>Hạn cam kết phản hồi (SLA):</span>
+                                    <strong style="color: #03599d;">Trước ${new Date(res.slaDueAt).toLocaleString('vi-VN')} (trong vòng 24h)</strong>
+                                </div>
+                            `;
+                        }
+
+                        detailArea.innerHTML = `
+                            <div class="ticket-detail-card">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <span style="font-weight: 700; font-size: 16px; color: #03599d;">
+                                        PHIẾU HỖ TRỢ: ${res.ticketId}
+                                    </span>
+                                    <span class="badge-status badge-${res.status}">${res.statusLabel}</span>
+                                </div>
+
+                                <div class="detail-row">
+                                    <span>Loại sự cố:</span>
+                                    <strong>${res.issueTypeLabel}</strong>
+                                </div>
+                                ${res.orderId ? `
+                                    <div class="detail-row">
+                                        <span>Mã đơn hàng liên quan:</span>
+                                        <strong><a href="result.html?orderId=${res.orderId}" style="color: #03599d; text-decoration: underline;">${res.orderId}</a></strong>
+                                    </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <span>Thời điểm gửi yêu cầu:</span>
+                                    <span>${new Date(res.createdAt).toLocaleString('vi-VN')}</span>
+                                </div>
+                                ${slaHtml}
+                                <div style="margin-top: 12px; font-size: 13.5px; color: #475569; background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                    <strong>Nội dung phản ánh:</strong><br>
+                                    <em>"${res.description}"</em>
+                                </div>
+
+                                ${resolutionHtml}
+
+                                <div style="margin-top: 20px; text-align: center;">
+                                    <a href="support.html" style="font-size: 13.5px; color: #03599d; text-decoration: underline; font-weight: 600;">
+                                        ← Quay lại trang Khiếu nại thanh toán
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        detailArea.style.display = 'block';
+                    }
+                } catch (err) {
+                    alertBox.className = 'alert-box alert-danger';
+                    alertBox.innerHTML = `❌ ${err.message || 'Không tìm thấy phiếu hỗ trợ phù hợp với thông tin cung cấp. Vui lòng kiểm tra lại mã phiếu và email/số điện thoại.'}`;
+                    alertBox.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'TRA CỨU TIẾN ĐỘ XỬ LÝ';
+                }
+            };
+        })();
+    </script>
+</body>
+</html>

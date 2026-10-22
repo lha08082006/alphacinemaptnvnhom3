@@ -665,16 +665,34 @@
                     GIẢM GIÁ
                 </h3>
                 
-                <div class="discount-item">
-                    <span class="discount-arrow">&#10140;</span>
-                    <span>Beta Voucher</span>
-                    <a href="javascript:void(0)" class="discount-link">(Nhấn vào đây để xem danh sách voucher của bạn)</a>
+                <div class="discount-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <div>
+                            <span class="discount-arrow">&#10140;</span>
+                            <span>Beta Voucher</span>
+                            <a href="javascript:void(0)" class="discount-link">(Nhấn vào đây để xem danh sách voucher của bạn)</a>
+                        </div>
+                        <span style="background: #fff3cd; color: #856404; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; border: 1px solid #ffeeba;">Sắp có</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; width: 100%; max-width: 420px;">
+                        <input type="text" placeholder="Nhập mã voucher giảm giá..." disabled style="flex: 1; padding: 7px 12px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; font-size: 13px; color: #888; cursor: not-allowed;">
+                        <button type="button" disabled style="padding: 7px 16px; background: #e9ecef; color: #6c757d; border: 1px solid #ddd; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: not-allowed;">ÁP DỤNG</button>
+                    </div>
                 </div>
                 
-                <div class="discount-item" style="margin-bottom: 25px;">
-                    <span class="discount-arrow">&#10140;</span>
-                    <span>Điểm Beta</span>
-                    <a href="javascript:void(0)" class="discount-link">(Nhấn vào đây để xem điểm tích lũy của bạn)</a>
+                <div class="discount-item" style="flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 25px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <div>
+                            <span class="discount-arrow">&#10140;</span>
+                            <span>Điểm Beta</span>
+                            <a href="javascript:void(0)" class="discount-link">(Nhấn vào đây để xem điểm tích lũy của bạn)</a>
+                        </div>
+                        <span style="background: #fff3cd; color: #856404; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; border: 1px solid #ffeeba;">Sắp có</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; width: 100%; max-width: 420px;">
+                        <input type="text" placeholder="Nhập số điểm cần đổi..." disabled style="flex: 1; padding: 7px 12px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 4px; font-size: 13px; color: #888; cursor: not-allowed;">
+                        <button type="button" disabled style="padding: 7px 16px; background: #e9ecef; color: #6c757d; border: 1px solid #ddd; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: not-allowed;">ĐỔI ĐIỂM</button>
+                    </div>
                 </div>
                 
                 <table class="totals-table">
@@ -712,27 +730,11 @@
                 </div>
                 
                 <div class="payment-grid" id="payment-methods-grid">
-                    <!-- 1. Cổng VNPAY tổng hợp -->
+                    <!-- 1. VNPAY-QR (Mặc định) -->
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="VNPAY" checked>
+                        <input type="radio" name="payment_method" value="QR" checked>
                         <div class="pay-icon-box" style="border-color: #03599d;">
                             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#03599d" stroke-width="2">
-                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                                <line x1="2" y1="10" x2="22" y2="10"></line>
-                                <path d="M6 15h3M13 15h5"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <div style="font-weight: 700; color: #03599d;">Cổng VNPAY</div>
-                            <div style="font-size: 11px; color: #777;">Tất cả phương thức</div>
-                        </div>
-                    </label>
-
-                    <!-- 2. VNPAY-QR -->
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="QR">
-                        <div class="pay-icon-box">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
                                 <rect x="3" y="14" width="7" height="7"></rect>
@@ -741,12 +743,12 @@
                             </svg>
                         </div>
                         <div>
-                            <div style="font-weight: 700;">VNPAY-QR</div>
+                            <div style="font-weight: 700; color: #03599d;">VNPAY-QR</div>
                             <div style="font-size: 11px; color: #777;">App Ngân hàng & Ví</div>
                         </div>
                     </label>
                     
-                    <!-- 3. Thẻ ATM nội địa (NCB) -->
+                    <!-- 2. Thẻ ATM nội địa (NCB) -->
                     <label class="payment-option">
                         <input type="radio" name="payment_method" value="ATM">
                         <div class="pay-icon-box">
@@ -762,9 +764,9 @@
                         </div>
                     </label>
                     
-                    <!-- 4. Thẻ quốc tế -->
+                    <!-- 3. Thẻ quốc tế -->
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="CC">
+                        <input type="radio" name="payment_method" value="INTL_CARD">
                         <div class="pay-icon-box">
                             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8">
                                 <rect x="4" y="4" width="16" height="12" rx="2"></rect>
@@ -775,6 +777,54 @@
                         <div>
                             <div style="font-weight: 700;">Thẻ quốc tế</div>
                             <div style="font-size: 11px; color: #777;">Visa, Master, JCB</div>
+                        </div>
+                    </label>
+
+                    <!-- 4. Ví ShopeePay (Khóa - Sắp có) -->
+                    <label class="payment-option" style="opacity: 0.55; cursor: not-allowed;">
+                        <input type="radio" name="payment_method" value="SHOPEEPAY" disabled>
+                        <div class="pay-icon-box pay-icon-shopee">
+                            <span style="font-size: 13px; font-weight: 900;">S</span>
+                            <span style="font-size: 7px; margin-top:-2px;">Pay</span>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-weight: 700; color: #666;">Ví ShopeePay</span>
+                                <span style="background: #e0e0e0; color: #666; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;">Sắp có</span>
+                            </div>
+                            <div style="font-size: 11px; color: #999;">Tạm khóa</div>
+                        </div>
+                    </label>
+
+                    <!-- 5. Ví MoMo (Khóa - Sắp có) -->
+                    <label class="payment-option" style="opacity: 0.55; cursor: not-allowed;">
+                        <input type="radio" name="payment_method" value="MOMO" disabled>
+                        <div class="pay-icon-box pay-icon-momo">
+                            <span>mo</span>
+                            <span>mo</span>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-weight: 700; color: #666;">Ví MoMo</span>
+                                <span style="background: #e0e0e0; color: #666; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;">Sắp có</span>
+                            </div>
+                            <div style="font-size: 11px; color: #999;">Tạm khóa</div>
+                        </div>
+                    </label>
+
+                    <!-- 6. Ví ZaloPay (Khóa - Sắp có) -->
+                    <label class="payment-option" style="opacity: 0.55; cursor: not-allowed;">
+                        <input type="radio" name="payment_method" value="ZALOPAY" disabled>
+                        <div class="pay-icon-box pay-icon-zalopay">
+                            <span>Zalo</span>
+                            <span>Pay</span>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-weight: 700; color: #666;">Ví ZaloPay</span>
+                                <span style="background: #e0e0e0; color: #666; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;">Sắp có</span>
+                            </div>
+                            <div style="font-size: 11px; color: #999;">Tạm khóa</div>
                         </div>
                     </label>
                 </div>
@@ -798,7 +848,7 @@
                         💡 <em>Gợi ý:</em> Sau khi nhấn "THANH TOÁN", hệ thống chuyển sang cổng VNPay Sandbox. Quý khách chọn ngân hàng <strong>NCB</strong> và điền thông tin thẻ trên để hoàn tất kiểm thử.
                     </div>
                 </div>
-                <!-- Hộp Lưu ý & Đếm ngược 10 phút (Ảnh 3) -->
+                <!-- Hộp Lưu ý & Đếm ngược giữ ghế (Ảnh 3) -->
                 <div class="notice-timer-box">
                     <div class="notice-text">
                         * Bạn vui lòng kiểm tra thông tin đầy đủ trước khi qua bước tiếp theo.<br>
@@ -806,7 +856,7 @@
                     </div>
                     <div class="timer-column">
                         <div class="timer-heading">Thời gian còn lại</div>
-                        <div class="timer-display hold-timer" id="countdown-timer">10:00</div>
+                        <div class="timer-display hold-timer" id="countdown-timer">--:--</div>
                     </div>
                 </div>
             </div>
@@ -873,7 +923,7 @@
                 </div>
                 
                 <div class="sidebar-buttons">
-                    <button class="btn-sidebar-back" onclick="location.href='seats.html'">QUAY LẠI</button>
+                    <button class="btn-sidebar-back" onclick="location.href='booking.html'">QUAY LẠI</button>
                     <button class="btn-sidebar-next" onclick="openTncModal()">TIẾP TỤC</button>
                 </div>
             </div>

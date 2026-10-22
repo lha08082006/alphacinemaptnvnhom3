@@ -180,10 +180,21 @@ describe('Step 2: Authentication & Authorization (/auth, requireAuth, requireRol
       expect(res.body.error.code).toBe('FORBIDDEN');
     });
 
-    it('should allow MANAGER to access MANAGER route with 200 OK', async () => {
-      // 1. Đăng nhập tài khoản MANAGER
-      const managerLogin = await request(app)
+    it('should reject staff members from logging in via customer portal (/auth/login)', async () => {
+      const res = await request(app)
         .post('/api/v1/auth/login')
+        .send({ email: 'manager@betacinemas.vn', password: 'Password@123' });
+
+      expect(res.status).toBe(401);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.error.code).toBe('AUTH_REQUIRED');
+      expect(res.body.error.message).toBe('Email hoặc mật khẩu không chính xác.');
+    });
+
+    it('should allow MANAGER to access MANAGER route with 200 OK', async () => {
+      // 1. Đăng nhập tài khoản MANAGER qua cổng admin
+      const managerLogin = await request(app)
+        .post('/api/v1/admin/auth/login')
         .send({ email: 'manager@betacinemas.vn', password: 'Password@123' });
 
       const managerCookie = managerLogin.headers['set-cookie'];

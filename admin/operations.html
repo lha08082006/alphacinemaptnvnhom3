@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vận hành Rạp & Suất Chiếu - Beta Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .tab-btn { padding: 10px 20px; font-weight: 700; cursor: pointer; border: none; background: none; font-size: 14px; color: #64748b; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #03599d; border-bottom-color: #03599d; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-add { background: #03599d; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-add:hover { background: #02467d; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-card { background: white; border-radius: 8px; width: 90%; max-width: 600px; padding: 24px; max-height: 85vh; overflow-y: auto; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #334155; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #e2e8f0; color: #334155; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-save { background: #03599d; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-warning { background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-info { background: #0284c7; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .seat-preview { display: flex; flex-direction: column; gap: 6px; align-items: center; padding: 15px; background: #f8fafc; border-radius: 6px; margin-top: 15px; }
+        .seat-row { display: flex; gap: 6px; }
+        .seat-cell { width: 28px; height: 28px; border-radius: 4px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; user-select: none; }
+        .seat-cell.standard { background: #cbd5e1; color: #334155; }
+        .seat-cell.vip { background: #f59e0b; color: white; }
+        .seat-cell.couple { background: #ec4899; color: white; width: 62px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">VẬN HÀNH CỤM RẠP, PHÒNG CHIẾU, SƠ ĐỒ GHẾ & SUẤT CHIẾU (MANAGER)</div>
+        <div class="card-body">
+            
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('cinemas')">Cụm Rạp</button>
+                <button class="tab-btn" onclick="switchTab('rooms')">Phòng Chiếu & Sơ Đồ Ghế</button>
+                <button class="tab-btn" onclick="switchTab('showtimes')">Suất Chiếu (Điều phối & Hủy hoàn tiền)</button>
+                <button class="tab-btn" onclick="switchTab('prices')">Bảng Giá Vé</button>
+            </div>
+
+            <!-- TAB 1: CỤM RẠP -->
+            <div id="tab-cinemas" class="tab-content active">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Danh sách Cụm Rạp Chiếu Phim</h4>
+                    <button class="btn-add" onclick="openCinemaModal()">+ Thêm Cụm Rạp Mới</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã Rạp</th>
+                            <th>Tên Cụm Rạp</th>
+                            <th>Thành phố</th>
+                            <th>Địa chỉ</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cinemas-tbody">
+                        <tr><td colspan="6" style="text-align: center; color: #888;">Đang tải danh sách rạp...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 2: PHÒNG CHIẾU & GHẾ -->
+            <div id="tab-rooms" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Phòng Chiếu & Quản trị Sơ Đồ Ghế</h4>
+                    <button class="btn-add" onclick="openRoomModal()">+ Thêm Phòng Chiếu</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã Phòng</th>
+                            <th>Tên Phòng</th>
+                            <th>Rạp trực thuộc</th>
+                            <th>Loại phòng</th>
+                            <th>Sơ đồ ghế</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rooms-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải danh sách phòng...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 3: SUẤT CHIẾU -->
+            <div id="tab-showtimes" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Lịch Suất Chiếu (Chặn trùng giờ & Tự sinh showtime_seats)</h4>
+                    <button class="btn-add" onclick="openShowtimeModal()">+ Tạo Suất Chiếu Mới</button>
+                </div>
+                <div style="background: #e0f2fe; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #0369a1; border-left: 4px solid #0284c7;">
+                    <strong>Quy định nghiệp vụ:</strong> Suất chiếu không được trùng khoảng thời gian trong cùng một phòng chiếu. Khi tạo suất chiếu, hệ thống tự động sinh 100% ghế khả dụng (AVAILABLE). Suất chiếu đã có đơn hàng bị chặn xóa, chỉ cho phép hủy kèm quy trình hoàn tiền tự động 100% giá trị vé.
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Phim</th>
+                            <th>Phòng & Cụm Rạp</th>
+                            <th>Giờ bắt đầu</th>
+                            <th>Giờ kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="showtimes-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải suất chiếu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 4: GIÁ VÉ -->
+            <div id="tab-prices" class="tab-content">
+                <div class="action-bar">
+                    <h4 style="margin:0; color: #03599d;">Bảng Khung Giá Vé</h4>
+                    <button class="btn-add" onclick="openPriceModal()">+ Thêm Bảng Giá</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã Giá</th>
+                            <th>Tên Bảng Giá</th>
+                            <th>Giá Standard</th>
+                            <th>Giá VIP</th>
+                            <th>Giá Couple</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prices-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #888;">Đang tải bảng giá...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL THÊM CỤM RẠP -->
+    <div id="cinema-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Cụm Rạp Mới</h3>
+            <form onsubmit="saveCinema(event)">
+                <div class="form-group">
+                    <label>Tên cụm rạp *</label>
+                    <input type="text" id="cinema-name" required placeholder="Beta Cinemas Giải Phóng...">
+                </div>
+                <div class="form-group">
+                    <label>Thành phố *</label>
+                    <input type="text" id="cinema-city" required placeholder="Hà Nội, TP.HCM...">
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ chi tiết *</label>
+                    <input type="text" id="cinema-address" required placeholder="Số 123 đường...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('cinema-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Cụm Rạp</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM PHÒNG CHIẾU -->
+    <div id="room-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Phòng Chiếu Mới</h3>
+            <form onsubmit="saveRoom(event)">
+                <div class="form-group">
+                    <label>Cụm rạp trực thuộc *</label>
+                    <select id="room-cinema-id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Tên phòng chiếu *</label>
+                    <input type="text" id="room-name" required placeholder="Phòng chiếu 1 (Cinema 1)...">
+                </div>
+                <div class="form-group">
+                    <label>Định dạng phòng *</label>
+                    <select id="room-type" required>
+                        <option value="2D">2D Digital</option>
+                        <option value="3D">3D Digital</option>
+                        <option value="IMAX">IMAX Premium</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('room-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Phòng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SINH MA TRẬN GHẾ TỰ ĐỘNG -->
+    <div id="seat-gen-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Sinh Ma Trận Ghế Tự Động</h3>
+            <form onsubmit="generateSeats(event)">
+                <input type="hidden" id="gen-room-id">
+                <p id="gen-room-name" style="font-weight:600; color:#475569;"></p>
+                <div class="form-group">
+                    <label>Số hàng ghế (Ví dụ 8 = Hàng A đến H) *</label>
+                    <input type="number" id="gen-rows" required min="1" max="15" value="8">
+                </div>
+                <div class="form-group">
+                    <label>Số cột ghế mỗi hàng (Ví dụ 10) *</label>
+                    <input type="number" id="gen-cols" required min="1" max="25" value="10">
+                </div>
+                <div class="form-group">
+                    <label>Hàng ghế VIP (Ví dụ: C,D,E)</label>
+                    <input type="text" id="gen-vip-rows" value="C,D,E" placeholder="C,D,E">
+                </div>
+                <div class="form-group">
+                    <label>Hàng ghế Couple (Ví dụ: F hoặc H)</label>
+                    <input type="text" id="gen-couple-rows" value="H" placeholder="H">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('seat-gen-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Sinh Sơ Đồ Ghế</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL XEM & SỬA SƠ ĐỒ GHẾ -->
+    <div id="seat-map-modal" class="modal">
+        <div class="modal-card" style="max-width: 750px;">
+            <h3 id="seat-map-title" style="margin-top:0; color:#03599d;">Sơ Đồ Ghế Phòng</h3>
+            <p style="font-size: 13px; color: #64748b;">Nhấp chuột vào từng ghế để đổi loại: <span class="badge secondary">STANDARD</span> &rarr; <span class="badge warning">VIP</span> &rarr; <span class="badge info">COUPLE</span></p>
+            <div id="seat-map-container" class="seat-preview"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal('seat-map-modal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TẠO SUẤT CHIẾU -->
+    <div id="showtime-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Tạo Suất Chiếu Mới</h3>
+            <form onsubmit="saveShowtime(event)">
+                <div class="form-group">
+                    <label>Chọn Phim *</label>
+                    <select id="st-movie-id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Chọn Phòng Chiếu *</label>
+                    <select id="st-room-id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Thời gian bắt đầu *</label>
+                    <input type="datetime-local" id="st-starts-at" required>
+                </div>
+                <div class="form-group">
+                    <label>Thời gian kết thúc *</label>
+                    <input type="datetime-local" id="st-ends-at" required>
+                </div>
+                <div class="form-group">
+                    <label>Bảng Giá Áp Dụng *</label>
+                    <select id="st-price-id" required></select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('showtime-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Tạo Suất Chiếu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM BẢNG GIÁ -->
+    <div id="price-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="margin-top:0; color:#03599d;">Thêm Bảng Giá Vé</h3>
+            <form onsubmit="savePrice(event)">
+                <div class="form-group">
+                    <label>Mã bảng giá *</label>
+                    <input type="text" id="price-code" required placeholder="WEEKDAY_STD, WEEKEND_PEAK...">
+                </div>
+                <div class="form-group">
+                    <label>Tên bảng giá *</label>
+                    <input type="text" id="price-name" required placeholder="Giá ngày thường, Giá cuối tuần...">
+                </div>
+                <div class="form-group">
+                    <label>Giá ghế Standard (VNĐ) *</label>
+                    <input type="number" id="price-std" required min="1000" step="1000" value="55000">
+                </div>
+                <div class="form-group">
+                    <label>Giá ghế VIP (VNĐ) *</label>
+                    <input type="number" id="price-vip" required min="1000" step="1000" value="65000">
+                </div>
+                <div class="form-group">
+                    <label>Giá ghế Couple (VNĐ) *</label>
+                    <input type="number" id="price-couple" required min="1000" step="1000" value="110000">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('price-modal')">Hủy</button>
+                    <button type="submit" class="btn-save">Lưu Bảng Giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="js/admin-layout.js"></script>
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        let globalCinemas = [];
+        let globalRooms = [];
+        let globalMovies = [];
+        let globalPrices = [];
+
+        async function loadAllOperations() {
+            await Promise.all([
+                loadCinemas(),
+                loadRooms(),
+                loadShowtimes(),
+                loadPrices(),
+            ]);
+        }
+
+        // 1. CỤM RẠP
+        async function loadCinemas() {
+            try {
+                const res = await API.get('/admin/cinemas');
+                globalCinemas = res || [];
+                const tbody = document.getElementById('cinemas-tbody');
+                if (globalCinemas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có cụm rạp nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = globalCinemas.map(c => `
+                    <tr>
+                        <td><strong>${c.id}</strong></td>
+                        <td><span class="badge primary">${c.cinema_id}</span></td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.city}</td>
+                        <td>${c.address}</td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteCinema(${c.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải rạp:', err);
+            }
+        }
+
+        function openCinemaModal() {
+            document.getElementById('cinema-name').value = '';
+            document.getElementById('cinema-city').value = '';
+            document.getElementById('cinema-address').value = '';
+            document.getElementById('cinema-modal').classList.add('show');
+        }
+
+        async function saveCinema(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('cinema-name').value.trim(),
+                city: document.getElementById('cinema-city').value.trim(),
+                address: document.getElementById('cinema-address').value.trim(),
+            };
+            try {
+                await API.post('/admin/cinemas', payload);
+                alert('Tạo cụm rạp mới thành công!');
+                closeModal('cinema-modal');
+                loadCinemas();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu cụm rạp!');
+            }
+        }
+
+        async function deleteCinema(id) {
+            if (!confirm(`Xóa cụm rạp #${id}? Lưu ý: Không thể xóa nếu rạp đang có phòng chiếu.`)) return;
+            try {
+                await API.delete(`/admin/cinemas/${id}`);
+                alert('Đã xóa cụm rạp thành công!');
+                loadCinemas();
+            } catch (err) {
+                alert(err.message || 'Không thể xóa rạp này!');
+            }
+        }
+
+        // 2. PHÒNG CHIẾU & GHẾ
+        async function loadRooms() {
+            try {
+                const res = await API.get('/admin/rooms');
+                globalRooms = res || [];
+                const tbody = document.getElementById('rooms-tbody');
+                if (globalRooms.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có phòng chiếu nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = globalRooms.map(r => `
+                    <tr>
+                        <td><strong>${r.id}</strong></td>
+                        <td><span class="badge info">${r.room_id}</span></td>
+                        <td><strong>${r.name}</strong></td>
+                        <td>${r.cinema_name || `Rạp #${r.cinema_id}`}</td>
+                        <td><span class="badge primary">${r.room_type || '2D'}</span></td>
+                        <td>
+                            <button class="btn-info" onclick="viewSeats(${r.id}, '${encodeURIComponent(r.name)}')">Xem sơ đồ</button>
+                            <button class="btn-warning" onclick="openSeatGenModal(${r.id}, '${encodeURIComponent(r.name)}')">Sinh ghế tự động</button>
+                        </td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteRoom(${r.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải phòng:', err);
+            }
+        }
+
+        function openRoomModal() {
+            const sel = document.getElementById('room-cinema-id');
+            sel.innerHTML = globalCinemas.map(c => `<option value="${c.id}">${c.name} (${c.city})</option>`).join('');
+            document.getElementById('room-name').value = '';
+            document.getElementById('room-modal').classList.add('show');
+        }
+
+        async function saveRoom(e) {
+            e.preventDefault();
+            const payload = {
+                cinema_id: Number(document.getElementById('room-cinema-id').value),
+                name: document.getElementById('room-name').value.trim(),
+                room_type: document.getElementById('room-type').value,
+            };
+            try {
+                await API.post('/admin/rooms', payload);
+                alert('Tạo phòng chiếu thành công!');
+                closeModal('room-modal');
+                loadRooms();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu phòng!');
+            }
+        }
+
+        async function deleteRoom(id) {
+            if (!confirm(`Xóa phòng #${id}? Lưu ý: Không thể xóa nếu phòng đã có suất chiếu.`)) return;
+            try {
+                await API.delete(`/admin/rooms/${id}`);
+                alert('Đã xóa phòng chiếu thành công!');
+                loadRooms();
+            } catch (err) {
+                alert(err.message || 'Không thể xóa phòng chiếu này!');
+            }
+        }
+
+        function openSeatGenModal(roomId, name) {
+            document.getElementById('gen-room-id').value = roomId;
+            document.getElementById('gen-room-name').innerText = `Phòng: ${decodeURIComponent(name)}`;
+            document.getElementById('seat-gen-modal').classList.add('show');
+        }
+
+        async function generateSeats(e) {
+            e.preventDefault();
+            const roomId = document.getElementById('gen-room-id').value;
+            const payload = {
+                total_rows: Number(document.getElementById('gen-rows').value),
+                seats_per_row: Number(document.getElementById('gen-cols').value),
+                vip_rows: document.getElementById('gen-vip-rows').value.split(',').map(s => s.trim().toUpperCase()),
+                couple_rows: document.getElementById('gen-couple-rows').value.split(',').map(s => s.trim().toUpperCase()),
+            };
+            try {
+                const res = await API.post(`/admin/rooms/${roomId}/seats/generate`, payload);
+                alert(`Sinh sơ đồ ghế thành công! Tổng cộng ${res.total_seats} ghế đã được tạo.`);
+                closeModal('seat-gen-modal');
+                viewSeats(roomId, '');
+            } catch (err) {
+                alert(err.message || 'Lỗi sinh ghế tự động!');
+            }
+        }
+
+        async function viewSeats(roomId, roomName) {
+            try {
+                const seats = await API.get(`/admin/rooms/${roomId}/seats`);
+                const container = document.getElementById('seat-map-container');
+                document.getElementById('seat-map-title').innerText = `Sơ Đồ Ghế - ${roomName ? decodeURIComponent(roomName) : `Phòng #${roomId}`}`;
+                
+                if (!seats || seats.length === 0) {
+                    container.innerHTML = '<p style="color:#888;">Phòng này chưa có ghế nào. Vui lòng bấm "Sinh ghế tự động" trước!</p>';
+                    document.getElementById('seat-map-modal').classList.add('show');
+                    return;
+                }
+
+                // Gom nhóm theo hàng
+                const rowsMap = new Map();
+                seats.forEach(s => {
+                    if (!rowsMap.has(s.row_label)) rowsMap.set(s.row_label, []);
+                    rowsMap.get(s.row_label).push(s);
+                });
+
+                const sortedRows = Array.from(rowsMap.keys()).sort();
+                container.innerHTML = sortedRows.map(rKey => {
+                    const rowSeats = rowsMap.get(rKey).sort((a,b) => a.col_number - b.col_number);
+                    return `
+                        <div class="seat-row">
+                            <span style="width:20px; font-weight:bold; color:#64748b; line-height:28px;">${rKey}</span>
+                            ${rowSeats.map(s => `
+                                <div class="seat-cell ${s.seat_type.toLowerCase()}" title="Ghế ${s.seat_label} (${s.seat_type}) - Nhấn để đổi" onclick="cycleSeatType(${s.id}, '${s.seat_type}', ${roomId})">
+                                    ${s.col_number}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('seat-map-modal').classList.add('show');
+            } catch (err) {
+                alert(err.message || 'Lỗi tải sơ đồ ghế!');
+            }
+        }
+
+        async function cycleSeatType(seatId, currentType, roomId) {
+            const nextType = currentType === 'STANDARD' ? 'VIP' : currentType === 'VIP' ? 'COUPLE' : 'STANDARD';
+            try {
+                await API.put(`/admin/seats/${seatId}`, { seat_type: nextType });
+                viewSeats(roomId, '');
+            } catch (err) {
+                alert(err.message || 'Lỗi cập nhật loại ghế!');
+            }
+        }
+
+        // 3. SUẤT CHIẾU
+        async function loadShowtimes() {
+            try {
+                const res = await API.get('/admin/showtimes');
+                const showtimes = res || [];
+                const tbody = document.getElementById('showtimes-tbody');
+                if (showtimes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có suất chiếu nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = showtimes.map(st => `
+                    <tr>
+                        <td><strong>${st.id}</strong></td>
+                        <td><strong>${st.movie_title || `Phim #${st.movie_id}`}</strong></td>
+                        <td>${st.room_name || `Phòng #${st.room_id}`} (${st.cinema_name || '--'})</td>
+                        <td>${new Date(st.starts_at).toLocaleString('vi-VN')}</td>
+                        <td>${new Date(st.ends_at).toLocaleString('vi-VN')}</td>
+                        <td><span class="badge ${st.status === 'SCHEDULED' ? 'primary' : st.status === 'CANCELLED' ? 'danger' : 'secondary'}">${st.status}</span></td>
+                        <td>
+                            ${st.status !== 'CANCELLED' ? `
+                                <button class="btn-danger" style="margin-right:4px;" onclick="cancelShowtimeAndRefund(${st.id})">Hủy & Hoàn tiền</button>
+                                <button class="btn-cancel" style="padding:4px 8px; font-size:12px;" onclick="deleteShowtime(${st.id})">Xóa</button>
+                            ` : '<span style="color:#94a3b8; font-size:12px;">Đã hủy</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải suất chiếu:', err);
+            }
+        }
+
+        async function openShowtimeModal() {
+            // Tải phim và phòng và giá vé nếu chưa có
+            if (globalMovies.length === 0) {
+                globalMovies = await API.get('/admin/movies') || [];
+            }
+            if (globalPrices.length === 0) {
+                globalPrices = await API.get('/admin/ticket-prices') || [];
+            }
+
+            const mSel = document.getElementById('st-movie-id');
+            mSel.innerHTML = globalMovies.map(m => `<option value="${m.id}">${m.title} (${m.duration_min} phút)</option>`).join('');
+
+            const rSel = document.getElementById('st-room-id');
+            rSel.innerHTML = globalRooms.map(r => `<option value="${r.id}">${r.name} - ${r.cinema_name || `Rạp #${r.cinema_id}`}</option>`).join('');
+
+            const pSel = document.getElementById('st-price-id');
+            pSel.innerHTML = globalPrices.map(p => `<option value="${p.id}">${p.name} (Std: ${p.price_standard.toLocaleString()}đ)</option>`).join('');
+
+            // Đặt thời gian mặc định: hôm nay 19:00 đến 21:00
+            const now = new Date();
+            now.setHours(19, 0, 0, 0);
+            const later = new Date(now.getTime() + 2 * 3600 * 1000);
+            
+            const toLocalIso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('st-starts-at').value = toLocalIso(now);
+            document.getElementById('st-ends-at').value = toLocalIso(later);
+
+            document.getElementById('showtime-modal').classList.add('show');
+        }
+
+        async function saveShowtime(e) {
+            e.preventDefault();
+            const startsVal = document.getElementById('st-starts-at').value;
+            const endsVal = document.getElementById('st-ends-at').value;
+
+            const payload = {
+                movie_id: Number(document.getElementById('st-movie-id').value),
+                room_id: Number(document.getElementById('st-room-id').value),
+                price_id: Number(document.getElementById('st-price-id').value),
+                starts_at: new Date(startsVal).toISOString(),
+                ends_at: new Date(endsVal).toISOString(),
+                format: '2D',
+            };
+
+            try {
+                const res = await API.post('/admin/showtimes', payload);
+                alert(`Tạo suất chiếu thành công! Đã tự động sinh ${res.seats_generated || 0} ghế khả dụng (AVAILABLE) cho phòng chiếu.`);
+                closeModal('showtime-modal');
+                loadShowtimes();
+            } catch (err) {
+                alert(err.message || 'Lỗi tạo suất chiếu (có thể bị trùng giờ trong phòng chiếu này)!');
+            }
+        }
+
+        async function deleteShowtime(id) {
+            if (!confirm(`Xóa suất chiếu #${id}? Lưu ý: Suất chiếu đã có đơn hàng sẽ không được phép xóa.`)) return;
+            try {
+                await API.delete(`/admin/showtimes/${id}`);
+                alert('Đã xóa suất chiếu thành công!');
+                loadShowtimes();
+            } catch (err) {
+                alert(err.message || 'Không thể xóa suất chiếu đã có người đặt vé! Vui lòng dùng tính năng "Hủy & Hoàn tiền".');
+            }
+        }
+
+        async function cancelShowtimeAndRefund(id) {
+            const reason = prompt(`XÁC NHẬN HỦY SUẤT CHIẾU #${id} KÈM HOÀN TIỀN TỰ ĐỘNG:\nNhập lý do hủy (ví dụ: Bảo trì phòng chiếu, lịch rạp thay đổi):`, 'Kế hoạch vận hành rạp thay đổi');
+            if (reason === null) return;
+
+            try {
+                const res = await API.post(`/admin/showtimes/${id}/cancel`, { reason });
+                alert(`ĐÃ HỦY SUẤT CHIẾU THÀNH CÔNG!\n- Suất chiếu: CANCELLED\n- Số đơn hoàn tiền tự động: ${res.refunded_orders || 0}\n- Số đơn đang giữ chỗ bị hủy: ${res.cancelled_orders || 0}\n- Toàn bộ vé đã được chuyển sang VOID và khách hàng đã nhận thông báo.`);
+                loadShowtimes();
+            } catch (err) {
+                alert(err.message || 'Lỗi khi hủy suất chiếu!');
+            }
+        }
+
+        // 4. BẢNG GIÁ VÉ
+        async function loadPrices() {
+            try {
+                const res = await API.get('/admin/ticket-prices');
+                globalPrices = res || [];
+                const tbody = document.getElementById('prices-tbody');
+                if (globalPrices.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có bảng giá nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = globalPrices.map(p => `
+                    <tr>
+                        <td><strong>${p.id}</strong></td>
+                        <td><span class="badge primary">${p.code}</span></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td>${Number(p.price_standard).toLocaleString()} đ</td>
+                        <td>${Number(p.price_vip).toLocaleString()} đ</td>
+                        <td>${Number(p.price_couple).toLocaleString()} đ</td>
+                        <td>
+                            <button class="btn-danger" onclick="deletePrice(${p.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Lỗi tải bảng giá:', err);
+            }
+        }
+
+        function openPriceModal() {
+            document.getElementById('price-code').value = '';
+            document.getElementById('price-name').value = '';
+            document.getElementById('price-modal').classList.add('show');
+        }
+
+        async function savePrice(e) {
+            e.preventDefault();
+            const payload = {
+                code: document.getElementById('price-code').value.trim().toUpperCase(),
+                name: document.getElementById('price-name').value.trim(),
+                price_standard: Number(document.getElementById('price-std').value),
+                price_vip: Number(document.getElementById('price-vip').value),
+                price_couple: Number(document.getElementById('price-couple').value),
+            };
+            try {
+                await API.post('/admin/ticket-prices', payload);
+                alert('Tạo bảng giá vé mới thành công!');
+                closeModal('price-modal');
+                loadPrices();
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu bảng giá vé!');
+            }
+        }
+
+        async function deletePrice(id) {
+            if (!confirm(`Xóa bảng giá #${id}?`)) return;
+            try {
+                await API.delete(`/admin/ticket-prices/${id}`);
+                loadPrices();
+            } catch (err) {
+                alert(err.message || 'Lỗi xóa bảng giá vé!');
+            }
+        }
+
+        window.addEventListener('adminReady', loadAllOperations);
+    </script>
+</body>
+</html>

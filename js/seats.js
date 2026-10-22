@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let seatTimeLeft = 600;
     const timerEl = document.getElementById('timer');
     if (timerEl) {
-        timerEl.innerText = '10:00';
+        timerEl.innerText = '05:00';
         setInterval(() => {
             if (seatTimeLeft > 0) {
                 seatTimeLeft--;

@@ -33,18 +33,40 @@ function vnpDate(date) {
 }
 
 /**
+ * Hàm sắp xếp thuộc tính theo alphabet chuẩn VNPay Node.js (từ vnpay_nodejs sample).
+ * Mã hóa URL các giá trị và thay thế khoảng trắng thành dấu '+'.
+ * @param {Record<string, any>} obj
+ * @returns {Record<string, string>}
+ */
+function sortObject(obj) {
+  const sorted = {};
+  const str = [];
+  let key;
+  for (key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    const val = obj[str[key]];
+    if (val !== undefined && val !== null && val !== '') {
+      sorted[str[key]] = encodeURIComponent(String(val)).replace(/%20/g, '+');
+    }
+  }
+  return sorted;
+}
+
+/**
  * Sắp xếp các tham số theo thứ tự a-z, loại bỏ giá trị rỗng/null/undefined,
  * và mã hóa URL với khoảng trắng thành dấu '+'.
  * @param {Record<string, any>} params
  * @returns {string} Chuỗi query đã mã hóa
  */
 function encodeParamsForSign(params) {
-  const sortedKeys = Object.keys(params)
-    .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
-    .sort();
-
-  return sortedKeys
-    .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(String(params[k])).replace(/%20/g, '+')}`)
+  const sorted = sortObject(params);
+  return Object.keys(sorted)
+    .map((k) => `${k}=${sorted[k]}`)
     .join('&');
 }
 
@@ -301,6 +323,8 @@ async function refund({
 
 module.exports = {
   vnpDate,
+  sortObject,
+  encodeParamsForSign,
   buildPaymentUrl,
   verifyQuery,
   queryTransaction,

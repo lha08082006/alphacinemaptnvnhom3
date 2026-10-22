@@ -2,7 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng nhập / Đăng ký - Beta Cinemas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Khách hàng - Beta Cinemas</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .auth-container { max-width: 450px; margin: 60px auto; }
@@ -11,42 +12,44 @@
 <body>
     <div class="container auth-container">
         <div class="card">
-            <div class="card-header" style="text-align: center; font-size: 22px; color: var(--beta-blue); padding: 20px;">
+            <div class="card-header" style="text-align: center; font-size: 22px; color: var(--beta-blue, #03599d); padding: 20px; font-weight: bold;">
                 BETA CINEMAS
             </div>
             <div class="card-body">
                 <div class="tabs" style="margin-bottom: 25px; display: flex; justify-content: center;">
-                    <div class="tab-item active" style="flex:1; text-align:center;">ĐĂNG NHẬP</div>
-                    <div class="tab-item" style="flex:1; text-align:center; color:#ccc;" onclick="alert('Demo hiện chỉ hỗ trợ đăng nhập bằng tài khoản mẫu. Tính năng đăng ký nằm ngoài phạm vi!')">ĐĂNG KÝ</div>
+                    <div class="tab-item active" style="flex:1; text-align:center; font-weight: bold; padding: 10px; border-bottom: 3px solid var(--beta-blue, #03599d); color: var(--beta-blue, #03599d); cursor: pointer;">
+                        ĐĂNG NHẬP
+                    </div>
+                    <div class="tab-item" style="flex:1; text-align:center; color:#999; padding: 10px; cursor: pointer;" onclick="alert('Tính năng đăng ký tài khoản mới trực tuyến hiện chưa mở trong bản demo. Quý khách vui lòng đăng nhập bằng tài khoản mẫu bên dưới!')">
+                        ĐĂNG KÝ
+                    </div>
                 </div>
                 
                 <form id="login-form">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="email" class="form-control" value="khachhang@gmail.com" required placeholder="Nhập email...">
-                        <div class="invalid-feedback">Vui lòng nhập định dạng email hợp lệ.</div>
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 500;">Email</label>
+                        <input type="email" id="email" class="form-control" value="khachhang@gmail.com" required placeholder="Nhập địa chỉ email...">
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label">Mật khẩu</label>
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 500;">Mật khẩu</label>
                         <input type="password" id="password" class="form-control" value="Password@123" required placeholder="Nhập mật khẩu...">
-                        <div class="invalid-feedback">Vui lòng nhập mật khẩu.</div>
                     </div>
                     
-                    <div id="login-error" style="color: var(--danger); font-size: 13px; margin-bottom: 15px; display: none; background:#ffebeb; padding:10px; border-radius:4px;">
-                        Sai email hoặc mật khẩu.
+                    <div id="login-error" style="color: #dc3545; font-size: 13.5px; margin-bottom: 15px; display: none; background:#ffebeb; padding:12px; border-radius:4px; border: 1px solid #f5c6cb;">
+                        Email hoặc mật khẩu không chính xác.
                     </div>
                     
-                    <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 12px;">ĐĂNG NHẬP</button>
+                    <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 12px; font-weight: bold; background: var(--beta-blue, #03599d); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        ĐĂNG NHẬP
+                    </button>
                 </form>
                 
-                <div style="margin-top: 25px; font-size: 13px; color: #555; text-align: left; padding: 15px; background: #f9f9f9; border-radius: 4px;">
-                    <strong style="color: var(--beta-orange);">Tài khoản Demo có sẵn (Pass: Password@123):</strong><br><br>
-                    • Khách hàng: <b>khachhang@gmail.com</b><br>
-                    • Quản lý: <b>manager@betacinemas.vn</b><br>
-                    • CSKH: <b>cskh@betacinemas.vn</b><br>
-                    • Kế toán: <b>ketoan@betacinemas.vn</b><br>
-                    • Kỹ thuật / IT: <b>it@betacinemas.vn</b>
+                <div style="margin-top: 25px; font-size: 13px; color: #555; text-align: left; padding: 15px; background: #f9f9f9; border-radius: 4px; border: 1px solid #eee; line-height: 1.6;">
+                    <strong style="color: var(--beta-orange, #f26b38);">Tài khoản Khách hàng Demo (Mật khẩu: Password@123):</strong><br><br>
+                    • Khách hàng 1: <b>khachhang@gmail.com</b> (Có điểm tích lũy: 100 điểm)<br>
+                    • Khách hàng 2: <b>khachhang2@gmail.com</b><br>
+                    <small style="color: #888; display: block; margin-top: 6px;">* Lưu ý: Cổng này chỉ dành riêng cho khách hàng xem phim đặt vé.</small>
                 </div>
             </div>
         </div>
@@ -75,28 +78,27 @@
 
                 errBox.style.display = 'none';
                 btnSubmit.disabled = true;
-                btnSubmit.innerText = "Đang xử lý...";
+                btnSubmit.innerText = "Đang xác thực...";
 
                 try {
                     const result = await API.post('/auth/login', { email, password });
                     const user = result.user;
 
-                    // Lưu thông tin người dùng cơ bản vào localStorage cho giao diện
-                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    // Lưu thông tin người dùng vào localStorage để layout hiển thị tên khách
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        id: user.id,
+                        email: user.email,
+                        name: user.full_name || user.email,
+                        points: user.points,
+                        role: user.role
+                    }));
 
                     const urlParams = new URLSearchParams(window.location.search);
                     const next = urlParams.get('next');
 
-                    // Role khác CUSTOMER chuyển vào admin/index.html
-                    if (user.role !== 'CUSTOMER') {
-                        location.href = 'admin/index.html';
-                    } else if (next) {
-                        location.href = next;
-                    } else {
-                        location.href = 'index.html';
-                    }
+                    window.location.href = next || 'index.html';
                 } catch (err) {
-                    errBox.innerText = err.message || "Sai email hoặc mật khẩu. Vui lòng kiểm tra lại.";
+                    errBox.innerText = err.message || "Email hoặc mật khẩu không chính xác.";
                     errBox.style.display = 'block';
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "ĐĂNG NHẬP";

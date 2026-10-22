@@ -3,173 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hỗ trợ khách hàng - Beta Cinemas</title>
+    <title>Khiếu nại thanh toán - Beta Cinemas</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .support-container {
+        .claim-container {
             max-width: 900px;
-            margin: 40px auto 60px;
-            display: flex;
-            gap: 30px;
-            padding: 0 15px;
-        }
-        .support-box {
+            margin: 35px auto 70px;
             background: white;
-            padding: 30px;
+            padding: 35px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            flex: 1.2;
-            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            font-family: 'Be Vietnam Pro', sans-serif;
         }
-        .chat-box {
-            flex: 1;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+        .page-header-box {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 20px;
+        }
+        .page-title {
+            color: var(--beta-blue, #03599d);
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 10px;
+        }
+        .page-subtitle {
+            color: #666;
+            font-size: 14.5px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .step-indicator {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .chat-header {
-            background: var(--beta-blue, #03599d);
-            color: white;
-            padding: 15px;
-            font-weight: bold;
-            border-radius: 8px 8px 0 0;
-            font-size: 15px;
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13.5px;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #64748b;
         }
-        .chat-body {
-            padding: 15px;
-            flex: 1;
-            min-height: 280px;
-            font-size: 14px;
-            overflow-y: auto;
+        .step-badge.active {
+            background: #e0f2fe;
+            color: #03599d;
+            border: 1px solid #bae6fd;
         }
-        .chat-msg {
-            margin-bottom: 15px;
-            padding: 12px 14px;
-            border-radius: 8px;
-            max-width: 90%;
-            line-height: 1.5;
+        .step-badge.completed {
+            background: #dcfce7;
+            color: #166534;
         }
-        .chat-msg.bot {
-            background: #e3f2fd;
-            align-self: flex-start;
-            border-left: 3px solid #03599d;
-        }
-        
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         .form-group label {
             display: block;
             font-weight: 600;
-            margin-bottom: 6px;
-            color: #444;
+            margin-bottom: 7px;
+            color: #334155;
             font-size: 14px;
         }
         .form-control {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             font-size: 14px;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
         }
         .form-control:focus {
             border-color: #03599d;
+            box-shadow: 0 0 0 3px rgba(3, 89, 157, 0.12);
         }
-        
-        .alert-box {
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 20px;
-            display: none;
-            line-height: 1.5;
-            font-size: 14px;
-        }
-        .alert-info { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
-        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .alert-warning { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
-        .alert-danger { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
         .btn {
-            display: inline-block;
-            padding: 12px 20px;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 6px;
             font-weight: 700;
             font-size: 14px;
-            text-decoration: none;
             cursor: pointer;
             border: none;
             transition: all 0.2s;
-            text-align: center;
+            text-decoration: none;
         }
         .btn-primary {
             background: #03599d;
-            color: #fff;
+            color: white;
         }
         .btn-primary:hover {
             background: #024477;
         }
+        .btn-orange {
+            background: #f26b38;
+            color: white;
+        }
+        .btn-orange:hover {
+            background: #d9531e;
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
 
-        .lookup-detail-row {
+        .result-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13.5px;
+            padding: 6px 0;
+            font-size: 14px;
+            border-bottom: 1px dashed #e2e8f0;
         }
-        .lookup-detail-row:last-child {
-            margin-bottom: 0;
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .claim-alert {
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 18px 0;
+            font-size: 13.5px;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .claim-alert.alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+        .claim-alert.alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .claim-alert.alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .claim-alert.alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .ticket-form-panel {
+            background: #ffffff;
+            border: 2px solid #e0f2fe;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 25px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <h2 style="color: var(--beta-blue, #03599d); text-align: center; margin-top: 35px; font-size: 24px;">
-            TRUNG TÂM HỖ TRỢ TRA SOÁT ĐƠN HÀNG
-        </h2>
-        <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 14px;">
-            Hệ thống hỗ trợ tra cứu tình trạng giao dịch, đối soát ngân hàng và tiến độ hoàn tiền tự động.
-        </p>
-        
-        <div class="support-container">
-            <div class="support-box">
-                <h3 style="margin-top: 0; color: #f26b38; font-size: 18px; margin-bottom: 8px;">
-                    TRA CỨU TRẠNG THÁI GIAO DỊCH
-                </h3>
-                <p style="font-size: 13.5px; color: #666; margin-bottom: 22px;">
-                    Vui lòng nhập Mã đơn hàng (hoặc Mã giao dịch) và thông tin liên hệ chính xác để tra cứu.
+        <div class="claim-container">
+            <div class="page-header-box">
+                <h1 class="page-title">HỖ TRỢ & KHIẾU NẠI THANH TOÁN</h1>
+                <p class="page-subtitle">
+                    Quy trình xử lý sự cố thanh toán trực tuyến: Bước 1 tra cứu đơn hàng để kiểm tra tình trạng đối soát tự động; chỉ khi cần thiết mới chuyển sang Bước 2 gửi phiếu hỗ trợ.
                 </p>
-                
-                <div class="form-group">
-                    <label>Mã Đơn hàng (hoặc Mã giao dịch)</label>
-                    <input type="text" id="txt-order" class="form-control" placeholder="Ví dụ: BC896751187266 hoặc GW...">
-                </div>
-                <div class="form-group">
-                    <label>Email hoặc Số điện thoại đặt vé</label>
-                    <input type="text" id="txt-contact" class="form-control" placeholder="Nhập email hoặc SĐT đã dùng khi đặt">
-                </div>
-                
-                <button class="btn btn-primary" id="btn-submit-support" style="width: 100%;" onclick="submitSupport()">
-                    GỬI YÊU CẦU TRA SOÁT
-                </button>
-                
-                <div id="result-alert" class="alert-box"></div>
             </div>
-            
-            <div class="chat-box">
-                <div class="chat-header">🎧 Hỗ Trợ Trực Tuyến Beta</div>
-                <div class="chat-body" id="chat-messages" style="display: flex; flex-direction: column;">
-                    <div class="chat-msg bot">
-                        <strong>Beta Bot:</strong> Xin chào quý khách! Tôi có thể giúp gì cho bạn?<br><br>
-                        Nếu bạn bị trừ tiền nhưng chưa thấy vé hoặc muốn kiểm tra trạng thái hoàn tiền, hãy nhập thông tin ở biểu mẫu bên cạnh để tra cứu tức thì nhé!
+
+            <!-- Chỉ dẫn bước -->
+            <div class="step-indicator">
+                <div class="step-badge active" id="badge-step-1">
+                    <span>1</span> Tra cứu đơn hàng
+                </div>
+                <div class="step-badge" id="badge-step-2">
+                    <span>2</span> Gửi phiếu khiếu nại (khi cần)
+                </div>
+            </div>
+
+            <!-- BƯỚC 1: TRA CỨU ĐƠN HÀNG -->
+            <div id="section-step-1">
+                <h2 style="font-size: 17px; color: #03599d; margin-top: 0; margin-bottom: 15px; font-weight: 700;">
+                    BƯỚC 1: XÁC THỰC THÔNG TIN ĐƠN HÀNG
+                </h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Mã Đơn hàng (hoặc Mã giao dịch)</label>
+                        <input type="text" id="lookup-order-id" class="form-control" placeholder="Ví dụ: BC89675118 hoặc GW...">
+                    </div>
+                    <div class="form-group">
+                        <label>Email hoặc Số điện thoại đặt vé</label>
+                        <input type="text" id="lookup-contact" class="form-control" placeholder="Nhập email/SĐT khi thanh toán">
                     </div>
                 </div>
-                <div style="padding: 10px; border-top: 1px solid #ddd; background: white; border-radius: 0 0 8px 8px;">
-                    <input type="text" class="form-control" placeholder="Nhập tin nhắn..." disabled style="background: #f0f0f0; cursor: not-allowed;">
+
+                <div style="display: flex; gap: 12px; margin-top: 5px;">
+                    <button type="button" class="btn btn-primary" id="btn-do-lookup" onclick="submitLookupOrder()">
+                        🔍 TRA CỨU GIAO DỊCH
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                        LÀM MỚI
+                    </button>
                 </div>
+
+                <!-- Kết quả tra cứu -->
+                <div id="lookup-result-area" style="display: none;"></div>
+            </div>
+
+            <!-- BƯỚC 2: FORM TẠO TICKET KHIẾU NẠI (Chỉ hiện khi cần) -->
+            <div id="section-step-2" class="ticket-form-panel" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="font-size: 17px; color: #f26b38; margin: 0; font-weight: 700;">
+                        BƯỚC 2: TẠO PHIẾU KHIẾU NẠI THANH TOÁN (TICKET)
+                    </h2>
+                    <span id="claim-timer-badge" style="font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: #e0f2fe; color: #03599d;">
+                        Hạn khiếu nại: Đang tính...
+                    </span>
+                </div>
+
+                <div style="background: #fff8e1; border-left: 3px solid #ffb300; padding: 10px 14px; border-radius: 4px; font-size: 13px; color: #78350f; margin-bottom: 20px;">
+                    ⚠️ <strong>Quy định Điều khoản (Mục 3):</strong> Phản hồi trong vòng <strong>60 phút</strong> kể từ khi thanh toán. Sau khoảng thời gian trên, Beta Cinemas sẽ không chấp nhận giải quyết khiếu nại.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Mã Đơn hàng liên quan</label>
+                        <input type="text" id="ticket-order-id" class="form-control" placeholder="Mã đơn hàng (nếu có)">
+                    </div>
+                    <div class="form-group">
+                        <label>Email hoặc Số điện thoại liên hệ <span style="color: red;">*</span></label>
+                        <input type="text" id="ticket-contact" class="form-control" placeholder="Email hoặc SĐT nhận phản hồi">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Loại sự cố thanh toán <span style="color: red;">*</span></label>
+                    <select id="ticket-issue-type" class="form-control">
+                        <option value="DEBITED_NO_TICKET">Trừ tiền nhưng chưa có vé / hệ thống báo lỗi</option>
+                        <option value="DOUBLE_PAYMENT">Thanh toán hai lần cho cùng một đơn hàng</option>
+                        <option value="TICKET_NOT_RECEIVED">Chưa nhận được mã vé qua email hoặc SMS</option>
+                        <option value="SLOW_REFUND">Hoàn tiền chậm hơn thời hạn quy định</option>
+                        <option value="OTHER">Sự cố thanh toán khác</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Mô tả chi tiết sự cố <span style="color: red;">*</span></label>
+                    <textarea id="ticket-desc" class="form-control" rows="3" placeholder="Vui lòng cung cấp chi tiết ngân hàng, thời gian trừ tiền, số tiền trừ để hỗ trợ tra soát nhanh nhất..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Ảnh chụp biên nhận / Biến động số dư (JPG, PNG, WEBP tối đa 5MB)</label>
+                    <input type="file" id="ticket-receipt-file" class="form-control" accept="image/jpeg,image/png,image/webp">
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button type="button" class="btn btn-orange" id="btn-submit-ticket" onclick="submitCreateTicket()">
+                        GỬI KHIẾU NẠI ĐẾN CSKH
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="hideTicketForm()">
+                        HỦY BỎ
+                    </button>
+                </div>
+
+                <div id="ticket-submit-result" style="display: none; margin-top: 20px;"></div>
             </div>
         </div>
     </div>
@@ -180,24 +286,39 @@
 
     <script>
         (function() {
+            let currentOrderData = null;
+
             document.addEventListener('DOMContentLoaded', () => {
-                // Tự động điền email nếu có người dùng đăng nhập
+                // Điền email từ localStorage nếu đã đăng nhập
                 try {
                     const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
                     if (user && user.email) {
-                        const contactInput = document.getElementById('txt-contact');
-                        if (contactInput && !contactInput.value) {
-                            contactInput.value = user.email;
-                        }
+                        const contactInput = document.getElementById('lookup-contact');
+                        if (contactInput && !contactInput.value) contactInput.value = user.email;
+                        const ticketContact = document.getElementById('ticket-contact');
+                        if (ticketContact && !ticketContact.value) ticketContact.value = user.email;
                     }
                 } catch (e) {}
 
-                // Kiểm tra nếu có orderId trên URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const orderIdParam = urlParams.get('orderId');
-                if (orderIdParam) {
-                    const orderInput = document.getElementById('txt-order');
-                    if (orderInput) orderInput.value = orderIdParam;
+                // Kiểm tra URL parameters: ví dụ support.html?orderId=BC123&action=report
+                const params = new URLSearchParams(window.location.search);
+                const orderId = params.get('orderId');
+                const action = params.get('action');
+
+                if (orderId) {
+                    const orderInput = document.getElementById('lookup-order-id');
+                    if (orderInput) orderInput.value = orderId;
+                    const ticketOrder = document.getElementById('ticket-order-id');
+                    if (ticketOrder) ticketOrder.value = orderId;
+
+                    // Nếu có action=report hoặc có orderId và đã có contact: tự động tra cứu
+                    const contactInput = document.getElementById('lookup-contact');
+                    if (contactInput && contactInput.value) {
+                        submitLookupOrder();
+                    } else if (action === 'report') {
+                        // Nếu bấm từ nút "Báo lỗi" nhưng chưa có contact: mở sẵn Bước 2
+                        showTicketForm(orderId);
+                    }
                 }
             });
 
@@ -206,112 +327,304 @@
                 return Number(amount).toLocaleString('vi-VN') + ' ₫';
             }
 
-            function addBotMessage(html) {
-                const chatBody = document.getElementById('chat-messages');
-                if (!chatBody) return;
-                const msgEl = document.createElement('div');
-                msgEl.className = 'chat-msg bot';
-                msgEl.innerHTML = html;
-                chatBody.appendChild(msgEl);
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }
+            // BƯỚC 1: TRA CỨU ĐƠN HÀNG
+            window.submitLookupOrder = async function() {
+                const orderId = document.getElementById('lookup-order-id').value.trim();
+                const contact = document.getElementById('lookup-contact').value.trim();
+                const btn = document.getElementById('btn-do-lookup');
+                const resultArea = document.getElementById('lookup-result-area');
 
-            window.submitSupport = async function() {
-                const codeInput = document.getElementById('txt-order').value.trim();
-                const contact = document.getElementById('txt-contact').value.trim();
-                const alertBox = document.getElementById('result-alert');
-                const submitBtn = document.getElementById('btn-submit-support');
-                
-                if (!codeInput || !contact) {
-                    alertBox.className = 'alert-box alert-warning';
-                    alertBox.innerHTML = '⚠️ Vui lòng nhập đầy đủ Mã đơn hàng / Giao dịch và Email / Số điện thoại.';
-                    alertBox.style.display = 'block';
+                if (!orderId || !contact) {
+                    resultArea.innerHTML = `
+                        <div class="claim-alert alert-warning">
+                            ⚠️ Vui lòng nhập đầy đủ Mã đơn hàng / Giao dịch và Email / Số điện thoại đặt vé.
+                        </div>
+                    `;
+                    resultArea.style.display = 'block';
                     return;
                 }
 
-                alertBox.style.display = 'none';
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerText = 'Đang tra cứu hệ thống...';
-                }
-
-                // Xác định codeInput là orderId (BC...) hay txnId (GW...)
-                const payload = {
-                    contact: contact,
-                    orderId: codeInput.startsWith('BC') ? codeInput : undefined,
-                    txnId: !codeInput.startsWith('BC') ? codeInput : undefined,
-                };
-                // Nếu không rõ thì gửi cả hai
-                if (!payload.orderId && !payload.txnId) {
-                    payload.orderId = codeInput;
-                }
+                btn.disabled = true;
+                btn.innerText = 'Đang tra cứu...';
+                resultArea.style.display = 'none';
 
                 try {
+                    const payload = {
+                        contact: contact,
+                        orderId: orderId.startsWith('BC') ? orderId : undefined,
+                        txnId: !orderId.startsWith('BC') ? orderId : undefined,
+                    };
+                    if (!payload.orderId && !payload.txnId) payload.orderId = orderId;
+
                     const res = await API.post('/support/lookup', payload);
+                    currentOrderData = res;
 
                     if (res && res.found) {
-                        alertBox.className = 'alert-box alert-success';
-                        let refundInfoHtml = '<div style="margin-top: 8px; color: #555;">Chưa có lệnh hoàn tiền cho đơn hàng này.</div>';
-                        if (res.hasRefund && res.refund) {
-                            refundInfoHtml = `
-                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #28a745;">
-                                    <div class="lookup-detail-row"><span>Mã lệnh hoàn:</span><strong>${res.refund.refundId}</strong></div>
-                                    <div class="lookup-detail-row"><span>Số tiền hoàn:</span><strong style="color: #d9534f;">${formatMoney(res.refund.amount)}</strong></div>
-                                    <div class="lookup-detail-row"><span>Tiến độ hoàn:</span><strong style="color: #28a745;">${res.refund.statusText}</strong></div>
+                        // Đã tìm thấy đơn hàng
+                        // Tính hạn khiếu nại (60 phút từ createdAt)
+                        const createdAt = res.createdAt ? new Date(res.createdAt).getTime() : Date.now();
+                        const elapsedMs = Date.now() - createdAt;
+                        const remainingMin = Math.max(0, Math.floor((60 * 60 * 1000 - elapsedMs) / 60000));
+                        const isExpired = remainingMin <= 0;
+
+                        let claimNoticeHtml = '';
+                        if (!isExpired) {
+                            claimNoticeHtml = `
+                                <div class="claim-alert alert-info">
+                                    ⏰ <strong>Thời hạn gửi khiếu nại trực tuyến:</strong> Còn <strong>${remainingMin} phút</strong> (trong khung 60 phút theo Điều khoản Mục 3).
+                                </div>
+                            `;
+                        } else {
+                            claimNoticeHtml = `
+                                <div class="claim-alert alert-warning">
+                                    ⚠️ <strong>Đã quá 60 phút kể từ khi thanh toán:</strong> Theo điều khoản Mục 3 của Beta Cinemas, các yêu cầu tạo sau 60 phút sẽ được ghi nhận và tự động từ chối.
                                 </div>
                             `;
                         }
 
-                        alertBox.innerHTML = `
-                            <div style="font-weight: 700; font-size: 15px; margin-bottom: 10px;">
-                                ✅ ĐÃ TÌM THẤY THÔNG TIN GIAO DỊCH
-                            </div>
-                            <div class="lookup-detail-row"><span>Mã đơn hàng:</span><strong>${res.orderId}</strong></div>
-                            <div class="lookup-detail-row"><span>Trạng thái:</span><strong style="color: #03599d;">${res.statusText}</strong></div>
-                            <div class="lookup-detail-row"><span>Tổng tiền:</span><strong>${formatMoney(res.amount)}</strong></div>
-                            ${refundInfoHtml}
-                            <div style="margin-top: 15px; text-align: center;">
-                                <a href="result.html?orderId=${res.orderId}" style="color: #03599d; font-weight: 700; text-decoration: underline;">
-                                    👉 Xem chi tiết trạng thái đơn hàng & tiến trình
-                                </a>
+                        let refundHtml = '';
+                        if (res.hasRefund && res.refund) {
+                            refundHtml = `
+                                <div class="info-row" style="color: #166534; font-weight: 700;">
+                                    <span>Lệnh hoàn tiền:</span>
+                                    <span>${res.refund.refundId} (${res.refund.statusText})</span>
+                                </div>
+                            `;
+                        }
+
+                        let actionButtonHtml = '';
+                        const problematicStatuses = ['FAILED', 'PENDING_VERIFY', 'REFUND_PENDING', 'EXPIRED'];
+                        if (problematicStatuses.includes(res.status)) {
+                            // Đơn gặp vấn đề -> hiện thông báo và nút khiếu nại nổi bật
+                            actionButtonHtml = `
+                                <div style="margin-top: 15px; text-align: center;">
+                                    <button class="btn btn-orange" onclick="showTicketForm('${res.orderId}', '${contact}', ${remainingMin})">
+                                        👉 BÁO LỖI / TẠO PHIẾU HỖ TRỢ CHO ĐƠN NÀY
+                                    </button>
+                                </div>
+                            `;
+                            // Tự động mở form bước 2 cho tiện
+                            showTicketForm(res.orderId, contact, remainingMin);
+                        } else {
+                            // Đơn PAID bình thường
+                            actionButtonHtml = `
+                                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                    <a href="result.html?orderId=${res.orderId}" class="btn btn-primary">
+                                        XEM VÉ ĐIỆN TỬ
+                                    </a>
+                                    <button class="btn btn-secondary" onclick="showTicketForm('${res.orderId}', '${contact}', ${remainingMin})">
+                                        TÔI CẦN BÁO LỖI / KHIẾU NẠI ĐƠN NÀY
+                                    </button>
+                                </div>
+                            `;
+                        }
+
+                        resultArea.innerHTML = `
+                            <div class="result-card">
+                                <div style="font-weight: 700; color: #03599d; font-size: 15px; margin-bottom: 12px;">
+                                    ✅ ĐÃ XÁC THỰC THÔNG TIN ĐƠN HÀNG
+                                </div>
+                                <div class="info-row"><span>Mã đơn hàng:</span><strong>${res.orderId}</strong></div>
+                                <div class="info-row"><span>Trạng thái giao dịch:</span><strong style="color: #03599d;">${res.friendlyStatus || res.statusText}</strong></div>
+                                <div class="info-row"><span>Tổng tiền thanh toán:</span><strong>${formatMoney(res.amount)}</strong></div>
+                                <div class="info-row"><span>Phương thức:</span><span>${res.paymentMethod || 'VNPay'}</span></div>
+                                ${refundHtml}
+                                ${claimNoticeHtml}
+                                ${actionButtonHtml}
                             </div>
                         `;
-                        alertBox.style.display = 'block';
-
-                        // Bot chat cập nhật
-                        addBotMessage(`
-                            <strong>Beta Bot:</strong> Tôi đã tìm thấy đơn hàng <strong>${res.orderId}</strong> của bạn!<br>
-                            - Trạng thái hiện tại: <strong>${res.statusText}</strong><br>
-                            - Số tiền: <strong>${formatMoney(res.amount)}</strong><br>
-                            ${res.hasRefund && res.refund ? `- Hoàn tiền: <strong>${res.refund.statusText}</strong> (${formatMoney(res.refund.amount)})<br>` : ''}
-                            Bạn có thể bấm vào liên kết trong khung bên trái để theo dõi chi tiết nhé!
-                        `);
+                        resultArea.style.display = 'block';
                     } else {
-                        alertBox.className = 'alert-box alert-warning';
-                        alertBox.innerHTML = `
-                            ⚠️ ${res.message || 'Không tìm thấy thông tin đơn hàng khớp với dữ liệu bạn cung cấp. Vui lòng kiểm tra lại.'}
+                        // Không tìm thấy đơn hàng
+                        resultArea.innerHTML = `
+                            <div class="result-card" style="border-color: #fecaca; background: #fff5f5;">
+                                <div style="font-weight: 700; color: #991b1b; font-size: 15px; margin-bottom: 8px;">
+                                    ⚠️ KHÔNG TÌM THẤY ĐƠN HÀNG PHÙ HỢP
+                                </div>
+                                <p style="font-size: 13.5px; color: #666; margin: 0 0 12px;">
+                                    Hệ thống không tìm thấy đơn hàng khớp với mã và thông tin liên hệ bạn cung cấp.
+                                </p>
+                                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px dashed #cbd5e1; font-size: 13px; color: #475569;">
+                                    💡 <strong>Bạn đã bị trừ tiền ngân hàng nhưng chưa có đơn?</strong><br>
+                                    Vui lòng bấm nút bên dưới để tạo phiếu khiếu nại sự cố trừ tiền, CSKH sẽ đối soát với ngân hàng ngay.
+                                </div>
+                                <div style="margin-top: 15px; text-align: center;">
+                                    <button class="btn btn-orange" onclick="showTicketForm('${orderId}', '${contact}', 60)">
+                                        👉 TẠO PHIẾU TRA SOÁT SỰ CỐ TRỪ TIỀN
+                                    </button>
+                                </div>
+                            </div>
                         `;
-                        alertBox.style.display = 'block';
-
-                        addBotMessage(`
-                            <strong>Beta Bot:</strong> Tiếc quá, tôi không tìm thấy đơn hàng nào khớp với mã <strong>${codeInput}</strong> và liên hệ <strong>${contact}</strong>.<br>
-                            Quý khách vui lòng kiểm tra lại chính xác email/số điện thoại đã dùng khi đặt vé nhé!
-                        `);
+                        resultArea.style.display = 'block';
                     }
                 } catch (err) {
-                    console.error('Lỗi khi tra cứu hỗ trợ:', err);
-                    alertBox.className = 'alert-box alert-danger';
-                    alertBox.innerHTML = `❌ ${err.message || 'Lỗi kết nối máy chủ. Vui lòng thử lại sau.'}`;
-                    alertBox.style.display = 'block';
-
-                    addBotMessage(`
-                        <strong>Beta Bot:</strong> Đã có lỗi xảy ra trong quá trình tra soát (${err.message || 'Lỗi mạng'}). Quý khách vui lòng thử lại sau ít phút hoặc liên hệ hotline.
-                    `);
+                    resultArea.innerHTML = `
+                        <div class="claim-alert alert-danger">
+                            ❌ ${err.message || 'Lỗi kết nối máy chủ khi tra cứu.'}
+                        </div>
+                    `;
+                    resultArea.style.display = 'block';
                 } finally {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = 'GỬI YÊU CẦU TRA SOÁT';
+                    btn.disabled = false;
+                    btn.innerText = '🔍 TRA CỨU GIAO DỊCH';
+                }
+            };
+
+            // Mở form Bước 2
+            window.showTicketForm = function(orderId, contact, remainingMin) {
+                const step2Panel = document.getElementById('section-step-2');
+                const badge2 = document.getElementById('badge-step-2');
+                const timerBadge = document.getElementById('claim-timer-badge');
+
+                if (orderId) document.getElementById('ticket-order-id').value = orderId;
+                if (contact) document.getElementById('ticket-contact').value = contact;
+
+                if (remainingMin !== undefined) {
+                    if (remainingMin > 0) {
+                        timerBadge.innerText = `⏰ Hạn khiếu nại: Còn ${remainingMin} phút`;
+                        timerBadge.style.background = '#dcfce7';
+                        timerBadge.style.color = '#166534';
+                    } else {
+                        timerBadge.innerText = `⚠️ Đã hết hạn khiếu nại (quá 60p)`;
+                        timerBadge.style.background = '#fee2e2';
+                        timerBadge.style.color = '#991b1b';
                     }
+                }
+
+                step2Panel.style.display = 'block';
+                badge2.classList.add('active');
+                step2Panel.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            window.hideTicketForm = function() {
+                document.getElementById('section-step-2').style.display = 'none';
+                document.getElementById('badge-step-2').classList.remove('active');
+            };
+
+            window.resetForm = function() {
+                document.getElementById('lookup-order-id').value = '';
+                document.getElementById('lookup-result-area').style.display = 'none';
+                hideTicketForm();
+            };
+
+            // BƯỚC 2: TẠO TICKET
+            window.submitCreateTicket = async function() {
+                const orderId = document.getElementById('ticket-order-id').value.trim();
+                const contact = document.getElementById('ticket-contact').value.trim();
+                const issueType = document.getElementById('ticket-issue-type').value;
+                const description = document.getElementById('ticket-desc').value.trim();
+                const fileInput = document.getElementById('ticket-receipt-file');
+                const btn = document.getElementById('btn-submit-ticket');
+                const resultBox = document.getElementById('ticket-submit-result');
+
+                if (!contact || !description) {
+                    resultBox.innerHTML = `
+                        <div class="claim-alert alert-warning">
+                            ⚠️ Vui lòng điền thông tin liên hệ và mô tả sự cố (ít nhất 5 ký tự).
+                        </div>
+                    `;
+                    resultBox.style.display = 'block';
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerText = 'Đang gửi phiếu...';
+                resultBox.style.display = 'none';
+
+                let receiptImagePayload = undefined;
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+                        resultBox.innerHTML = `<div class="claim-alert alert-danger">❌ Chỉ chấp nhận tệp ảnh JPG, PNG hoặc WEBP.</div>`;
+                        resultBox.style.display = 'block';
+                        btn.disabled = false;
+                        btn.innerText = 'GỬI KHIẾU NẠI ĐẾN CSKH';
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        resultBox.innerHTML = `<div class="claim-alert alert-danger">❌ Dung lượng ảnh không được vượt quá 5MB.</div>`;
+                        resultBox.style.display = 'block';
+                        btn.disabled = false;
+                        btn.innerText = 'GỬI KHIẾU NẠI ĐẾN CSKH';
+                        return;
+                    }
+
+                    try {
+                        const base64Data = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                        receiptImagePayload = {
+                            data: base64Data,
+                            filename: file.name,
+                            mimeType: file.type,
+                            size: file.size,
+                        };
+                    } catch (e) {
+                        console.warn('Lỗi đọc ảnh:', e);
+                    }
+                }
+
+                try {
+                    const res = await API.post('/support/tickets', {
+                        orderId: orderId || undefined,
+                        contact: contact,
+                        issueType: issueType,
+                        description: description,
+                        receiptImage: receiptImagePayload,
+                    });
+
+                    if (res && res.ticketId) {
+                        if (res.status === 'REJECTED') {
+                            resultBox.innerHTML = `
+                                <div class="claim-alert alert-warning" style="display: block;">
+                                    <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">
+                                        ⚠️ YÊU CẦU ĐÃ GHI NHẬN - TỪ CHỐI TỰ ĐỘNG
+                                    </div>
+                                    <div class="info-row"><span>Mã phiếu:</span><strong>${res.ticketId}</strong></div>
+                                    <div class="info-row"><span>Trạng thái:</span><strong style="color: #b91c1c;">${res.statusLabel}</strong></div>
+                                    <div style="margin-top: 8px; font-size: 13px;">${res.resolution || res.message}</div>
+                                    <div style="margin-top: 15px; text-align: center;">
+                                        <a href="support-tracking.html?ticketId=${res.ticketId}" class="btn btn-primary">
+                                            👉 THEO DÕI TIẾN ĐỘ PHIẾU NÀY
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            resultBox.innerHTML = `
+                                <div class="claim-alert alert-success" style="display: block;">
+                                    <div style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">
+                                        ✅ ĐÃ TIẾP NHẬN PHIẾU KHIẾU NẠI THÀNH CÔNG
+                                    </div>
+                                    <div class="info-row"><span>Mã phiếu hỗ trợ:</span><strong>${res.ticketId}</strong></div>
+                                    <div class="info-row"><span>Trạng thái:</span><strong style="color: #15803d;">${res.statusLabel}</strong></div>
+                                    <div class="info-row"><span>Thời hạn cam kết xử lý (SLA):</span><strong>Trong vòng 24 giờ</strong></div>
+                                    <div style="margin-top: 8px; font-size: 13px; color: #475569;">
+                                        Bộ phận CSKH Beta Cinemas sẽ kiểm tra đối soát và gửi thông báo qua email/SĐT của bạn.
+                                    </div>
+                                    <div style="margin-top: 15px; text-align: center;">
+                                        <a href="support-tracking.html?ticketId=${res.ticketId}" class="btn btn-primary">
+                                            👉 THEO DÕI TIẾN ĐỘ PHIẾU NÀY
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        resultBox.style.display = 'block';
+                    }
+                } catch (err) {
+                    resultBox.innerHTML = `
+                        <div class="claim-alert alert-danger">
+                            ❌ ${err.message || 'Lỗi khi gửi phiếu khiếu nại. Vui lòng thử lại sau.'}
+                        </div>
+                    `;
+                    resultBox.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'GỬI KHIẾU NẠI ĐẾN CSKH';
                 }
             };
         })();
