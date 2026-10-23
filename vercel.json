@@ -1,6 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
+    "app": {
+      "root": ".",
+      "framework": "express",
+      "entrypoint": "server.js",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "api",
+          "format": "url",
+          "env": "API_URL"
+        }
+      ]
+    },
     "api": {
       "root": "api",
       "framework": "express",
@@ -21,23 +34,8 @@
     }
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "api"
-      }
-    },
-    {
-      "source": "/sepay/(.*)",
-      "destination": {
-        "service": "api"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "api"
-      }
-    }
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/sepay/(.*)", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "app" } }
   ]
 }

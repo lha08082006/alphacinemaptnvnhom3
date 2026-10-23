@@ -1,24 +1,29 @@
 /**
  * Server chính của dự án Beta Cinemas.
  * Hỗ trợ 2 chế độ:
- * 1. Chế độ Vercel Services (khi có process.env.API_URL):
- *    Đóng vai trò service 'app' phục vụ Frontend tĩnh, các route thân thiện,
+ * 1. Chế độ Frontend / Vercel Services (service 'app'):
+ *    Phục vụ toàn bộ giao diện tĩnh Frontend, các route HTML thân thiện,
  *    và chuyển tiếp (proxy) các request API nội bộ sang service 'api' qua process.env.API_URL.
- * 2. Chế độ Monolith Local (khi chạy độc lập không có API_URL):
+ * 2. Chế độ Monolith Local (khi chạy độc lập không qua Vercel):
  *    Khởi chạy server tích hợp trọn gói từ api/src/server.js.
  */
 'use strict';
 
-if (process.env.API_URL) {
-  const path = require('path');
-  const express = require('express');
+const path = require('path');
+const express = require('express');
+
+// Chạy service 'app' nếu có API_URL hoặc đang chạy trên Vercel
+if (process.env.API_URL || process.env.VERCEL) {
   const app = express();
   const PORT = process.env.PORT || 3000;
 
   // Phục vụ tài nguyên tĩnh Frontend
   app.use(express.static(path.join(__dirname)));
 
-  // Route alias thân thiện cho giao diện web
+  // Trang chủ và các route HTML thân thiện
+  app.get('/', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
   app.get('/dang-nhap', (_req, res) => {
     res.sendFile(path.join(__dirname, 'dang-nhap.html'));
   });
@@ -38,8 +43,15 @@ if (process.env.API_URL) {
     res.sendFile(path.join(__dirname, 'admin', 'login.html'));
   });
 
-  // Chuyển tiếp các request gọi API nội bộ tới service 'api' thông qua biến binding API_URL
+  // Chuyển tiếp các request gọi API nội bộ tới service 'api' thông qua biến binding API_URL (nếu có)
   app.use('/api', async (req, res) => {
+    if (!process.env.API_URL) {
+      return res.status(502).json({
+        ok: false,
+        error: { code: 'API_URL_MISSING', message: 'Chưa cấu hình binding API_URL' },
+      });
+    }
+
     try {
       const targetUrl = new URL(`/api${req.url}`, process.env.API_URL);
       const headers = { ...req.headers };
@@ -72,13 +84,14 @@ if (process.env.API_URL) {
     }
   });
 
-  const server = app.listen(PORT, () => {
-    console.log(`[app service] Frontend đang chạy tại cổng ${PORT} (API_URL=${process.env.API_URL})`);
-  });
+  if (!process.env.VERCEL && require.main === module) {
+    const server = app.listen(PORT, () => {
+      console.log(`[app service] Frontend đang chạy tại cổng ${PORT}`);
+    });
+    app.server = server;
+  }
 
-  app.server = server;
   module.exports = app;
 } else {
   module.exports = require('./api/src/server.js');
 }
-
