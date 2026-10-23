@@ -11,7 +11,7 @@ const API_BASE =
   typeof window !== 'undefined' &&
   window.location &&
   (window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
-  (window.location.port === '4000' || isProductionDomain)
+  (window.location.port === '4000' || window.location.port === '3000' || isProductionDomain)
     ? `${window.location.origin}/api/v1`
     : 'http://127.0.0.1:4000/api/v1';
 

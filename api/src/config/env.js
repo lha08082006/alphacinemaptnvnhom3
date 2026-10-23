@@ -17,12 +17,19 @@ const csvList = (defaultValue) =>
     .default(defaultValue)
     .transform((s) => s.split(',').map((x) => x.trim()).filter(Boolean));
 
+const appBaseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'http://localhost:4000';
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   DB_FILE: z.string().min(1).default(path.join('data', 'beta.sqlite')),
   CORS_ORIGINS: csvList('http://127.0.0.1:5500,http://localhost:5500'),
-  GATEWAY_BASE_URL: z.string().url('phải là URL hợp lệ').default('http://127.0.0.1:4100'),
+  GATEWAY_BASE_URL: z
+    .string()
+    .url('phải là URL hợp lệ')
+    .default(process.env.PAYMENT_DEMO_URL || 'http://127.0.0.1:4100'),
   WEBHOOK_SECRET: z.string().min(16, 'phải dài ít nhất 16 ký tự').default('dev_webhook_secret_change_me_0123'),
   WEBHOOK_TOLERANCE_SEC: z.coerce.number().int().positive().default(300),
   JWT_SECRET: z.string().min(16, 'phải dài ít nhất 16 ký tự').default('dev_jwt_secret_change_me_0123456789'),
@@ -34,15 +41,15 @@ const schema = z.object({
   VNPAY_HASH_SECRET: z.string().min(1, 'phải có ít nhất 1 ký tự').default('RAOCTQKWZTYAEGISKBLWTRAAILXUANMD'),
   VNPAY_URL: z.string().url('phải là URL hợp lệ').default('https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),
   VNPAY_API_URL: z.string().url('phải là URL hợp lệ').default('https://sandbox.vnpayment.vn/merchant_webapi/api/transaction'),
-  VNPAY_RETURN_URL: z.string().url('phải là URL hợp lệ').default('http://localhost:4000/api/v1/payment/vnpay/return'),
+  VNPAY_RETURN_URL: z.string().url('phải là URL hợp lệ').default(`${appBaseUrl}/api/v1/payment/vnpay/return`),
   VNPAY_TRUST_RETURN: z.enum(['true', 'false']).default('false'),
 
   // Cấu hình cổng thanh toán SePay (Sandbox)
   SEPAY_MERCHANT_ID: z.string().default('SP-TEST-LH272A54'),
   SEPAY_SECRET_KEY: z.string().default('spsk_test_QmTCuBKcB4kdQvMX6mNAT3jZ2BWESmML'),
   SEPAY_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
-  SEPAY_RETURN_URL: z.string().url().default('http://localhost:4000/result.html'),
-  SEPAY_CANCEL_URL: z.string().url().default('http://localhost:4000/result.html?error=cancelled'),
+  SEPAY_RETURN_URL: z.string().url().default(`${appBaseUrl}/result.html`),
+  SEPAY_CANCEL_URL: z.string().url().default(`${appBaseUrl}/result.html?error=cancelled`),
 
   // Cấu hình Gemini AI
   GEMINI_API_KEY: z.string().optional(),
