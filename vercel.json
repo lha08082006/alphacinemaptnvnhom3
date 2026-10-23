@@ -4,6 +4,7 @@
     "app": {
       "root": ".",
       "runtime": "node",
+      "entrypoint": "server.js",
       "bindings": [
         {
           "type": "service",
@@ -16,6 +17,7 @@
     "api": {
       "root": "api",
       "framework": "express",
+      "entrypoint": "src/server.js",
       "bindings": [
         {
           "type": "service",
@@ -27,7 +29,8 @@
     },
     "beta-payment-demo": {
       "root": "beta-payment-demo",
-      "framework": "express"
+      "framework": "express",
+      "entrypoint": "server.js"
     }
   },
   "rewrites": [

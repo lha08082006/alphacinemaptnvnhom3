@@ -76,7 +76,8 @@ if (process.env.API_URL) {
     console.log(`[app service] Frontend đang chạy tại cổng ${PORT} (API_URL=${process.env.API_URL})`);
   });
 
-  module.exports = server;
+  app.server = server;
+  module.exports = app;
 } else {
   module.exports = require('./api/src/server.js');
 }

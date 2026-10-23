@@ -67,3 +67,5 @@ function shutdown(signal) {
 
 process.on('SIGINT', shutdown); // Ctrl+C trong PowerShell
 process.on('SIGTERM', shutdown);
+
+module.exports = app;
