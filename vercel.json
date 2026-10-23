@@ -1,6 +1,43 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "api": {
+      "root": "api",
+      "framework": "express",
+      "entrypoint": "src/server.js",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "beta-payment-demo",
+          "format": "url",
+          "env": "GATEWAY_BASE_URL"
+        }
+      ]
+    },
+    "beta-payment-demo": {
+      "root": "beta-payment-demo",
+      "framework": "express",
+      "entrypoint": "server.js"
+    }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.js" }
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/sepay/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    }
   ]
 }
