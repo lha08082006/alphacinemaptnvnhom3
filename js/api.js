@@ -7,8 +7,13 @@ const isProductionDomain =
   window.location.hostname !== 'localhost' &&
   window.location.hostname !== '127.0.0.1';
 
-const API_BASE =
+const customBackendUrl =
   typeof window !== 'undefined' &&
+  (window.BACKEND_API_URL || window.ENV_BACKEND_URL || (typeof localStorage !== 'undefined' && localStorage.getItem('BACKEND_API_URL')));
+
+const API_BASE = customBackendUrl
+  ? customBackendUrl.replace(/\/+$/, '') + '/api/v1'
+  : typeof window !== 'undefined' &&
   window.location &&
   (window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
   (window.location.port === '4000' || window.location.port === '3000' || isProductionDomain)

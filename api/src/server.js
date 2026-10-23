@@ -33,24 +33,27 @@ async function bootstrap() {
     }
   }
 
-  server = app.listen(env.PORT, () => {
-    logger.info('server_started', {
-      service: 'beta-api',
-      env: env.NODE_ENV,
-      port: env.PORT,
-      health: `http://localhost:${env.PORT}/api/v1/health`,
+  // Chỉ mở cổng HTTP khi chạy độc lập qua CLI (Local), không listen khi chạy serverless trên Vercel
+  if (!process.env.VERCEL && require.main === module) {
+    server = app.listen(env.PORT, () => {
+      logger.info('server_started', {
+        service: 'beta-api',
+        env: env.NODE_ENV,
+        port: env.PORT,
+        health: `http://localhost:${env.PORT}/api/v1/health`,
+      });
+      scheduler.start();
     });
-    scheduler.start();
-  });
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      logger.error(`Cổng ${env.PORT} đang bị chương trình khác dùng. Đổi PORT trong api\\.env hoặc tắt chương trình đó.`);
-    } else {
-      logger.error('server_error', { cause: err.message });
-    }
-    process.exit(1);
-  });
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        logger.error(`Cổng ${env.PORT} đang bị chương trình khác dùng. Đổi PORT trong api\\.env hoặc tắt chương trình đó.`);
+      } else {
+        logger.error('server_error', { cause: err.message });
+      }
+      process.exit(1);
+    });
+  }
 }
 
 bootstrap();

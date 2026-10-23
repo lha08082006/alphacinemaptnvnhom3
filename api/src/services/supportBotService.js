@@ -154,7 +154,65 @@ function cleanExpiredSessions() {
     }
   }
 }
-setInterval(cleanExpiredSessions, 10 * 60 * 1000).unref();
+
+if (!process.env.VERCEL) {
+  setInterval(cleanExpiredSessions, 10 * 60 * 1000).unref();
+}
+
+/**
+ * Tải phiên chat từ cơ sở dữ liệu (phục vụ môi trường Serverless khi instance khởi động lại).
+ */
+async function loadPersistedSession(id) {
+  try {
+    const hasTable = await knex.schema.hasTable('support_chat_sessions');
+    if (!hasTable) return null;
+    const row = await knex('support_chat_sessions').where({ session_id: id }).first();
+    if (!row) return null;
+    if (Date.now() - Number(row.last_active_at) > SESSION_TTL_MS) return null;
+
+    return {
+      id: row.session_id,
+      chat: aiProvider.createChatSession({
+        systemInstruction: SYSTEM_PROMPT,
+        tools: TOOL_DECLARATIONS,
+        history: [],
+      }),
+      verifiedOrderId: row.verified_order_id || null,
+      verifiedContact: row.verified_contact || null,
+      messageCount: row.message_count || 0,
+      createdTicket: row.created_ticket_json ? JSON.parse(row.created_ticket_json) : null,
+      lastActiveAt: Number(row.last_active_at),
+    };
+  } catch (err) {
+    logger.warn('load_persisted_session_failed', { id, cause: err.message });
+    return null;
+  }
+}
+
+/**
+ * Lưu trạng thái phiên chat vào cơ sở dữ liệu Knex để phục hồi trên bất kỳ serverless instance nào.
+ */
+async function savePersistedSession(session) {
+  try {
+    if (!session || !session.id) return;
+    const hasTable = await knex.schema.hasTable('support_chat_sessions');
+    if (!hasTable) return;
+    await knex('support_chat_sessions')
+      .insert({
+        session_id: session.id,
+        verified_order_id: session.verifiedOrderId || null,
+        verified_contact: session.verifiedContact || null,
+        message_count: session.messageCount,
+        created_ticket_json: session.createdTicket ? JSON.stringify(session.createdTicket) : null,
+        last_active_at: session.lastActiveAt,
+        created_at: new Date().toISOString(),
+      })
+      .onConflict('session_id')
+      .merge(['verified_order_id', 'verified_contact', 'message_count', 'created_ticket_json', 'last_active_at']);
+  } catch (err) {
+    logger.warn('save_persisted_session_failed', { id: session.id, cause: err.message });
+  }
+}
 
 function getOrCreateSession(sessionId) {
   cleanExpiredSessions();
@@ -573,7 +631,17 @@ const TOOL_MAP = {
  * @returns {Promise<{reply: string, ticket?: object}>}
  */
 async function processUserMessage(sessionId, userMessage) {
-  const session = getOrCreateSession(sessionId);
+  const id = sessionId && sessionId.trim() ? sessionId.trim() : ids.newOrderId();
+  let session = sessionsMap.get(id);
+  if (!session) {
+    session = await loadPersistedSession(id);
+    if (session) {
+      sessionsMap.set(id, session);
+    }
+  }
+  if (!session) {
+    session = getOrCreateSession(id);
+  }
 
   // 1. Kiểm tra giới hạn số lượt tin nhắn mỗi phiên
   if (session.messageCount >= MAX_TURNS_PER_SESSION) {
@@ -640,6 +708,9 @@ async function processUserMessage(sessionId, userMessage) {
 
     const reply = currentResponse?.text || 'Em có thể giúp gì thêm cho Quý khách về vé hoặc thanh toán tại Beta Cinemas không ạ?';
 
+    session.lastActiveAt = Date.now();
+    await savePersistedSession(session);
+
     return {
       reply,
       ticket: session.createdTicket || undefined,
@@ -650,6 +721,9 @@ async function processUserMessage(sessionId, userMessage) {
       error: error.message,
       code: error.code,
     });
+
+    session.lastActiveAt = Date.now();
+    await savePersistedSession(session);
 
     // Yêu cầu 7: Nếu gọi mô hình lỗi hoặc quá 20 giây, trả câu dự phòng kèm hotline
     return {

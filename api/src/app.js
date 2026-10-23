@@ -35,11 +35,46 @@ function createApp() {
   app.use(requestId); // đặt đầu tiên để cả lỗi parse JSON cũng có requestId
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieParser());
+
+  const allowedOrigins = Array.isArray(env.CORS_ORIGINS) ? env.CORS_ORIGINS : [env.CORS_ORIGINS];
   app.use(
     cors({
-      origin: env.CORS_ORIGINS,
+      origin: function (origin, callback) {
+        // Cho phép request không có header Origin (curl, server-to-server, mobile apps, same-origin)
+        if (!origin) return callback(null, true);
+
+        // Cho phép tất cả nếu có ký tự wildcard '*'
+        if (allowedOrigins.includes('*')) {
+          return callback(null, true);
+        }
+
+        // So khớp chính xác hoặc qua wildcard (*.vercel.app, https://*.vercel.app)
+        const isAllowed = allowedOrigins.some((allowed) => {
+          if (allowed === origin) return true;
+          if (allowed.startsWith('*.')) {
+            return origin.endsWith(allowed.slice(2));
+          }
+          if (allowed.includes('://*.')) {
+            const [, suffix] = allowed.split('://*.');
+            try {
+              const u = new URL(origin);
+              return u.hostname.endsWith(suffix);
+            } catch {
+              return false;
+            }
+          }
+          return false;
+        });
+
+        if (isAllowed || (process.env.VERCEL && origin.endsWith('.vercel.app'))) {
+          return callback(null, true);
+        }
+
+        logger.warn('cors_blocked', { origin, allowedOrigins });
+        return callback(new Error(`CORS policy blocked access from origin: ${origin}`));
+      },
       credentials: true, // cần cho cookie httpOnly (BE-02)
-      allowedHeaders: ['Content-Type', 'X-Request-Id', IDEMPOTENCY.HEADER],
+      allowedHeaders: ['Content-Type', 'X-Request-Id', IDEMPOTENCY.HEADER, 'Authorization'],
       exposedHeaders: ['X-Request-Id'],
     })
   );
@@ -108,6 +143,29 @@ function createApp() {
     } catch (err) {
       return res.status(500).json({ error: err && err.message });
     }
+  });
+
+  // Root endpoint trả trạng thái JSON khi truy cập trực tiếp Backend URL
+  app.get('/', (_req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'beta-api',
+      message: 'Beta Cinemas Backend Express API is running',
+      version: require('../../package.json').version || '0.1.0',
+      health: '/api/v1/health',
+      endpoints: {
+        health: '/api/v1/health',
+        showtimes: '/api/v1/showtimes',
+        movies: '/api/v1/movies',
+        orders: '/api/v1/orders',
+        support_chat: '/api/v1/support/chat',
+      },
+    });
+  });
+
+  // Health check alias tại /health
+  app.get('/health', (_req, res) => {
+    res.redirect('/api/v1/health');
   });
 
   app.use(express.static(path.join(__dirname, '..', '..')));
