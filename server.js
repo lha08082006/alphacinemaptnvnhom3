@@ -1,7 +1,7 @@
 /**
  * Server chính của dự án Beta Cinemas.
  * Hỗ trợ 2 chế độ:
- * 1. Chế độ Frontend / Vercel Services (service 'app'):
+ * 1. Chế độ Frontend / Vercel Services (service 'frontend'):
  *    Phục vụ toàn bộ giao diện tĩnh Frontend, các route HTML thân thiện,
  *    và chuyển tiếp (proxy) các request API nội bộ sang service 'api' qua process.env.API_URL.
  * 2. Chế độ Monolith Local (khi chạy độc lập không qua Vercel):
@@ -12,26 +12,29 @@
 const path = require('path');
 const express = require('express');
 
-// Chạy service 'app' nếu có API_URL hoặc đang chạy trên Vercel
+// Chạy service 'frontend' nếu có API_URL hoặc đang chạy trên Vercel
 if (process.env.API_URL || process.env.VERCEL) {
   const app = express();
   const PORT = process.env.PORT || 3000;
 
-  // Phục vụ tài nguyên tĩnh Frontend
-  app.use(express.static(path.join(__dirname)));
+  // Phục vụ tài nguyên tĩnh Frontend (hỗ trợ tự động nhận diện đuôi .html)
+  app.use(express.static(path.join(__dirname), { extensions: ['html', 'htm'] }));
 
-  // Trang chủ và các route HTML thân thiện
+  // Trang chủ và các route HTML giao diện khách hàng
   app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
   });
-  app.get('/dang-nhap', (_req, res) => {
+  app.get(['/dang-nhap', '/login'], (_req, res) => {
     res.sendFile(path.join(__dirname, 'dang-nhap.html'));
   });
   app.get('/booking', (_req, res) => {
     res.sendFile(path.join(__dirname, 'booking.html'));
   });
   app.get('/seats', (_req, res) => {
-    res.redirect('/booking');
+    res.sendFile(path.join(__dirname, 'seats.html'));
+  });
+  app.get('/combo', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'combo.html'));
   });
   app.get('/checkout', (_req, res) => {
     res.sendFile(path.join(__dirname, 'checkout.html'));
@@ -39,8 +42,28 @@ if (process.env.API_URL || process.env.VERCEL) {
   app.get('/result', (_req, res) => {
     res.sendFile(path.join(__dirname, 'result.html'));
   });
+  app.get('/my-orders', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'my-orders.html'));
+  });
+  app.get('/support', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'support.html'));
+  });
+  app.get('/support-tracking', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'support-tracking.html'));
+  });
+  app.get('/faq', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'faq.html'));
+  });
+  app.get('/inbox', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'inbox.html'));
+  });
+
+  // Giao diện Quản trị viên (Admin)
   app.get(['/admin', '/admin/login'], (_req, res) => {
     res.sendFile(path.join(__dirname, 'admin', 'login.html'));
+  });
+  app.get('/admin/dashboard', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'admin', 'index.html'));
   });
 
   // Chuyển tiếp các request gọi API nội bộ tới service 'api' thông qua biến binding API_URL (nếu có)
@@ -86,7 +109,7 @@ if (process.env.API_URL || process.env.VERCEL) {
 
   if (!process.env.VERCEL && require.main === module) {
     const server = app.listen(PORT, () => {
-      console.log(`[app service] Frontend đang chạy tại cổng ${PORT}`);
+      console.log(`[frontend service] Frontend đang chạy tại cổng ${PORT}`);
     });
     app.server = server;
   }

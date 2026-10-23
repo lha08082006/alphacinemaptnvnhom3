@@ -1441,12 +1441,28 @@ app.get('/admin/reports', (_req, res) => res.sendFile(path.join(__dirname, 'publ
 app.get('/admin/settings', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'settings.html')));
 
 // Khởi chạy máy chủ HTTP tại cổng 3000
-const server = app.listen(PORT, () => {
-  console.log(`\n================================================================`);
-  console.log(`  BETA CINEMAS - DEMO LUỒNG THANH TOÁN & ĐỐI SOÁT HOÀN TIỀN`);
-  console.log(`  Giao diện khách: http://localhost:${PORT}`);
-  console.log(`  Cổng quản trị:   http://localhost:${PORT}/admin/login`);
-  console.log(`================================================================\n`);
-});
+let server = null;
+if (!process.env.VERCEL) {
+  server = app.listen(PORT, () => {
+    console.log('');
+    console.log('================================================================');
+    console.log('  BETA CINEMAS - DEMO LUỒNG THANH TOÁN & ĐỐI SOÁT HOÀN TIỀN');
+    console.log('  Giao diện khách: http://localhost:' + PORT);
+    console.log('  Cổng quản trị:   http://localhost:' + PORT + '/admin/login');
+    console.log('================================================================');
+    console.log('');
+  });
+}
 
-module.exports = { app, server, initData, orders, gatewayTxns, config, users, refunds, supportTickets, systemLogs };
+app.app = app;
+app.server = server;
+app.initData = initData;
+app.orders = orders;
+app.gatewayTxns = gatewayTxns;
+app.config = config;
+app.users = users;
+app.refunds = refunds;
+app.supportTickets = supportTickets;
+app.systemLogs = systemLogs;
+
+module.exports = app;
