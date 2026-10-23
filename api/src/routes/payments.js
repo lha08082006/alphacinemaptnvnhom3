@@ -344,4 +344,23 @@ router.post('/vnpay/refund', async (req, res) => {
   }
 });
 
+/**
+ * GET /payments/mock/txn/:txnRef
+ * Tra cứu thông tin giao dịch từ mock payment gateway (beta-payment-demo) thông qua Vercel binding GATEWAY_BASE_URL.
+ */
+router.get('/mock/txn/:txnRef', async (req, res) => {
+  try {
+    const { txnRef } = req.params;
+    const targetUrl = new URL(`/api/gateway/txn/${encodeURIComponent(txnRef)}`, env.GATEWAY_BASE_URL);
+    const response = await fetch(targetUrl);
+    if (!response.ok) {
+      return res.status(response.status).json({ ok: false, error: 'Không tìm thấy giao dịch trên cổng giả lập' });
+    }
+    const data = await response.json();
+    return res.json({ ok: true, data });
+  } catch (err) {
+    return res.status(502).json({ ok: false, error: err.message });
+  }
+});
+
 module.exports = router;

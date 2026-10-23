@@ -4,7 +4,7 @@
   "private": true,
   "description": "Demo Beta Cinemas - giao dịch treo, đối soát và hoàn tiền tự động (frontend + api + gateway-mock)",
   "scripts": {
-    "start": "node api/src/server.js",
+    "start": "node server.js",
     "setup": "npm install && npm --prefix api install && npm --prefix gateway-mock install",
     "dev": "npm --prefix api run dev",
     "dev:all": "concurrently -k -n api,gateway -c blue,magenta \"npm:dev:api\" \"npm:dev:gateway\"",
